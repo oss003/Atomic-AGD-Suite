@@ -1249,7 +1249,7 @@ proshr:
 	sta z80_i
 
 	lda #NUMSHR		; shrapnel pieces to process.
-	sta z80_b
+	sta shrctr
 prosh0:
 	ldy #0
 	lda (z80_ix),y		; on/off marker.
@@ -1265,9 +1265,11 @@ proshx:
 	bcc :+
 	inc z80_i
 :
-	dec z80_b		; round again.
+	dec shrctr		; round again.
 	bne prosh0
 	jmp scrly
+
+shrctr:	.byte 0
 
 ;----------------------------------------------------
 ; Proces shrapnel piece
@@ -1603,7 +1605,7 @@ trailk:
 laser:
 	ldy #1
 	lda (z80_ix),y 		; direction.
-	lsr a 			; left or right?
+	ror a 			; left or right?
 	bcs :+
 	jmp laserl		; move left.
 :
@@ -1702,11 +1704,11 @@ shoot1:
 	ldy #3
 	sta (z80_ix),y		; set y coordinate.
 
-	lsr z80_c		; check direction we want.
+	ror z80_c		; check direction we want.
 	bcc :+
 	jmp shootr		; shoot right.
 :
-	lda z80_h		; y position.
+	lda z80_h		; X position.
 shoot0:
 	and #248		; align on character boundary.
 	ldy #5
@@ -4621,9 +4623,10 @@ tded:
 	lda (z80_ix),y 		; x coordinate.
 	sta dispx		; coords in dispx,dispy.
 	jsr tstbl		; get map address.
-
+	pha
 	ldx #31			; default distance to next line down.
 	stx z80_e
+	pla
 	cmp z80_b		; is this the required block?
 	bne :+
 	rts			; yes.
@@ -4705,7 +4708,7 @@ tded1:
 	adc z80_e
 	sta bufaddr
 	bcc :+
-	inc z80_h
+	inc bufaddr+1
 :
 	ldy #0
 	lda (bufaddr),y 	; fetch left cell block.
