@@ -1402,7 +1402,7 @@ dotu:
 	lda (z80_ix),y
 	sec
 	sbc #1		 	; move up.
-	sta (z80_ix+3),y
+	sta (z80_ix),y
 	rts
 dotd:
 	ldy #3
@@ -1414,35 +1414,49 @@ dotd:
 
 ;----------------------------------------------------
 ; Check coordinates are good before redrawing at new position.
+;
+; left:   X>L		X=L	Ok
+; right:  R+15>X	X=R	Ok
+; top:    Y>T		Y=T	Ok
+; bottom: B+15>Y	Y=B	Ok
 ;----------------------------------------------------
 
 chkxy:
+
+; top:    Y>T		Y=T	Ok
+
 	ldy #3
 	lda (z80_ix),y	 	; fetch shrapnel coordinate.
 	cmp wntopx		; window top.
 	bcs :+			; compare with top window limit.
 	jmp kilshr		; out of window, kill shrapnel.
 :
+; left:   X>L		X=L	Ok
+
 	ldy #5
 	lda (z80_ix),y	 	; fetch shrapnel coordinate.
 	cmp wnlftx		; left edge.
 	bcs :+			; compare with left window limit.
 	jmp kilshr		; out of window, kill shrapnel.
 :
-	ldy #3
-	lda (z80_ix),y	 	; fetch shrapnel coordinate.
+; bottom: B+15>Y	Y=B	Ok
+
+	lda wnbotx		; point to bottom.
 	clc
-	adc #15			; add height of sprite.
-	cmp wnbotx		; point to bottom.
-	bcc :+			; compare with shrapnel x coordinate.
+	adc #15
+	ldy #3
+	cmp (z80_ix),y	 	; fetch shrapnel coordinate.
+	bcs :+			; compare with shrapnel x coordinate.
 	jmp kilshr		; off screen, kill shrapnel..
 :
-	ldy #5
-	lda (z80_ix),y	 	; fetch shrapnel coordinate.
+; right:  R+15>X	X=R	Ok
+
+	lda wnrgtx		; point to right edge.
 	clc
-	adc #15			; add width of sprite.
-	cmp wnrgtx		; point to right edge.
-	bcc :+			; compare with window limit.
+	adc #15
+	ldy #5
+	cmp (z80_ix),y	 	; fetch shrapnel coordinate.
+	bcs :+			; compare with window limit.
 	jmp kilshr		; off screen, kill shrapnel.
 :
 
@@ -1910,7 +1924,6 @@ fpslt0:
 ;----------------------------------------------------
 
 explod:
-	rts
 	sta z80_c 		; particles to create.
 
 	lda z80_i 		; store pointer to sprite.
@@ -1935,7 +1948,7 @@ explod:
 expld0:
 	ldy #0
 	lda (z80_ix),y		; get type.
-	asl z80_a 		; is this slot in use?
+	asl a 			; is this slot in use?
 	bcs expld1		; no, we can use it.
 expld2:
 	clc
