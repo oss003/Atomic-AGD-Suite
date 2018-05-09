@@ -4,4 +4,4 @@ AGD suite for converting, compiling and running AGD games on an Acorn Atom
 * BUILD DODGY m p s, conditional compiles the AGD file, assembles it and runs it in an Atom emulator
 * (m = add code for Menu/Inventory)
 * (p = add code for Particles)
-* (s = add code for Scrollytex)t
+* (s = add code for Scrollytext)
