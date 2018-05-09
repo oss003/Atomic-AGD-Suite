@@ -11,7 +11,7 @@ DEFINEMESSAGES
     "$"
     "BY:;J.BLYTHE"
     "x"
-    ";KEY;BLUE;;CRYSTAL;BLUCRYSTAL;REDCRYSTAL;GRN;;KEY;RED;;;KEY;PINK;;;;LADDER;;;;;;BOMB;;;;;THE;CUBE;;;THE;SKULL;;PIT;PLANT;;;;ROCK;;;;EXTRA;LIFE;EXTRA;LIFE;;;A;SEED;;;;;BALLOON;;;PICK;AXE;;;;BRICKS;;;;ICE;DRILL;;;SPLICER;;"
+    ";KEY;BLUE;;,CRYSTAL;BLU,CRYSTAL;RED,CRYSTAL;GRN,;;KEY;RED;;,;KEY;PINK;;,;;LADDER;;;,;;;BOMB;;;;,;THE;CUBE;;,;THE;SKULL;,;PIT;PLANT;,;;;ROCK;;;;,EXTRA;LIFE;,EXTRA;LIFE;,;;A;SEED;;;,;;BALLOON;;,;PICK;AXE;;,;;BRICKS;;;,;ICE;DRILL;,;;SPLICER;;"
     "z"
     "WELL;DONE;FOGGY!!"
     ";;;;;;;;w___________x__y;;;.;.;;;;;;@;;;;;;;;;;;;;;@;;;;;;;;z;;;CONTROLS;;;@;.;;;;;.;;@;;;;;;;;;;;;;;@;;;;;;.;;;;.;;;@;;1;KEYBOARD;;z;;;;;;;;@;;2;KEMPSTON;;@;;;;;;;;z;;3;SINCLAIR;;@;;;;.;;;;;;.;@;;;;;;;;;;;;;;@;;;;;.;;.;;;;;`_xx___________$;;.;;;;;;;;;;KEYS:O,P,Q,A;;;;;;;;;;;;;;;I-INV.;;;;;;;;;;;;;;;SPC-JUMP"
@@ -1548,7 +1548,7 @@ ENDIF
 IF DEADLY
     LET Y O
     LET X P
-    KILL
+    ;kill
 ENDIF
 
 
@@ -1787,7 +1787,7 @@ IF C = 0
 ENDIF
 ANIMATE
 IF COLLISION 0
-    KILL
+    ;kill
 ENDIF
 
 
@@ -1814,12 +1814,8 @@ ELSE
         BEEP 35
     ENDIF
 ENDIF
-; warning - ENDIF without IF?
-ENDIF
-; warning - ENDIF without IF?
-ENDIF
 IF COLLISION 0
-    KILL
+    ;kill
 ENDIF
 IF IMAGE 3
     SPRITEINK 70
@@ -1878,8 +1874,6 @@ IF COLLISION 0
         ENDIF
     ENDIF
 ENDIF
-; warning - ENDIF without IF?
-ENDIF
 
 
 EVENT SPRITETYPE6
@@ -1917,7 +1911,7 @@ IF SETTINGA = 0
     ENDIF
 ENDIF
 IF COLLISION 0
-    KILL
+    ;kill
 ENDIF
 IF IMAGE = 8
     SPRITEINK 6

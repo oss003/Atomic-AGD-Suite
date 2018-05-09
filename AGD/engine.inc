@@ -69,9 +69,10 @@
 
 ; Conditional compilation flags
 
-	mflag = 1 		; MENU + INV
-	pflag = 1		; Particle engine
-	sflag = 0		; scrollytext
+;	mflag = 0 		; MENU + INV
+;	pflag = 0		; Particle engine
+;	sflag = 0		; scrollytext
+	fflag = 1		; Fontflag
 
 ;===============================================================
 ; Game starts here
@@ -252,6 +253,8 @@ dbox6:
 	lda z80_a		; reached end of line?
 	cmp #','
 	beq dbox3		; yes.
+	cmp #13
+	beq dbox3		; yes.
 	inc z80_b		; add to this line"s width.
 	lda z80_a
 	bmi dbox4		; end of message? yes, end count.
@@ -333,9 +336,10 @@ dbox0:
 	ldy #0			; get character.
 	lda (z80_hl),y
 	cmp #','		; end of line?
-	bne :+
-	jmp dbox1		; yes, next one.
-:
+	beq dbox1		; yes, next one.
+	cmp #13			; end of line?
+	beq dbox1		; yes, next one.
+
 	dec z80_b		; one less to display.
 	and #127		; remove terminator.
 
@@ -369,9 +373,9 @@ dbox9:
 	inc z80_h
 :
 	cmp #','		; another line?
-	bne :+
-	jmp dbox10		; yes, do next line.
-:
+	beq dbox10		; yes, do next line.
+	cmp #13			; another line?
+	beq dbox10		; yes, do next line.
 	cmp #128		; end of message?
 	bcs :+
 	jmp dbox11		; yes, finish message.
@@ -474,6 +478,11 @@ dbox13:
 	bne :+
 	jmp dbox2		; yes, do next line.
 :
+	cmp #13			; another line?
+	bne :+
+	jmp dbox2		; yes, do next line.
+:
+
 	bpl :+			; end of message?
 	jmp dbox11		; yes, finish message.
 :
@@ -563,17 +572,16 @@ fopt:
 fopt0:
 	jsr fobj		; find next object in inventory.
 	dec tmp+2
-	beq :+
-	jmp fopt0		; repeat for relevant steps down the list.
-:
+	bne fopt0		; repeat for relevant steps down the list.
+
 	lda combyt		; get option.
 	sta varopt		; store the option.
 	dec varopt		; one less, due to where we increment combyt.
 	jmp redraw		; redraw the screen.
 fobj:
-	lda combyt		; object number.
+	ldy combyt		; object number.
 	inc combyt		; ready for next item.
-	cmp #0
+	cpy #0
 	bne :+			; in case we loop back to zero.
 	rts
 :
@@ -2154,10 +2162,13 @@ setsa0:
 	lda scraddr
 	sta SCADTB_lb,y		; write low byte.
 	lda scraddr+1
+	cpy #192		; vertical lines on screen.
+	bcc :+
+	ora #40
+:
 	sta SCADTB_hb,y		; write high byte.
 	jsr nline		; next line down.
 	iny			; next position in table.
-	cpy #193		; vertical lines on screen.
 	bne setsa0
 	
 ; Init graphics mode
@@ -2459,40 +2470,21 @@ inisc0:
 ;  D = second number
 ;
 ; Output:
-;  HL = result H x D
+;  H = result H x D
 ;-----------------------------------------------------
 
 imul:
-	lda z80_d		; HL = H * D
-	sta z80_e
-	lda z80_h
-	sta z80_c		; make c first multiplier.
+	ldy #8			; repeat 8 times.
 imul0:
-	lda #0			; zeroise total.
-	sta z80_l
-	sta z80_h
-
-	lda z80_h
-	sta z80_d		; zeroise high byte.
-
-	ldx #8			; repeat 8 times.
+	asl a			; shift carry in result
+	asl z80_h		; shift h 1 bit left.
+	bcc imul1		; carry wasn't set.
+	clc
+	adc z80_d		; bit was set, so add d.
 imul1:
-	lsr z80_c		; rotate rightmost bit into carry.
-	bcc imul2		; wasn't set.
-	clc			; bit was set, so add de.
-	lda z80_l
-	adc z80_e
-	sta z80_l
-	lda z80_h
-	adc z80_d
-	sta z80_h
-	clc 			; reset carry.
-imul2:
-	asl z80_e 		; shift de 1 bit left.
-	rol z80_d
-	dex
-	bne imul1		; repeat 8 times.
-
+	dey
+	bne imul0		; repeat 8 times.
+	sta z80_h		; save result
 	rts
 
 ;-----------------------------------------------
@@ -2508,9 +2500,8 @@ imul2:
 ;-----------------------------------------------
 
 idiv:
-	lda #8		 	; bits to shift.
-	sta z80_b
 	lda #0
+	ldy #8		 	; bits to shift.
 	asl z80_d
 idiv0:
 	rol a 			; multiply d by 2.
@@ -2519,7 +2510,7 @@ idiv0:
 	sbc z80_e		; subtract it.
 idiv1:
 	rol z80_d		; rotate into d.
-	dec z80_b
+	dey
 	bne idiv0		; repeat
 	rts
 
@@ -5017,9 +5008,7 @@ dmsg3:
 	jsr preprt		; pre-printing stuff.
 	jsr checkx		; make sure we"re in a printable range.
 	lda prtmod		; print mode.
-	beq :+			; standard size?
-	jmp bmsg1		; no, double-height text.
-:
+	bne bmsg1		; no, double-height text.
 dmsg0:
 	lda z80_h		; store string pointer.
 	pha
@@ -5030,13 +5019,9 @@ dmsg0:
 	lda (z80_hl),y		; fetch byte to display.
 	and #127		; remove any end marker.
 	cmp #13
-	bne :+
-	lda #0
-	sta dispx
-	jmp dmsg4 
-:	jsr pchar		; display character.
+	beq dmsg1
+	jsr pchar		; display character.
 	jsr nexpos 		; display position.
-dmsg4:
 	bne dmsg2		; not on a new line.
 	jsr nexlin		; next line down.
 dmsg2:
@@ -5056,6 +5041,17 @@ dmsg2:
 	inc z80_h
 :
 	jmp dmsg0
+dmsg1:
+	inc dispy
+	lda dispy
+	cmp #24
+	bcc dmsg4
+	lda #0
+	sta dispy
+dmsg4:
+	lda #0
+	sta dispx
+	jmp dmsg2
 
 prtmod:	.byte 0            	; print mode, 0 = standard, 1 = double-height.
 
@@ -5070,7 +5066,10 @@ bmsg1:
 	ldy #0
 	lda (z80_hl),y 		; get character to display.
 	and #127		; only want 7 bits.
+	cmp #13
+	beq bmsg2
 	jsr bchar 		; display big char.
+bmsg3:
 	ldy #0
 	lda (z80_hl),y 		; look at last character.
 	pha
@@ -5083,7 +5082,17 @@ bmsg1:
 	bcc bmsg1		; no, keep going.
 :
 	rts
-
+bmsg2:
+	lda #0
+	sta dispx
+	inc dispy
+	inc dispy
+	lda dispy
+	cmp #23
+	bcc bmsg3
+	lda #0
+	sta dispy
+	jmp bmsg3
 
 ;----------------------------------------------------------
 ; Big character display.
@@ -5140,6 +5149,7 @@ bchar0:
 	jsr nexpos		; display position.
 	bne bchar2 		; not on a new line.
 bchar3:
+	inc dispy
 	jsr nexlin 		; next line check.
 bchar2:
 	jmp dscor2		; tidy up line and column variables.
@@ -5175,10 +5185,11 @@ nexpos:
 	lda dispx 		; get coordinate.
 	cmp #32
 	bcc :+
-;	inc dispy
 	lda #0			; reached edge of screen?
 	sta dispx		; set new position.
+	rts 			; return with status in zero flag.
 :
+	lda #1
 	rts 			; return with status in zero flag.
 
 ;-------------------------------------------------
@@ -6665,57 +6676,39 @@ clw1:
 .if sflag
 scrly:
 	rts
-	.byte <txtscr         	; get screen address.
+	.word txtscr         	; get screen address.
 	sta z80_l
-	lda #>txtscr
+	lda txtscr+1
 	sta z80_h
+	sta z80_d
 
-	lda #8			; 8 pixel rows.
-	sta z80_b
-
-	lda z80_h 		; store screen address.
-	pha
+	clc			; DE is screenaddress
 	lda z80_l
-	pha
+	adc txtwid		; + textwide
+	sta z80_e
+;	dec z80_e
+	
+;	lda #8			; 8 pixel rows.
+;	sta z80_b
 scrly1:
-	lda z80_b		; store rows on stack.
-	pha
-	lda z80_c
-	pha
+	ldy txtwid		; characters wide.
 
-	lda z80_h
-	pha
-	lda z80_l
-	pha
-
-	lda txtwid 		; characters wide.
-	sta z80_b		; put into the loop counter.
+	clc
 scrly0:
-	ldy #0
 	lda (z80_hl),y 		; rotate left.
 	rol a
 	sta (z80_hl),y
-	dec z80_l 		; char left.
-	dec z80_b
-	beq :+
-	jmp scrly0		; repeat for width of ticker message.
-:
-	pla
+	dey	 		; char left.
+	bpl scrly0		; repeat for width of ticker message.
+
+	clc			; next row down.
+	lda z80_l
+	adc #32
 	sta z80_l
-	pla
-	sta z80_h
 
-	inc z80_h		; next row down.
+;	dec z80_b
+	bcc scrly1 		; repeat for all rows.
 
-	pla
-	sta z80_c 		; retrieve row counter from stack.
-	pla
-	sta z80_b
-
-	dec z80_b
-	beq :+
-	jmp scrly1 		; repeat for all rows.
-:
 	lda txtpos 		; get text pointer.
 	sta z80_l
 	lda txtpos+1
@@ -6730,73 +6723,51 @@ scrly0:
 :
 	lda #32			; convert to a space instead.
 scrly5:
-	rol a
-	rol a
-	rol a 			; multiply by 8 to find char.
-	sta z80_b 		; store shift in b.
-	and #3 			; keep within 768-byte range of font.
-	sta z80_d		; that's our high byte.
+	sta fntaddr
+	lda #0
+	sta fntaddr+1
+	asl fntaddr  		; multiply char by 8.
+	rol fntaddr+1
+	asl fntaddr
+	rol fntaddr+1
+	asl fntaddr
+	rol fntaddr+1
 
-	lda z80_b 		; restore the shift.
-	and #248
-	sta z80_e
+	lda fntaddr
+	clc
+	adc FontPtr
+	sta fntaddr		; that's the low byte.
+	lda fntaddr+1
+	adc FontPtr+1
+	sta fntaddr+1		; add displacement.
 
-	lda FontPtr 		; font address.
-	sta z80_l
-	lda FontPtr+1
-	sta z80_h
-
-	jsr add_hl_de 		; point to image of character.
-	jsr ex_de_hl 		; need the address in de.
-
-	pla
-	sta z80_l
-	pla
-	sta z80_h
-
-	lda txtbit
-	sta z80_c
 	lda #8
 	sta z80_b
 scrly3:
 	ldy #0
-	lda (z80_de),y 		; get image of char line.
-	and z80_c		; test relevant bit of char.
-	bne :+
-	jmp scrly2 		; not set - skip.
-:
-	ldy #0
-	lda (z80_hl),y		; set bit.
+	lda (fntaddr),y 	; get image of char line.
+	and txtbit
+	beq scrly2
+	lda (z80_de),y
 	clc
 	adc #1
-	sta (z80_hl),y
+	sta (z80_de),y
 scrly2:
-	inc z80_h 		; next line of window.
-
-	inc z80_e		; next line of char.
+	inc fntaddr		; next line of char.
 	bne :+
+	inc fntaddr+1
+:
+	clc
+	lda z80_e 		; next line of window.
+	adc #32
+	sta z80_e
+	bcc :+
 	inc z80_d
 :
-	dec z80_b
-	beq :+
-	jmp scrly3
-:
-	lda #<(txtbit) 		; bit of text to display.
-	sta z80_l
-	lda #>(txtbit)
-	sta z80_h
+	lsr txtbit		; bit of text to display.
 
-	ldy #0
-	lda (z80_hl),y 		; next bit of char to use.
-	ror a
-	sta (z80_hl),y
-	bcs :+
-	rts			; not reached end of character yet.
-:
-	lda txtpos 		; text pointer.
-	sta z80_l
-	lda txtpos+1
-	sta z80_h
+	dec z80_b
+	bne scrly3
 
 	inc z80_l 		; next character in message.
 	bne :+
@@ -6852,35 +6823,23 @@ iscrly:
 	lda z80_h
 	sta txtini+1
 
-	lda #169		; code for lda #(nn).
+	lda #173		; code for lda adrr
 iscrl0:
 	sta scrly		; enable/disable scrolling routine.
 
 	jsr prescr 		; set up display position.
 	jsr gprad 		; get print address.
 
-	clc
-	lda scraddr
-	adc z80_b		; add width.
-	sta scraddr		; width in b so copy to hl.
-	dec scraddr 		; width minus one.
-
 	lda scraddr 		; set text screen address.
 	sta txtscr
 	lda scraddr+1
 	sta txtscr+1
 
-	lda z80_b		; width.
+	lda z80_c		; width.
 	sta txtwid		; set width in working storage.
 
-	lda #<txtbit		; bit of text to display.
-	sta z80_l
-	lda #>txtbit
-	sta z80_h
-
 	lda #128 		; start with leftmost bit.
-	ldy #0
-	sta (z80_hl),y
+	sta txtbit
 
 	jmp scrly4
 .endif
@@ -7221,12 +7180,15 @@ user:
 ; Missing vars 
 ;----------------------------------------------------
 
-MAP:		.res 3*256	; properties map buffer.
+;MAP:		.res 3*256	; properties map buffer.
+;SCADTB_lb:	.res 193	; screen address table, just below map.
+;SCADTB_hb:	.res 193
+;SHRAPN:		.res 55*6	; shrapnel table, just below screen address table.
 
-SCADTB_lb:	.res 193	; screen address table, just below map.
-SCADTB_hb:	.res 193
-
-SHRAPN:		.res 55*6	; shrapnel table, just below screen address table.
+MAP 		= $9a00
+SCADTB_lb 	= MAP+3*256
+SCADTB_hb 	= SCADTB_lb+256
+SHRAPN 		= SCADTB_hb+256
 
 FontPtr:	.byte 0,0
 TmpAddr:	.byte 0,0
