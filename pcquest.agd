@@ -1631,11 +1631,11 @@ IF OBJ = 255
 ELSE
     IF OBJ = 61
         GET OBJ
-        SOUND 2
+        ; 2
         REPEAT 100
             EXPLODE 100
             SCORE 2
-            COLOUR 68
+            ; 68
             LET LINE = 21
             LET COLUMN = 24
             SHOWSCORE
@@ -1645,45 +1645,45 @@ ELSE
         IF OBJ = 57
             ADD 1 TO LIVES
             GET OBJ
-            SOUND 5
+            ; 5
             EXPLODE 30
             REPEAT 25
                 SCORE 10
-                COLOUR 68
+                ; 68
                 LET LINE = 21
                 LET COLUMN = 24
                 SHOWSCORE
             ENDREPEAT
             LET LINE = 21
             LET COLUMN = 8
-            COLOUR 68
+            ; 68
             DISPLAY LIVES
         ELSE
             IF OBJ = 47
                 ADD 1 TO LIVES
                 GET OBJ
-                SOUND 5
+                ; 5
                 EXPLODE 30
                 REPEAT 25
                     SCORE 10
-                    COLOUR 68
+                    ; 68
                     LET LINE = 21
                     LET COLUMN = 24
                     SHOWSCORE
                 ENDREPEAT
                 LET LINE = 21
                 LET COLUMN = 8
-                COLOUR 68
+                ; 68
                 DISPLAY LIVES
             ELSE
                 IF OBJ = 69
                     ADD 1 TO LIVES
                     GET OBJ
-                    SOUND 5
+                    ; 5
                     EXPLODE 30
                     REPEAT 25
                         SCORE 10
-                        COLOUR 68
+                        ; 68
                         LET LINE = 21
                         LET COLUMN = 24
                         SHOWSCORE
@@ -1695,11 +1695,11 @@ ELSE
                     IF OBJ = 90
                         ADD 1 TO LIVES
                         GET OBJ
-                        SOUND 5
+                        ; 5
                         EXPLODE 30
                         REPEAT 25
                             SCORE 10
-                            COLOUR 68
+                            ; 68
                             LET LINE = 21
                             LET COLUMN = 24
                             SHOWSCORE
@@ -1709,11 +1709,11 @@ ELSE
                         DISPLAY LIVES
                     ELSE
                         GET OBJ
-                        SOUND 2
+                        ; 2
                         EXPLODE 12
                         REPEAT 50
                             SCORE 2
-                            COLOUR 68
+                            ; 68
                             LET LINE = 21
                             LET COLUMN = 24
                             SHOWSCORE
@@ -1730,7 +1730,7 @@ IF KEY RIGHT
         IF A = 0
             ANIMATE
             IF FRAME = 3
-                SOUND 3
+                ; 3
             ENDIF
         ENDIF
         SPRITERIGHT
@@ -1742,7 +1742,7 @@ IF KEY LEFT
         IF A = 0
             ANIMATE
             IF FRAME = 3
-                SOUND 3
+                ; 3
             ENDIF
         ENDIF
         SPRITELEFT
@@ -1750,7 +1750,7 @@ IF KEY LEFT
 ENDIF
 IF KEY FIRE
     JUMP 7
-    SOUND 4
+    ; 4
 ENDIF
 IF CANGODOWN
     FALL
@@ -1776,6 +1776,8 @@ ELSE
 ENDIF
 IF A = 0
     ANIMATE
+ENDIF
+; warning - ENDIF without IF?
 ENDIF
 IF COLLISION 0
     KILL
@@ -1899,8 +1901,8 @@ EVENT MAINLOOP2
 
 
 EVENT INTROMENU
-BORDER 0
-COLOUR 4
+; 0
+; 4
 CLS
 LET LINE = 0
 LET COLUMN = 3
@@ -1964,9 +1966,9 @@ LET COLUMN = 27
 PUTBLOCK 1
 LET LINE = 2
 LET COLUMN = 8
-COLOUR 202
+; 202
 MESSAGE 34
-COLOUR 6
+; 6
 LET COLUMN = 5
 LET LINE = 6
 MESSAGE 35
@@ -1976,24 +1978,24 @@ MESSAGE 36
 LET COLUMN = 5
 LET LINE = 10
 MESSAGE 37
-COLOUR 4
+; 4
 LET LINE = 13
 LET COLUMN = 0
 MESSAGE 38
 LET LINE = 21
 LET COLUMN = 0
-COLOUR 7
+; 7
 MESSAGE 39
 WAITKEY
 
 
 EVENT GAMEINIT
 LET LIVES = 3
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET A = 0
-COLOUR 68
+; 68
 LET LINE = 21
 LET COLUMN = 2
 MESSAGE 1
@@ -2011,7 +2013,7 @@ SHOWSCORE
 EVENT RESTARTSCREEN
 LET COLUMN = 0
 LET LINE = 0
-COLOUR 6
+; 6
 LET M = SCREEN
 ADD 4 TO M
 MESSAGE M
@@ -2023,27 +2025,27 @@ ENDIF
 
 
 EVENT KILLPLAYER
-SOUND 6
+; 6
 SUBTRACT 1 FROM LIVES
 LET LINE = 21
 LET COLUMN = 8
-COLOUR 68
+; 68
 DISPLAY LIVES
 IF LIVES = 0
     DELAY 100
     CLS
     LET LINE = 6
     LET COLUMN = 11
-    COLOUR 2
+    ; 2
     MESSAGE 0
-    COLOUR 5
+    ; 5
     LET LINE = 10
     LET COLUMN = 8
     MESSAGE 2
     LET LINE = 10
     LET COLUMN = 17
     SHOWSCORE
-    COLOUR 7
+    ; 7
     LET COLUMN = 3
     LET LINE = 21
     MESSAGE 40
@@ -2060,9 +2062,9 @@ DELAY 150
 CLS
 LET LINE = 6
 LET COLUMN = 0
-COLOUR 6
+; 6
 MESSAGE 3
-COLOUR 7
+; 7
 LET COLUMN = 8
 LET LINE = 12
 MESSAGE 2
@@ -2073,8 +2075,8 @@ LET LINE = 18
 LET COLUMN = 2
 MESSAGE 40
 REPEAT 50
-    SOUND 6
-    SOUND 7
+    ; 6
+    ; 7
 ENDREPEAT
 WAITKEY
 

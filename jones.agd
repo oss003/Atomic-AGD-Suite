@@ -824,7 +824,7 @@ IF KEY RIGHT
             SPRITERIGHT
         ENDIF
         IF FRAME = 2
-            BEEP 10
+            ; 10
         ENDIF
     ENDIF
 ENDIF
@@ -847,7 +847,7 @@ IF KEY LEFT
             SPRITELEFT
         ENDIF
         IF FRAME = 2
-            BEEP 10
+            ; 10
         ENDIF
     ENDIF
 ENDIF
@@ -858,7 +858,7 @@ IF KEY UP
             ANIMATE
         ENDIF
         IF FRAME = 2
-            BEEP 10
+            ; 10
         ENDIF
         SPRITEUP
     ENDIF
@@ -870,13 +870,13 @@ IF KEY DOWN
             ANIMATE
         ENDIF
         IF FRAME = 2
-            BEEP 10
+            ; 10
         ENDIF
         SPRITEDOWN
     ENDIF
 ENDIF
 IF KEY FIRE
-    BEEP 30
+    ; 30
     JUMP 7
 ENDIF
 IF CANGODOWN
@@ -886,13 +886,13 @@ IF CANGODOWN
     ENDIF
 ENDIF
 IF DEADLY
-    BEEP 50
+    ; 50
     KILL
 ENDIF
 
 
 EVENT SPRITETYPE1
-SPRITEINK 6
+; 6
 IF A = 0
     IF SETTINGA = 0
         IF CANGOUP
@@ -915,7 +915,7 @@ ENDIF
 
 
 EVENT SPRITETYPE2
-SPRITEINK 4
+; 4
 IF SETTINGA = 0
     IF CANGOLEFT
         LET IMAGE = 1
@@ -954,7 +954,7 @@ ENDIF
 
 
 EVENT SPRITETYPE3
-SPRITEINK 68
+; 68
 IF SETTINGA = 0
     IF CANGOLEFT
         LET IMAGE = 3
@@ -993,7 +993,7 @@ ENDIF
 
 EVENT SPRITETYPE4
 IF A = 0
-    SPRITEINK 6
+    ; 6
     IF SETTINGA = 0
         IF CANGOLEFT
             SPRITELEFT
@@ -1041,22 +1041,22 @@ IF E = 1
     ENDIF
 ENDIF
 IF B = 0
-    SPRITEINK 71
+    ; 71
 ENDIF
 IF B = 1
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF B = 2
-    SPRITEINK 66
+    ; 66
 ENDIF
 IF COLLISION 0
-    SPRITEINK 71
+    ; 71
     REMOVE
     SCORE 10
-    BEEP 40
+    ; 40
     LET LINE = 23
     LET COLUMN = 25
-    COLOUR 69
+    ; 69
     SHOWSCORE
     IF SCREEN 0
         LET C = 1
@@ -1071,7 +1071,7 @@ ENDIF
 
 
 EVENT SPRITETYPE6
-SPRITEINK 6
+; 6
 IF A = 0
     IF SETTINGA = 0
         IF CANGOLEFT
@@ -1119,7 +1119,7 @@ IF SCREEN 3
         LET F = 0
         IF G = 0
             LET G = 1
-            BEEP 15
+            ; 15
             LET LINE = 14
             LET COLUMN = 23
             PUTBLOCK 105
@@ -1167,30 +1167,30 @@ LET E = 0
 LET F = 0
 LET G = 0
 LET H = 5
-COLOUR 0
-BORDER 0
+; 0
+; 0
 CLS
 LET LINE = 0
 LET COLUMN = 0
-COLOUR 1
+; 1
 MESSAGE 1
 REPEAT 21
     MESSAGE 2
 ENDREPEAT
 MESSAGE 3
-COLOUR 6
+; 6
 LET LINE = 23
 LET COLUMN = 1
 MESSAGE 8
-COLOUR 5
+; 5
 LET LINE = 23
 LET COLUMN = 19
 MESSAGE 9
-COLOUR 69
+; 69
 LET LINE = 23
 LET COLUMN = 25
 SHOWSCORE
-COLOUR 70
+; 70
 LET LINE = 23
 LET COLUMN = 7
 DISPLAY H
@@ -1199,18 +1199,18 @@ DISPLAY H
 EVENT RESTARTSCREEN
 LET LINE = 23
 LET COLUMN = 7
-COLOUR 70
+; 70
 DISPLAY H
-COLOUR 1
+; 1
 LET LINE = 0
 LET COLUMN = 0
 MESSAGE 1
-COLOUR 6
+; 6
 IF SCREEN 0
     LET LINE = 0
     LET COLUMN = 6
     MESSAGE 5
-    BEEP 100
+    ; 100
 ENDIF
 IF SCREEN 1
     LET LINE = 0

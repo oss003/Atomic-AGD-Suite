@@ -38,7 +38,7 @@ DEFINEMESSAGES
     "POTION FOUND!"
     ">"
     "PRESS SPACE TO BEGIN...."
-    """ 2015 EGOTRIP"
+    " 2015 EGOTRIP"
     "JEWEL FOUND!"
     "TO BE CONTINUED....."
     ""
@@ -1513,7 +1513,7 @@ ENDMAP
 
 
 EVENT PLAYER
-SPRITEINK 3
+; 3
 IF SCREEN 0
     IF KEY FIRE
         SCREENDOWN
@@ -1646,9 +1646,9 @@ ELSE
     IF KEY FIRE
         IF GOT 8
             IF L = 0
-                BEEP 10
-                BEEP 20
-                BEEP 30
+                ; 10
+                ; 20
+                ; 30
                 LET L = 24
                 SPAWN 7 10
             ENDIF
@@ -1657,10 +1657,10 @@ ELSE
     DETECTOBJ
     IF OBJ <> 255
         GET OBJ
-        BEEP 100
+        ; 100
         LET LINE = 21
         LET COLUMN = 1
-        COLOUR 7
+        ; 7
         IF OBJ = 1
             LET F = 17
         ENDIF
@@ -1722,21 +1722,21 @@ ENDIF
 
 
 EVENT SPRITETYPE1
-SPRITEINK 6
+; 6
 ANIMATE
 IF SCREEN 22
-    SPRITEINK 13
+    ; 13
 ENDIF
 IF SCREEN = 17
-    SPRITEINK 13
+    ; 13
 ENDIF
 IF SCREEN = 28
-    SPRITEINK 5
+    ; 5
 ENDIF
 IF COLLISION 0
-    BEEP 10
-    BEEP 20
-    BEEP 10
+    ; 10
+    ; 20
+    ; 10
     DELAY 10
     IF K > 10
         SUBTRACT 10 FROM K
@@ -1752,12 +1752,12 @@ ENDIF
 IF GOT 9
     IF KEY FIRE2
         IF SCREEN 30
-            BEEP 75
+            ; 75
             LET F = 26
             REMOVE
         ENDIF
         IF SCREEN 29
-            BEEP 75
+            ; 75
             LET F = 26
             REMOVE
         ENDIF
@@ -1766,7 +1766,7 @@ ENDIF
 
 
 EVENT SPRITETYPE2
-SPRITEINK 2
+; 2
 IF SETTINGA = 0
     SUBTRACT 1 FROM SETTINGB
     LET SETTINGA = 50
@@ -1775,7 +1775,7 @@ IF SETTINGB = 0
     REMOVE
 ENDIF
 IF COLLISION 0
-    BEEP 100
+    ; 100
     ADD 10 TO K
     REMOVE
 ENDIF
@@ -1788,7 +1788,7 @@ IF SCREEN 2
     ENDIF
 ENDIF
 IF SCREEN 3
-    SPRITEINK 1
+    ; 1
     IF KEY FIRE2
         IF GOT 1
             LET F = 5
@@ -1797,7 +1797,7 @@ IF SCREEN 3
     ENDIF
 ENDIF
 IF SCREEN 4
-    SPRITEINK 2
+    ; 2
     IF KEY FIRE2
         IF GOT 2
             LET F = 6
@@ -1811,7 +1811,7 @@ IF SCREEN 5
     ENDIF
 ENDIF
 IF SCREEN = 6
-    SPRITEINK 5
+    ; 5
     IF KEY FIRE2
         IF GOT 5
             LET F = 9
@@ -1825,7 +1825,7 @@ IF SCREEN 7
     ENDIF
 ENDIF
 IF SCREEN 8
-    SPRITEINK 4
+    ; 4
     IF KEY FIRE2
         IF GOT 4
             LET F = 8
@@ -1834,7 +1834,7 @@ IF SCREEN 8
     ENDIF
 ENDIF
 IF SCREEN 15
-    SPRITEINK 3
+    ; 3
     IF KEY FIRE2
         IF GOT 3
             LET F = 7
@@ -1843,7 +1843,7 @@ IF SCREEN 15
     ENDIF
 ENDIF
 IF SCREEN 19
-    SPRITEINK 7
+    ; 7
     IF KEY FIRE2
         IF GOT 7
             LET F = 11
@@ -1852,7 +1852,7 @@ IF SCREEN 19
     ENDIF
 ENDIF
 IF SCREEN 21
-    SPRITEINK 6
+    ; 6
     IF KEY FIRE2
         IF GOT 6
             LET F = 10
@@ -1864,9 +1864,9 @@ ENDIF
 
 EVENT SPRITETYPE4
 IF SCREEN 25
-    SPRITEINK 2
+    ; 2
     IF COLLISION 0
-        BEEP 10
+        ; 10
         SUBTRACT 10 FROM K
         RESTART
     ENDIF
@@ -1877,7 +1877,7 @@ IF SCREEN 25
         ENDSPRITE
     ENDIF
 ELSE
-    SPRITEINK 6
+    ; 6
     GETRANDOM 3
     IF RND = 1
         ANIMATE
@@ -1921,7 +1921,7 @@ ELSE
         ENDIF
     ENDIF
     IF COLLISION 7
-        BEEP 30
+        ; 30
         SUBTRACT 1 FROM SETTINGB
         OTHER
         REMOVE
@@ -1929,7 +1929,7 @@ ELSE
     ENDIF
     IF SETTINGB = 1
         IF B = 1
-            SPRITEINK 2
+            ; 2
         ENDIF
     ENDIF
     IF SETTINGB = 0
@@ -1942,7 +1942,7 @@ ELSE
     ENDIF
     IF COLLISION 0
         IF B = 1
-            BEEP 10
+            ; 10
             SUBTRACT 1 FROM K
         ENDIF
     ENDIF
@@ -1950,7 +1950,7 @@ ENDIF
 
 
 EVENT SPRITETYPE5
-SPRITEINK 1
+; 1
 IF SCREEN <> 20
     IF SETTINGA = 0
         IF CANGOLEFT
@@ -2026,12 +2026,12 @@ ENDIF
 ANIMATE
 IF COLLISION 0
     IF B = 1
-        BEEP 10
+        ; 10
         SUBTRACT 1 FROM K
     ENDIF
 ENDIF
 IF COLLISION 7
-    BEEP 30
+    ; 30
     SUBTRACT 1 FROM SETTINGB
     OTHER
     REMOVE
@@ -2039,7 +2039,7 @@ IF COLLISION 7
 ENDIF
 IF SETTINGB = 1
     IF B = 1
-        SPRITEINK 2
+        ; 2
     ENDIF
 ENDIF
 IF SETTINGB = 0
@@ -2053,7 +2053,7 @@ ENDIF
 
 
 EVENT SPRITETYPE6
-SPRITEINK 7
+; 7
 IF SCREEN 2
     IF I = 4
         IF GOT 1
@@ -2097,7 +2097,7 @@ ENDIF
 
 
 EVENT SPRITETYPE7
-SPRITEINK 5
+; 5
 IF SETTINGA = 1
     IF CANGODOWN
         SPRITEDOWN
@@ -2149,13 +2149,13 @@ ENDIF
 
 
 EVENT SPRITETYPE8
-SPRITEINK 6
+; 6
 IF COLLISION 0
     IF SETTINGA = 0
         IF C = 2
             IF CANGOUP
                 IF Y > 16
-                    BEEP 10
+                    ; 10
                     SPRITEUP
                     LET SETTINGA = 1
                 ENDIF
@@ -2164,7 +2164,7 @@ IF COLLISION 0
         IF C = 1
             IF CANGODOWN
                 IF Y <= 143
-                    BEEP 10
+                    ; 10
                     SPRITEDOWN
                     LET SETTINGA = 1
                 ENDIF
@@ -2173,7 +2173,7 @@ IF COLLISION 0
         IF C = 3
             IF CANGOLEFT
                 IF X > 16
-                    BEEP 10
+                    ; 10
                     SPRITELEFT
                     LET SETTINGA = 1
                 ENDIF
@@ -2182,7 +2182,7 @@ IF COLLISION 0
         IF C = 4
             IF CANGORIGHT
                 IF X <= 239
-                    BEEP 10
+                    ; 10
                     SPRITERIGHT
                     LET SETTINGA = 1
                 ENDIF
@@ -2252,43 +2252,43 @@ IF SCREEN > 0
     IF K <= 99
         LET LINE = 22
         LET COLUMN = 4
-        COLOUR 7
+        ; 7
         MESSAGE 13
     ENDIF
     IF K <= 9
         LET LINE = 22
         LET COLUMN = 4
-        COLOUR 2
+        ; 2
         MESSAGE 13
     ENDIF
     IF K > 99
         LET LINE = 22
         LET COLUMN = 4
-        COLOUR 7
+        ; 7
         DISPLAY K
     ENDIF
     IF K <= 9
         LET LINE = 22
         LET COLUMN = 6
-        COLOUR 2
+        ; 2
         DISPLAY K
     ELSE
         IF K <= 99
             LET LINE = 22
             LET COLUMN = 5
-            COLOUR 7
+            ; 7
             DISPLAY K
         ENDIF
     ENDIF
     IF H <= 9
-        COLOUR 7
+        ; 7
         LET LINE = 22
         LET COLUMN = 14
         DISPLAY H
     ELSE
         LET LINE = 22
         LET COLUMN = 13
-        COLOUR 7
+        ; 7
         DISPLAY H
     ENDIF
     IF L > 0
@@ -2297,78 +2297,78 @@ IF SCREEN > 0
     IF GOT 1
         LET LINE = 22
         LET COLUMN = 23
-        COLOUR 1
+        ; 1
         MESSAGE 2
     ENDIF
     IF GOT 2
         LET LINE = 22
         LET COLUMN = 24
-        COLOUR 2
+        ; 2
         MESSAGE 2
     ENDIF
     IF GOT 3
         LET LINE = 22
         LET COLUMN = 25
-        COLOUR 3
+        ; 3
         MESSAGE 2
     ENDIF
     IF GOT 4
         LET LINE = 22
         LET COLUMN = 26
-        COLOUR 4
+        ; 4
         MESSAGE 2
     ENDIF
     IF GOT 5
         LET LINE = 22
         LET COLUMN = 27
-        COLOUR 5
+        ; 5
         MESSAGE 2
     ENDIF
     IF GOT 6
         LET LINE = 22
         LET COLUMN = 28
-        COLOUR 6
+        ; 6
         MESSAGE 2
     ENDIF
     IF GOT 7
         LET LINE = 22
         LET COLUMN = 29
-        COLOUR 7
+        ; 7
         MESSAGE 2
     ENDIF
     IF GOT 8
         LET LINE = 21
         LET COLUMN = 29
-        COLOUR 6
+        ; 6
         MESSAGE 27
     ENDIF
     IF GOT 9
         LET LINE = 21
         LET COLUMN = 27
-        COLOUR 5
+        ; 5
         MESSAGE 28
     ENDIF
     IF GOT 10
         LET LINE = 21
         LET COLUMN = 25
         IF D = 1
-            COLOUR 4
+            ; 4
         ELSE
-            COLOUR 2
+            ; 2
         ENDIF
         MESSAGE 34
     ENDIF
     IF F > 0
         LET LINE = 21
         LET COLUMN = 1
-        COLOUR 0
+        ; 0
         MESSAGE 32
-        BEEP 25
-        BEEP 50
-        BEEP 75
+        ; 25
+        ; 50
+        ; 75
         LET LINE = 21
         LET COLUMN = 1
-        COLOUR 7
+        ; 7
         MESSAGE F
         LET F = 0
     ENDIF
@@ -2379,25 +2379,25 @@ EVENT MAINLOOP2
 IF SCREEN 0
     LET LINE = 3
     LET COLUMN = 6
-    COLOUR 4
+    ; 4
     MESSAGE 29
     LET LINE = 4
     LET COLUMN = 10
-    COLOUR 2
+    ; 2
     MESSAGE 30
     LET LINE = 6
     LET COLUMN = 7
-    COLOUR 6
+    ; 6
     PRINTMODE 1
     MESSAGE 31
     PRINTMODE 0
     LET LINE = 16
     LET COLUMN = 4
-    COLOUR 4
+    ; 4
     MESSAGE 35
     LET LINE = 17
     LET COLUMN = 8
-    COLOUR 3
+    ; 3
     MESSAGE 36
 ENDIF
 IF SCREEN 27
@@ -2431,7 +2431,7 @@ LET P = 0
 
 
 EVENT RESTARTSCREEN
-COLOUR 6
+; 6
 CLS
 IF SCREEN > 0
     LET LINE = 20
@@ -2454,11 +2454,11 @@ IF SCREEN > 0
     MESSAGE 16
     LET LINE = 22
     LET COLUMN = 2
-    COLOUR 2
+    ; 2
     MESSAGE 4
     LET LINE = 22
     LET COLUMN = 11
-    COLOUR 7
+    ; 7
     MESSAGE 3
 ENDIF
 LET L = 0
@@ -2485,11 +2485,11 @@ DELAY 50
 
 EVENT COMPLETEDGAME
 ; FADE
-COLOUR 0
+; 0
 CLS
 LET LINE = 12
 LET COLUMN = 6
-COLOUR 7
+; 7
 MESSAGE 38
 DELAY 245
 

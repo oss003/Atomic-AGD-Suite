@@ -1698,7 +1698,7 @@ IF KEY RIGHT
         LET IMAGE = 1
         ANIMATE
         IF FRAME = 2
-            BEEP 25
+            ; 25
         ENDIF
         SPRITERIGHT
     ENDIF
@@ -1709,7 +1709,7 @@ IF KEY LEFT
         LET IMAGE = 0
         ANIMATE
         IF FRAME = 2
-            BEEP 25
+            ; 25
         ENDIF
         SPRITELEFT
     ENDIF
@@ -1718,7 +1718,7 @@ IF KEY DOWN
     IF CANGODOWN
         ANIMATE
         IF FRAME = 2
-            BEEP 40
+            ; 40
         ENDIF
         SPRITEDOWN
     ENDIF
@@ -1727,14 +1727,14 @@ IF KEY UP
     IF CANGOUP
         ANIMATE
         IF FRAME = 2
-            BEEP 50
+            ; 50
         ENDIF
         SPRITEUP
     ENDIF
 ENDIF
 IF KEY FIRE
     IF F = 0
-        BEEP 150
+        ; 150
         LASER DIRECTION
         LET F = 100
     ENDIF
@@ -1745,7 +1745,7 @@ IF COLLISION 4
     KILL
 ENDIF
 IF DEADLY
-    BEEP 60
+    ; 60
     KILL
 ENDIF
 DETECTOBJ
@@ -1756,23 +1756,23 @@ ENDIF
 IF OBJ = 0
     LET LINE = 23
     LET COLUMN = 2
-    COLOUR 3
+    ; 3
     MESSAGE 10
-    COLOUR 5
+    ; 5
 ENDIF
 IF OBJ = 1
     LET LINE = 23
     LET COLUMN = 2
-    COLOUR 3
+    ; 3
     MESSAGE 10
-    COLOUR 5
+    ; 5
 ENDIF
 IF OBJ = 2
     LET LINE = 23
     LET COLUMN = 5
-    COLOUR 2
+    ; 2
     MESSAGE 10
-    COLOUR 5
+    ; 5
 ENDIF
 IF SCREEN = 0
     LET IMAGE = 4
@@ -1792,7 +1792,7 @@ ENDIF
 EVENT SPRITETYPE1
 IF COLLISION 10
     EXPLODE 8
-    BEEP 120
+    ; 120
     LET G = 1
     REMOVE
     SCORE 250
@@ -1813,7 +1813,7 @@ ELSE
         ADD 1 TO SETTINGB
     ENDIF
 ENDIF
-SPRITEINK SETTINGB
+; SETTINGB
 
 
 EVENT SPRITETYPE2
@@ -1855,7 +1855,7 @@ IF COLLISION 0
     KILL
 ENDIF
 IF COLLISION 10
-    BEEP 80
+    ; 80
     EXPLODE 10
     REMOVE
     SCORE 75
@@ -1864,7 +1864,7 @@ IF COLLISION 10
     SHOWSCORE
 ENDIF
 IF G = 1
-    BEEP 80
+    ; 80
     EXPLODE 50
     REMOVE
     SCORE 150
@@ -1875,14 +1875,14 @@ ENDIF
 
 
 EVENT SPRITETYPE3
-SPRITEINK 3
+; 3
 IF SCREEN 9
     IF COLLISION 0
         IF GOT 0
             LET H = 1
             LET LINE = 23
             LET COLUMN = 2
-            COLOUR 0
+            ; 0
             MESSAGE 10
         ENDIF
     ENDIF
@@ -1893,7 +1893,7 @@ IF SCREEN 20
             LET H = 1
             LET LINE = 23
             LET COLUMN = 2
-            COLOUR 0
+            ; 0
             MESSAGE 10
         ENDIF
     ENDIF
@@ -1904,7 +1904,7 @@ IF SCREEN 26
             LET H = 1
             LET LINE = 23
             LET COLUMN = 5
-            COLOUR 0
+            ; 0
             MESSAGE 10
         ENDIF
     ENDIF
@@ -1913,25 +1913,25 @@ IF L = 1
     SCORE 200
     LET LINE = 0
     LET COLUMN = 25
-    COLOUR 5
+    ; 5
     SHOWSCORE
     LET L = 0
 ENDIF
-COLOUR 5
+; 5
 IF SCREEN 26
-    SPRITEINK 2
+    ; 2
 ENDIF
 
 
 EVENT SPRITETYPE4
-SPRITEINK 5
+; 5
 IF J = 0
     ANIMATE
 ELSE
     ANIMBACK
 ENDIF
 IF FRAME = 9
-    BEEP 3
+    ; 3
     LET J = 1
 ENDIF
 IF FRAME = 0
@@ -1945,7 +1945,7 @@ IF SCREEN 26
             LET LINE = 0
             LET COLUMN = 25
             SHOWSCORE
-            BEEP 72
+            ; 72
             LET H = 0
             LET P = 1
         ENDIF
@@ -1959,7 +1959,7 @@ IF SCREEN 20
             LET LINE = 0
             LET COLUMN = 25
             SHOWSCORE
-            BEEP 72
+            ; 72
             LET H = 0
             LET 0 = 1
         ENDIF
@@ -1973,7 +1973,7 @@ IF SCREEN 9
             LET LINE = 0
             LET COLUMN = 25
             SHOWSCORE
-            BEEP 72
+            ; 72
             LET H = 0
             LET N = 1
         ENDIF
@@ -2005,7 +2005,7 @@ IF COLLISION 0
         LET LINE = 0
         LET COLUMN = 25
         SHOWSCORE
-        BEEP 56
+        ; 56
     ELSE
         REMOVE
         ADD 1 TO LIVES
@@ -2016,7 +2016,7 @@ IF COLLISION 0
         LET LINE = 0
         LET COLUMN = 25
         SHOWSCORE
-        BEEP 63
+        ; 63
     ENDIF
 ENDIF
 IF COLLISION 10
@@ -2031,7 +2031,7 @@ IF COLLISION 10
         LET LINE = 0
         LET COLUMN = 2
         DISPLAY LIVES
-        BEEP 36
+        ; 36
     ENDIF
 ENDIF
 
@@ -2067,7 +2067,7 @@ IF COLLISION 8
     LET COLUMN = 2
     DISPLAY LIVES
     LET D = 1
-    BEEP 120
+    ; 120
     REMOVE
 ENDIF
 
@@ -2104,11 +2104,11 @@ IF COLLISION 8
     LET COLUMN = 2
     DISPLAY LIVES
     LET D = 1
-    BEEP 121
+    ; 121
     REMOVE
 ENDIF
 IF FRAME = 1
-    BEEP 8
+    ; 8
 ENDIF
 
 
@@ -2124,7 +2124,7 @@ IF C = 1
     ANIMATE
     IF CANGOUP
         IF FRAME = 2
-            BEEP 50
+            ; 50
         ENDIF
         SPRITEUP
     ENDIF
@@ -2141,11 +2141,11 @@ IF SCREEN = 12
     IF COLLISION 0
         LET LINE = 5
         LET COLUMN = 5
-        COLOUR 85
+        ; 85
         MESSAGE 6
         DELAY 200
         LET SCREEN = 13
-        COLOUR 5
+        ; 5
         LET H = 0
         LET N = 0
     ENDIF
@@ -2155,11 +2155,11 @@ IF SCREEN = 27
     IF COLLISION 0
         LET LINE = 5
         LET COLUMN = 5
-        COLOUR 85
+        ; 85
         MESSAGE 7
         DELAY 200
         LET SCREEN = 28
-        COLOUR 5
+        ; 5
         LET H = 0
     ENDIF
 ENDIF
@@ -2168,11 +2168,11 @@ IF SCREEN = 40
     IF COLLISION 0
         LET LINE = 8
         LET COLUMN = 9
-        COLOUR 85
+        ; 85
         MESSAGE 8
         DELAY 200
         LET SCREEN = 41
-        COLOUR 5
+        ; 5
         NEXTLEVEL
     ENDIF
 ENDIF
@@ -2184,7 +2184,7 @@ IF COLLISION 10
         LET LINE = 0
         LET COLUMN = 2
         DISPLAY LIVES
-        BEEP 190
+        ; 190
     ENDIF
 ENDIF
 
@@ -2199,18 +2199,20 @@ EVENT MAINLOOP2
 
 
 EVENT INTROMENU
-COLOUR 71
+; 71
 CLS
 LET LINE = 4
 LET COLUMN = 9
+PRINTMODE 0
 MESSAGE 4
+PRINTMODE 0
 WAITKEY
 
 
 EVENT GAMEINIT
 LET LIVES = 1
-COLOUR 5
-BORDER 0
+; 5
+; 0
 CLS
 LET LINE = 0
 LET COLUMN = 12
@@ -2265,7 +2267,7 @@ DELAY 50
 EVENT COMPLETEDGAME
 LET LINE = 10
 LET COLUMN = 5
-COLOUR 85
+; 85
 MESSAGE 5
 DELAY 250
 DELAY 100

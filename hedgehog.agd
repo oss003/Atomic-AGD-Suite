@@ -1918,25 +1918,25 @@ ENDMAP
 
 
 EVENT PLAYER
-COLOUR 0
+; 0
 LET LINE 22
 LET COLUMN 10
 MESSAGE 16
-IF KEY OPTION1
+IF KEY FIRE2
     LET D = 1
 ENDIF
-IF KEY OPTION2
+IF KEY FIRE3
     LET D = 0
 ENDIF
 IF D = 0
     LET LINE 22
     LET COLUMN 7
-    COLOUR 69
+    ; 69
     DISPLAY LIVES
 ELSE
     LET LINE 22
     LET COLUMN 7
-    COLOUR 71
+    ; 71
     MESSAGE 11
 ENDIF
 IF KEY RIGHT
@@ -1989,7 +1989,7 @@ IF COLLISION 1
             LET SCREEN = 38
             RESTART
         ELSE
-            BEEP 120
+            ; 120
             LET SCREEN = 2
             RESTART
         ENDIF
@@ -1999,7 +1999,7 @@ ADD 1 TO E
 IF E = 100
     LET TYPE 5
 ENDIF
-SPRITEINK 7
+; 7
 
 
 EVENT SPRITETYPE1
@@ -2047,7 +2047,7 @@ ENDIF
 IF E = 100
     LET TYPE 4
 ENDIF
-SPRITEINK 5
+; 5
 
 
 EVENT SPRITETYPE2
@@ -2078,7 +2078,7 @@ ELSE
         LET SETTINGA = 0
     ENDIF
 ENDIF
-SPRITEINK 6
+; 6
 
 
 EVENT SPRITETYPE3
@@ -2096,11 +2096,11 @@ ELSE
     ENDIF
 ENDIF
 ANIMATE
-SPRITEINK 1
+; 1
 
 
 EVENT SPRITETYPE4
-COLOUR L
+; L
 LET LINE 22
 LET COLUMN 10
 MESSAGE 16
@@ -2127,7 +2127,7 @@ ELSE
         ENDIF
     ENDIF
 ENDIF
-SPRITEINK 5
+; 5
 
 
 EVENT SPRITETYPE5
@@ -2161,14 +2161,14 @@ LET IMAGE = 6
 ANIMATE
 ADD 1 TO SETTINGA
 DELAY 1
-BEEP 3
+; 3
 IF SETTINGA > = 4
     IF D = 0
         SUBTRACT 1 FROM LIVES
         RESTART
     ENDIF
     RESTART
-    BEEP 230
+    ; 230
 ENDIF
 IF LIVES = 0
     LET B = 0
@@ -2176,7 +2176,7 @@ IF LIVES = 0
     LET F = 3
     LET LINE 9
     LET COLUMN 12
-    COLOUR 66
+    ; 66
     PRINTMODE 1
     MESSAGE 0
     PRINTMODE 0
@@ -2184,7 +2184,7 @@ IF LIVES = 0
     ; FADE
     CLS
     DELAY 5
-    BEEP 100
+    ; 100
     LET SCREEN = 0
     RESTART
 ENDIF
@@ -2192,51 +2192,51 @@ ENDIF
 
 EVENT SPRITETYPE7
 IF SCREEN = 0
-    COLOUR 68
+    ; 68
     LET LINE 12
     LET COLUMN 17
     MESSAGE 2
-    COLOUR 66
+    ; 66
     LET LINE 14
     LET COLUMN 17
     MESSAGE 3
-    COLOUR 65
+    ; 65
     LET LINE 16
     LET COLUMN 17
     MESSAGE 17
 ENDIF
 IF SCREEN = 0
-    IF KEY OPTION1
+    IF KEY FIRE2
         ; FADE
         CLS
         DELAY 15
-        BEEP 60
+        ; 60
         LET SCREEN = 3
         RESTART
     ENDIF
 ENDIF
 IF SCREEN = 0
-    IF KEY OPTION2
-        BEEP 10
+    IF KEY FIRE3
+        ; 10
         ; FADE
         CLS
         LET SCREEN = 1
         RESTART
         REDRAW
-        COLOUR 66
+        ; 66
         LET LINE 8
         LET COLUMN 5
         MESSAGE 5
-        COLOUR 67
+        ; 67
         LET LINE 11
         LET COLUMN 5
         MESSAGE 6
-        COLOUR 71
+        ; 71
         LET LINE 14
         LET COLUMN 5
         MESSAGE 7
         WAITKEY
-        BEEP 10
+        ; 10
         ; FADE
         CLS
         LET SCREEN = 0
@@ -2245,32 +2245,32 @@ IF SCREEN = 0
 ENDIF
 IF SCREEN = 0
     IF KEY FIRE
-        BEEP 10
+        ; 10
         ; FADE
         CLS
         LET SCREEN = 2
         REDRAW
         LET LINE 1
         LET COLUMN 1
-        COLOUR 67
+        ; 67
         MESSAGE 9
         LET LINE 7
         LET COLUMN 1
         MESSAGE 10
         LET LINE 16
         LET COLUMN 1
-        COLOUR 66
+        ; 66
         MESSAGE 12
         DELAY 50
         LET LINE 22
         LET COLUMN 1
-        COLOUR 66
-;        TICKER 8 15
+        ; 66
+        TICKER 8 15
         WAITKEY
-        BEEP 10
+        ; 10
         ; FADE
         CLS
-;        TICKER 99 2
+        TICKER 99 2
         LET SCREEN = 0
         RESTART
     ENDIF
@@ -2278,36 +2278,36 @@ ENDIF
 IF SCREEN = 2
     LET LINE 10
     LET COLUMN 2
-    COLOUR 69
+    ; 69
     PRINTMODE 1
     MESSAGE 13
     PRINTMODE 0
     DELAY 70
-    BEEP 60
+    ; 60
     LET SCREEN = F
     RESTART
 ENDIF
 IF SCREEN = 38
-    COLOUR 69
+    ; 69
     LET LINE 16
     LET COLUMN 3
     MESSAGE 14
     DELAY 250
     LET LINE 22
     LET COLUMN 9
-;    TICKER 8 14
+    TICKER 8 14
     WAITKEY
-    BEEP 10
+    ; 10
     ; FADE
     CLS
-;    TICKER 99 2
+    TICKER 99 2
     LET SCREEN = 0
     RESTART
 ENDIF
 
 
 EVENT SPRITETYPE8
-SPRITEINK 4
+; 4
 ADD 1 TO SETTINGA
 IF SETTINGA > 3
     ANIMATE
@@ -2315,25 +2315,25 @@ IF SETTINGA > 3
 ENDIF
 IF COLLISION 0
     REMOVE
-    BEEP 30
+    ; 30
     ADD 1 TO B
     SUBTRACT 1 FROM A
 ELSE
     IF COLLISION 1
         REMOVE
-        BEEP 38
+        ; 38
         ADD 1 TO B
         SUBTRACT 1 FROM A
     ENDIF
 ENDIF
 IF SCREEN > 2
-    COLOUR 68
+    ; 68
     LET LINE 22
     LET COLUMN 26
     DISPLAY B
 ENDIF
 IF SCREEN = 37
-    COLOUR 96
+    ; 96
     LET LINE 1
     LET COLUMN 18
     MESSAGE 15
@@ -2372,7 +2372,7 @@ EVENT INTROMENU
 
 
 EVENT GAMEINIT
-BEEP 100
+; 100
 LET A = 0
 LET B = 0
 LET M = 0
@@ -2381,8 +2381,8 @@ LET E = 0
 LET F = 3
 LET L = 64
 LET LIVES = 5
-COLOUR 3
-BORDER 0
+; 3
+; 0
 CLS
 
 

@@ -1121,7 +1121,7 @@ IF SCREEN = 23
 ENDIF
 DETECTOBJ
 IF OBJ <> 255
-    BEEP 99
+    ; 99
     GET OBJ
     ADD 1 TO LIVES
     ADD 1 TO L
@@ -1149,7 +1149,7 @@ IF KEY RIGHT
         EXIT
     ELSE
         IF CANGORIGHT IMAGE = 0
-            IF KEY 3
+            IF KEY = 3
                 IF LADDERABOVE
                 ELSE
                     SPRITERIGHT
@@ -1191,7 +1191,7 @@ IF SETTINGA = 0
         ENDIF
         ADD 16 TO X
     ELSE
-        BEEP 35
+        ; 35
         LET SETTINGA = 1
     ENDIF
 ELSE
@@ -1203,7 +1203,7 @@ ELSE
         ENDIF
         SUBTRACT 16 FROM X
     ELSE
-        BEEP 35
+        ; 35
         LET SETTINGA = 0
     ENDIF
 ENDIF
@@ -1218,14 +1218,14 @@ IF SETTINGA = 0
     IF CANGOUP
         SPRITEUP
     ELSE
-        BEEP 18
+        ; 18
         LET SETTINGA = 1
     ENDIF
 ELSE
     IF CANGODOWN
         SPRITEDOWN
     ELSE
-        BEEP 18
+        ; 18
         LET SETTINGA = 0
     ENDIF
 ENDIF
@@ -1240,14 +1240,14 @@ IF SETTINGA = 0
     IF CANGOLEFT
         SPRITELEFT
     ELSE
-        BEEP 22
+        ; 22
         LET SETTINGA = 1
     ENDIF
 ELSE
     IF CANGORIGHT
         SPRITERIGHT
     ELSE
-        BEEP 22
+        ; 22
         LET SETTINGA = 0
     ENDIF
 ENDIF
@@ -1343,8 +1343,8 @@ EVENT GAMEINIT
 LET LIVES = 6
 LET L = LIVES
 SUBTRACT 1 FROM L
-; COLOUR 71
-; BORDER 0
+; 71
+; 0
 CLS
 LET A = 0
 LET B = 0
@@ -1368,7 +1368,7 @@ EVENT FELLTOOFAR
 
 
 EVENT KILLPLAYER
-BEEP 240
+; 240
 DELAY 50
 SUBTRACT 1 FROM LIVES
 SUBTRACT 1 FROM L
@@ -1382,7 +1382,8 @@ IF LIVES = 0
     LET COLUMN = 11
     MESSAGE 0
     DELAY 250
-ENDIF
+ENDIF        ; warning - missing ENDIF?
+
 
 EVENT LOSTGAME
 DELAY 50

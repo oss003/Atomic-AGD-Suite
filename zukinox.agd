@@ -1435,7 +1435,7 @@ ENDMAP
 
 
 EVENT PLAYER
-COLOUR 6
+; 6
 LET LINE 0
 LET COLUMN 7
 SHOWSCORE
@@ -1508,7 +1508,7 @@ ELSE
         SCORE 50
         LET LINE 20
         LET COLUMN 2
-        COLOUR 134
+        ; 134
         MESSAGE 21
     ENDIF
     IF OBJ = 25
@@ -1516,7 +1516,7 @@ ELSE
         SCORE 50
         LET LINE 20
         LET COLUMN 20
-        COLOUR 134
+        ; 134
         MESSAGE 22
     ENDIF
 ENDIF
@@ -1648,7 +1648,7 @@ ENDIF
 IF KEY FIRE
     IF SETTINGA = 0
         IF L = 0
-            BEEP 98
+            ; 98
             LET L Q
             LET SETTINGA 1
             IF IMAGE = 0
@@ -1665,12 +1665,12 @@ ENDIF
 IF KEY FIRE3
     LET LINE 1
     LET COLUMN 13
-    COLOUR 134
+    ; 134
     MESSAGE 20
     WAITKEY
     LET LINE 1
     LET COLUMN 13
-    COLOUR 6
+    ; 6
     MESSAGE 7
 ENDIF
 IF A = 0
@@ -1690,7 +1690,7 @@ ENDIF
 
 
 EVENT SPRITETYPE1
-SPRITEINK 71
+; 71
 IF IMAGE = 19
     IF SETTINGA = 0
         IF CANGOLEFT
@@ -1748,14 +1748,14 @@ ELSE
         ENDIF
     ENDIF
 ENDIF
-SPRITEINK 6
+; 6
 IF A = 0
     ANIMATE
 ENDIF
 IF COLLISION 0
     IF IMAGE = 2
         IF A = 0
-            BEEP 50
+            ; 50
             DELAY 1
             ADD 1 TO R
             LET LINE 21
@@ -1764,7 +1764,7 @@ IF COLLISION 0
             ADD 1 TO E
         ENDIF
     ELSE
-        BEEP 50
+        ; 50
         DELAY 1
         ADD 1 TO R
         LET LINE 21
@@ -1774,7 +1774,7 @@ IF COLLISION 0
     ENDIF
 ENDIF
 IF COLLISION 2
-    BEEP 50
+    ; 50
     EXPLODE 8
     IF IMAGE = 7
         OTHER
@@ -1818,9 +1818,9 @@ ENDIF
 
 EVENT SPRITETYPE2
 IF IMAGE = 20
-    SPRITEINK 70
+    ; 70
     ADD 8 TO Y
-    SPRITEINK 2
+    ; 2
     SUBTRACT 8 FROM Y
     IF A = 0
         ANIMATE
@@ -1833,7 +1833,7 @@ IF IMAGE = 21
             SPRITERIGHT
             SPRITERIGHT
         ELSE
-            BEEP 9
+            ; 9
             REMOVE
             LET L 0
         ENDIF
@@ -1846,7 +1846,7 @@ IF IMAGE = 24
             SPRITELEFT
             SPRITELEFT
         ELSE
-            BEEP 9
+            ; 9
             REMOVE
             LET L 0
         ENDIF
@@ -1855,7 +1855,7 @@ ENDIF
 IF IMAGE = 22
     GETRANDOM 70
     LET SETTINGA RND
-    SPRITEINK SETTINGA
+    ; SETTINGA
     ANIMATE
     IF SCREEN 23
         IF COLLISION 0
@@ -1865,7 +1865,7 @@ IF IMAGE = 22
                 ELSE
                     LET LINE 3
                     LET COLUMN 8
-                    COLOUR 130
+                    ; 130
                     MESSAGE 23
                 ENDIF
             ENDIF
@@ -1879,7 +1879,7 @@ IF IMAGE = 22
                     ELSE
                         LET LINE 3
                         LET COLUMN 8
-                        COLOUR 130
+                        ; 130
                         MESSAGE 23
                     ENDIF
                 ENDIF
@@ -1889,7 +1889,7 @@ IF IMAGE = 22
                 IF KEY FIRE2
                     LET LINE 14
                     LET COLUMN 3
-                    COLOUR 130
+                    ; 130
                     MESSAGE 30
                 ENDIF
             ENDIF
@@ -1899,7 +1899,7 @@ ENDIF
 
 
 EVENT SPRITETYPE3
-SPRITEINK 71
+; 71
 IF IMAGE = 18
     GETRANDOM 40
     IF SETTINGA 0
@@ -1907,7 +1907,7 @@ IF IMAGE = 18
             SPRITEDOWN
         ELSE
             LET SETTINGA 1
-            BEEP 10
+            ; 10
         ENDIF
     ELSE
         IF CANGOUP
@@ -1918,7 +1918,7 @@ IF IMAGE = 18
             ENDIF
         ENDIF
     ENDIF
-    SPRITEINK 5
+    ; 5
     IF A RND
         LET SETTINGA 0
     ENDIF
@@ -1936,7 +1936,7 @@ ELSE
             LET SETTINGA = 0
         ENDIF
     ENDIF
-    SPRITEINK 2
+    ; 2
 ENDIF
 ANIMATE
 IF COLLISION 0
@@ -2001,7 +2001,7 @@ ENDIF
 
 
 EVENT SPRITETYPE5
-SPRITEINK 71
+; 71
 IF DIRECTION = 0
     SUBTRACT 16 FROM X
     IF CANGOLEFT
@@ -2017,15 +2017,15 @@ ELSE
         LET DIRECTION = 0
     ENDIF
 ENDIF
-SPRITEINK 2
+; 2
 ADD 8 TO Y
-SPRITEINK 7
+; 7
 SUBTRACT 8 FROM Y
 IF A = 0
     ANIMATE
 ENDIF
 IF COLLISION 0
-    BEEP 50
+    ; 50
     DELAY 1
     ADD 1 TO R
     LET LINE 21
@@ -2043,7 +2043,7 @@ ENDIF
 
 
 EVENT SPRITETYPE6
-BEEP 90
+; 90
 EXPLODE 8
 LET IMAGE 6
 IF A = 0
@@ -2061,56 +2061,56 @@ ENDIF
 
 
 EVENT SPRITETYPE7
-SPRITEINK 4
+; 4
 IF CANGOUP
     IF A = 0
         SPRITEUP
-        BEEP 88
+        ; 88
     ENDIF
 ELSE
     REMOVE
 ENDIF
-SPRITEINK 5
+; 5
 ANIMATE
 
 
 EVENT SPRITETYPE8
 IF IMAGE = 17
-    SPRITEINK 5
+    ; 5
     IF SCREEN = 7
         IF COLLISION 0
             IF J = 7
                 IF F = 10
-                    BEEP 122
+                    ; 122
                     SCORE 100
                     OTHER
                     REMOVE
                     ENDSPRITE
-                    COLOUR 4
+                    ; 4
                     LET LINE 4
                     LET COLUMN 8
                     MESSAGE 9
                     DELAY 100
                     LET SCREEN 11
                 ELSE
-                    BEEP 9
+                    ; 9
                     LET LINE 4
                     LET COLUMN 2
                     MESSAGE 11
                     IF J <= 6
-                        BEEP 9
+                        ; 9
                         LET LINE 6
                         LET COLUMN 2
                         MESSAGE 10
                     ENDIF
                 ENDIF
             ELSE
-                BEEP 9
+                ; 9
                 LET LINE 4
                 LET COLUMN 2
                 MESSAGE 10
                 IF F <= 9
-                    BEEP 9
+                    ; 9
                     LET LINE 6
                     LET COLUMN 2
                     MESSAGE 11
@@ -2126,7 +2126,7 @@ IF IMAGE = 17
     ENDIF
 ENDIF
 IF IMAGE = 3
-    SPRITEINK 71
+    ; 71
     FALL
     IF A = 0
         ANIMATE
@@ -2247,107 +2247,107 @@ ENDIF
 
 
 EVENT INTROMENU
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET M 1
 LET LINE 1
 LET COLUMN 4
-COLOUR 112
+; 112
 MESSAGE 1
 LET LINE 3
 LET COLUMN 5
-COLOUR 4
+; 4
 MESSAGE 12
 LET LINE 5
 LET COLUMN 0
-COLOUR 71
+; 71
 MESSAGE 13
 LET LINE 23
 LET COLUMN 3
-COLOUR 132
+; 132
 MESSAGE 15
 WAITKEY
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET LINE 1
 LET COLUMN 4
-COLOUR 112
+; 112
 MESSAGE 1
 LET LINE 3
 LET COLUMN 5
-COLOUR 4
+; 4
 MESSAGE 12
 LET LINE 5
 LET COLUMN 0
-COLOUR 71
+; 71
 MESSAGE 14
 LET LINE 23
 LET COLUMN 3
-COLOUR 132
+; 132
 MESSAGE 15
 WAITKEY
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET LINE 1
 LET COLUMN 4
-COLOUR 112
+; 112
 MESSAGE 1
 LET LINE 3
 LET COLUMN 5
-COLOUR 4
+; 4
 MESSAGE 12
 LET LINE 5
 LET COLUMN 0
-COLOUR 71
+; 71
 MESSAGE 24
 LET LINE 23
 LET COLUMN 3
-COLOUR 132
+; 132
 MESSAGE 15
 WAITKEY
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET LINE 1
 LET COLUMN 4
-COLOUR 112
+; 112
 MESSAGE 1
 LET LINE 3
 LET COLUMN 5
-COLOUR 4
+; 4
 MESSAGE 12
 LET LINE 5
 LET COLUMN 0
-COLOUR 5
+; 5
 MESSAGE 31
 LET LINE 8
 LET COLUMN 4
-COLOUR 6
+; 6
 MESSAGE 25
 LET LINE 23
 LET COLUMN 3
-COLOUR 132
+; 132
 MESSAGE 15
 WAITKEY
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET LINE 1
 LET COLUMN 4
-COLOUR 112
+; 112
 MESSAGE 1
 LET LINE 3
 LET COLUMN 5
-COLOUR 4
+; 4
 MESSAGE 12
 LET LINE 15
 LET COLUMN 1
-COLOUR 5
+; 5
 MESSAGE 16
-COLOUR 6
+; 6
 LET LINE 7
 LET COLUMN 5
 MESSAGE 17
@@ -2380,33 +2380,33 @@ LET R 0
 LET O 120
 LET P 120
 LET LIVES 9
-COLOUR 71
-BORDER 0
+; 71
+; 0
 LET M 2
 CLS
-COLOUR 6
+; 6
 LET LINE 21
 LET COLUMN E
 MESSAGE 5
 
 
 EVENT RESTARTSCREEN
-COLOUR 6
-BORDER 0
+; 6
+; 0
 LET L 0
 LET LINE 16
 LET COLUMN 0
 PUTBLOCK 83
 LET COLUMN 31
 PUTBLOCK 83
-COLOUR 112
+; 112
 LET LINE 1
 LET COLUMN 13
 MESSAGE 7
 LET LINE 20
 LET COLUMN 0
 MESSAGE 4
-COLOUR 6
+; 6
 LET LINE 1
 LET COLUMN 1
 MESSAGE 2
@@ -2434,13 +2434,13 @@ DISPLAY F
 IF GOT 24
     LET LINE 20
     LET COLUMN 2
-    COLOUR 134
+    ; 134
     MESSAGE 21
 ENDIF
 IF GOT 25
     LET LINE 20
     LET COLUMN 20
-    COLOUR 134
+    ; 134
     MESSAGE 22
 ENDIF
 
@@ -2458,19 +2458,19 @@ SUBTRACT 1 FROM LIVES
 
 
 EVENT LOSTGAME
-COLOUR 6
-BORDER 0
+; 6
+; 0
 CLS
 LET M 4
-COLOUR 3
+; 3
 LET LINE 2
 LET COLUMN 6
 MESSAGE 28
 LET LINE 8
 LET COLUMN 11
-COLOUR 130
+; 130
 MESSAGE 0
-COLOUR 6
+; 6
 LET LINE 11
 LET COLUMN 10
 MESSAGE 26
@@ -2479,35 +2479,35 @@ LET COLUMN 13
 SHOWSCORE
 LET LINE 18
 LET COLUMN 4
-COLOUR 71
+; 71
 MESSAGE 29
 LET LINE 23
 LET COLUMN 3
-COLOUR 132
+; 132
 MESSAGE 15
 WAITKEY
 
 
 EVENT COMPLETEDGAME
-COLOUR 6
-BORDER 0
+; 6
+; 0
 CLS
 LET M 3
-COLOUR 71
+; 71
 LET LINE 1
 LET COLUMN 1
 MESSAGE 27
 LET LINE 18
 LET COLUMN 4
 MESSAGE 29
-COLOUR 6
+; 6
 LET LINE 11
 LET COLUMN 10
 MESSAGE 26
 LET LINE 13
 LET COLUMN 13
 SHOWSCORE
-COLOUR 132
+; 132
 LET LINE 8
 LET COLUMN 11
 MESSAGE 0

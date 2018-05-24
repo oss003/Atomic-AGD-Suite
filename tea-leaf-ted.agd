@@ -2636,14 +2636,14 @@ LET OPT 93
 LET OBJ 5
 LET LINE 23
 LET COLUMN 0
-;TICKER 7 32
+TICKER 32 "TEA=LEAF TED  2018 by JaimeGrilo @@Move around the levelscollecting coins anditems` avoiding the policemen`the policewomen`the police dogs` the gold diggerchicks and the crooks^ @@More information inhttp:??jg=spectrum^webnode^pt @@"
 LET LINE 5
 LET COLUMN 22
 ; ASM 205
 ; ASM 8
 ; ASM 122
-;TICKER 99 32
 WAITKEY
+TICKER 0
 
 
 EVENT GAMEINIT

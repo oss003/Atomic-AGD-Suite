@@ -2025,12 +2025,12 @@ IF IMAGE = 0
     ENDIF
 ENDIF
 IF IMAGE = 17
-    SPRITEINK 68
+    ; 68
     IF FRAME = 1
-        BEEP 50
+        ; 50
     ENDIF
     IF FRAME = 3
-        BEEP 30
+        ; 30
     ENDIF
     IF FRAME = 5
         KILL
@@ -2088,7 +2088,7 @@ IF SCREEN = 27
     IF N 1
         LET SCREEN = 18
         LET M 31
-        BEEP 100
+        ; 100
         DELAY 50
         LET Y 116
         LET X 120
@@ -2102,7 +2102,7 @@ ELSE
         LET LINE 21
         LET COLUMN 27
         DISPLAY B
-        BEEP 90
+        ; 90
     ELSE
         IF COLLISION 16
             OTHER
@@ -2118,7 +2118,7 @@ IF COLLISION 2
     IF Y <= P
         SUBTRACT Y FROM P
         IF P <= 13
-;            STOPFALL
+            STOPFALL
             IF N 1
                 IF CANGOUP
                     JUMP 7
@@ -2143,13 +2143,13 @@ ELSE
     IF FRAME <= 1
         IF SCREEN = 27
         ELSE
-            BEEP 25
+            ; 25
             SCORE 1
         ENDIF
     ENDIF
 ENDIF
 IF CUSTOM
-;    STOPFALL
+    STOPFALL
     IF CANGOUP
         SPRITEUP
     ELSE
@@ -2217,7 +2217,7 @@ ENDIF
 
 EVENT SPRITETYPE1
 IF IMAGE 17
-    SPRITEINK 66
+    ; 66
     IF FRAME = 1
         IF SETTINGA = 56
             LET OBJ = 34
@@ -2277,7 +2277,7 @@ IF IMAGE 17
 ENDIF
 IF IMAGE = 14
     IF FRAME = 4
-        BEEP 60
+        ; 60
         IF SCREEN = 28
             REMOVE
             LET SCREEN = 29
@@ -2291,7 +2291,7 @@ IF IMAGE = 14
             REMOVE
             DELAY 10
             SPAWN 0 0
-            SPRITEINK 72
+            ; 72
             EXIT
         ENDIF
         IF SCREEN = 19
@@ -2301,7 +2301,7 @@ IF IMAGE = 14
             REMOVE
             DELAY 10
             SPAWN 0 0
-            SPRITEINK 72
+            ; 72
             EXIT
         ENDIF
         IF SCREEN = 16
@@ -2311,17 +2311,17 @@ IF IMAGE = 14
             REMOVE
             DELAY 10
             SPAWN 0 0
-            SPRITEINK 72
+            ; 72
             EXIT
         ENDIF
     ELSE
         ADD 1 TO FRAME
     ENDIF
 ELSE
-    SPRITEINK 70
+    ; 70
     IF COLLISION 0
         REMOVE
-        SPRITEINK 71
+        ; 71
     ENDIF
 ENDIF
 
@@ -2339,7 +2339,7 @@ IF IMAGE 13
             IF P > 2
             ELSE
                 OTHER
-;                STOPFALL
+                STOPFALL
                 LET IMAGE = 14
                 LET TYPE = 1
                 ENDSPRITE
@@ -2391,7 +2391,7 @@ IF IMAGE 8
     ENDIF
 ENDIF
 IF IMAGE 2
-    SPRITEINK 69
+    ; 69
     IF COLLISION 0
         IF K = 1
             OTHER
@@ -2424,7 +2424,7 @@ IF IMAGE 2
             ENDIF
         ENDIF
     ENDIF
-    SPRITEINK 68
+    ; 68
 ENDIF
 
 
@@ -2494,7 +2494,7 @@ IF IMAGE = 5
         LET IMAGE 6
         IF SCREEN = 27
         ELSE
-            BEEP 15
+            ; 15
         ENDIF
     ENDIF
 ENDIF
@@ -2509,7 +2509,7 @@ IF IMAGE = 6
         LET IMAGE 5
         IF SCREEN = 27
         ELSE
-            BEEP 15
+            ; 15
         ENDIF
     ENDIF
 ENDIF
@@ -2545,10 +2545,10 @@ ELSE
     LET SETTINGA = 0
 ENDIF
 IF SETTINGA = 0
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF SETTINGA = 1
-    SPRITEINK 66
+    ; 66
 ENDIF
 IF COLLISION 0
     IF K = 1
@@ -2612,16 +2612,16 @@ ENDIF
 EVENT SPRITETYPE7
 IF IMAGE 16
     LET FRAME = 0
-    SPRITEINK 69
+    ; 69
     LET Y 160
     LET X 176
     IF SETTINGA <= 7
         ADD 60 TO SETTINGA
-        SPRITEINK SETTINGA
+        ; SETTINGA
         SUBTRACT 59 FROM SETTINGA
     ELSE
         LET SETTINGA = 0
-        SPRITEINK 68
+        ; 68
         REMOVE
     ENDIF
 ENDIF
@@ -2633,25 +2633,25 @@ IF IMAGE 1
             LET SETTINGB = 1
         ENDIF
         ADD SETTINGB TO 64
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         ADD 16 TO X
-        SPRITEINK SETTINGB
+        ; SETTINGB
         LET X 48
     ELSE
         DETECTOBJ
@@ -2661,13 +2661,13 @@ IF IMAGE 1
                 LET FRAME = 1
             ENDIF
             IF SETTINGA = 0
-                SPRITEINK 66
+                ; 66
             ENDIF
             IF SETTINGA = 1
-                SPRITEINK 68
+                ; 68
             ENDIF
             IF SETTINGA = 2
-                SPRITEINK 65
+                ; 65
             ENDIF
         ELSE
             IF COLLISION 0
@@ -2678,7 +2678,7 @@ IF IMAGE 1
                 ENDIF
             ELSE
                 LET FRAME = 0
-                SPRITEINK 69
+                ; 69
             ENDIF
         ENDIF
         IF SETTINGA <= 1
@@ -2694,8 +2694,8 @@ EVENT SPRITETYPE8
 IF IMAGE 19
     ANIMATE
     IF COLLISION 0
-        SPRITEINK 69
-        BEEP 90
+        ; 69
+        ; 90
         ADD 1 TO B
         LET LINE 21
         LET COLUMN 27
@@ -2723,13 +2723,13 @@ IF IMAGE 19
         ENDIF
     ENDIF
     IF SETTINGA = 0
-        SPRITEINK 68
+        ; 68
     ENDIF
     IF SETTINGA = 1
-        SPRITEINK 66
+        ; 66
     ENDIF
     IF SETTINGA = 2
-        SPRITEINK 65
+        ; 65
     ENDIF
     IF SETTINGA > = 2
         LET SETTINGA = 0
@@ -2751,15 +2751,15 @@ IF IMAGE = 1
                 LET LINE 2
                 LET COLUMN 8
                 IF SETTINGB = 28
-                    COLOUR 76
+                    ; 76
                 ELSE
-                    COLOUR 78
+                    ; 78
                 ENDIF
                 MESSAGE SETTINGB
                 IF SETTINGB = 27
                     LET LINE 2
                     LET COLUMN 18
-                    COLOUR 75
+                    ; 75
                     SHOWSCORE
                 ENDIF
             ELSE
@@ -2775,7 +2775,7 @@ IF IMAGE = 1
             ENDIF
         ENDIF
     ELSE
-        COLOUR 71
+        ; 71
         LET LINE 5
         LET COLUMN 3
         MESSAGE 30
@@ -2838,7 +2838,7 @@ IF TYPE 8
     ENDIF
     IF
         IF IMAGE 1
-            COLOUR 78
+            ; 78
         ENDIF
     ENDIF
 ENDIF
@@ -2961,15 +2961,15 @@ REPEAT 4
     PUTBLOCK 83
     ADD 1 TO LINE
 ENDREPEAT
-COLOUR 70
-BORDER 0
+; 70
+; 0
 CLS
 LET LINE 23
 LET COLUMN 12
 PUTBLOCK 146
 LET LINE 23
 LET COLUMN 13
-COLOUR 71
+; 71
 MESSAGE 10
 LET LINE 20
 LET COLUMN 22
@@ -2986,9 +2986,9 @@ LET COLUMN 27
 DISPLAY B
 LET LINE 18
 LET COLUMN 10
-COLOUR 70
+; 70
 MESSAGE 5
-COLOUR 71
+; 71
 LET LINE 23
 LET COLUMN 17
 PUTBLOCK 81
@@ -2997,7 +2997,7 @@ PUTBLOCK 81
 EVENT RESTARTSCREEN
 LET A = 0
 IF SCREEN = 30
-    COLOUR 71
+    ; 71
     LET B = 0
     LET LINE 21
     LET COLUMN 27
@@ -3037,9 +3037,9 @@ ENDIF
 
 EVENT KILLPLAYER
 IF Y 200
-    BEEP 50
+    ; 50
     DELAY 5
-    BEEP 30
+    ; 30
 ENDIF
 IF L <= 15
     IF SCREEN = 30

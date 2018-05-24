@@ -613,7 +613,7 @@ ENDMAP
 
 
 EVENT PLAYER
-SPRITEINK 3
+; 3
 IF CUSTOM
     LET B = 1
 ELSE
@@ -686,7 +686,7 @@ DETECTOBJ
 IF OBJ <> 255
     ADD 1 TO E
     GET OBJ
-    BEEP 30
+    ; 30
     SCORE 10
 ENDIF
 IF KEY FIRE2
@@ -699,14 +699,14 @@ ENDIF
 
 EVENT SPRITETYPE1
 ANIMATE
-SPRITEINK 6
+; 6
 IF COLLISION 0
     KILL
 ENDIF
 
 
 EVENT SPRITETYPE2
-SPRITEINK 5
+; 5
 IF SETTINGA = 0
     IF CANGOUP
         SPRITEUP
@@ -740,7 +740,7 @@ ENDIF
 
 
 EVENT SPRITETYPE3
-SPRITEINK 5
+; 5
 IF SETTINGA = 0
     IF CANGOLEFT
         SPRITELEFT
@@ -1132,7 +1132,7 @@ IF TYPE = 2
     LET SETTINGB = 69
 ENDIF
 IF TYPE = 0
-    SPRITEINK 3
+    ; 3
 ENDIF
 
 
@@ -1148,40 +1148,40 @@ IF SCREEN <= 10
     ENDIF
     LET LINE = 23
     LET COLUMN = 7
-    COLOUR 14
+    ; 14
     SHOWSCORE
     IF F = 99
         LET LINE = 23
         LET COLUMN = 28
-        COLOUR 14
+        ; 14
         DISPLAY P
     ENDIF
     IF F = 9
         LET LINE = 23
         LET COLUMN = 29
-        COLOUR 10
+        ; 10
         DISPLAY P
         LET LINE = 23
         LET COLUMN = 28
-        COLOUR 10
+        ; 10
         DISPLAY P
     ENDIF
     IF F > 99
         LET LINE = 23
         LET COLUMN = 28
-        COLOUR 14
+        ; 14
         DISPLAY F
     ENDIF
     IF F <= 9
         LET LINE = 23
         LET COLUMN = 30
-        COLOUR 10
+        ; 10
         DISPLAY F
     ELSE
         IF F <= 99
             LET LINE = 23
             LET COLUMN = 29
-            COLOUR 14
+            ; 14
             DISPLAY F
         ENDIF
     ENDIF
@@ -1192,10 +1192,10 @@ IF SCREEN <= 10
                 SCORE F
             ENDREPEAT
         ENDIF
-        BEEP 50
-        BEEP 75
-        BEEP 100
-        BEEP 150
+        ; 50
+        ; 75
+        ; 100
+        ; 150
         DELAY 50
         NEXTLEVEL
     ENDIF
@@ -1209,9 +1209,9 @@ EVENT INTROMENU
 
 
 EVENT GAMEINIT
-COLOUR 8
+; 8
 CLS
-BORDER 0
+; 0
 LET LIVES = 3
 LET SCREEN = 0
 LET D = 0
@@ -1230,11 +1230,11 @@ LET F = 200
 LET G = 10
 LET LINE = 23
 LET COLUMN = 1
-COLOUR 15
+; 15
 MESSAGE 3
 LET LINE = 23
 LET COLUMN = 23
-COLOUR 15
+; 15
 MESSAGE 5
 
 
@@ -1245,9 +1245,9 @@ ENDIF
 
 
 EVENT KILLPLAYER
-BEEP 150
-BEEP 75
-BEEP 50
+; 150
+; 75
+; 50
 ; FADE
 DELAY 50
 SUBTRACT 1 FROM LIVES
@@ -1259,13 +1259,13 @@ LET L = 1
 REPEAT 11
     LET LINE = K
     LET COLUMN = 1
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 0
     PRINTMODE 0
     LET LINE = K
     LET COLUMN = 6
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 13
     PRINTMODE 0
@@ -1279,13 +1279,13 @@ LET K = 1
 REPEAT 11
     LET LINE = K
     LET COLUMN = 12
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 0
     PRINTMODE 0
     LET LINE = K
     LET COLUMN = 17
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 13
     PRINTMODE 0
@@ -1299,13 +1299,13 @@ LET K = 1
 REPEAT 11
     LET LINE = K
     LET COLUMN = 23
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 0
     PRINTMODE 0
     LET LINE = K
     LET COLUMN = 28
-    COLOUR L
+    ; L
     PRINTMODE 1
     MESSAGE 13
     PRINTMODE 0
@@ -1326,7 +1326,7 @@ LET L = 1
 REPEAT 11
     LET LINE = K
     LET COLUMN = 1
-    COLOUR L
+    ; L
     IF C = 0
         PRINTMODE 1
         MESSAGE 12

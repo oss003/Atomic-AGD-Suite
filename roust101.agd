@@ -4,7 +4,7 @@ DEFINEWINDOW    0 0 23 32
 DEFINEMESSAGES
     "THY*GAME*IS*OVER"
     "PREPARE*TO*JOUST"
-    "(#""#""#""$$#$#$$#&%"
+    "(#'#'#'$$#$#$$#&%"
     "WAVE"
     "BUZZARD*BAIT:"
     "EGG*WAVE"
@@ -517,10 +517,10 @@ ENDMAP
 EVENT PLAYER
 IF K = 3
 ELSE
-    SPRITEINK 6
+    ; 6
     IF SETTINGA = 250
         LET G 0
-        SPRITEINK 2
+        ; 2
         LET Y A
         PUT X Y 12
         ADD 255 TO LIVES
@@ -528,13 +528,13 @@ ELSE
     ENDIF
     IF SETTINGA = 247
         LET Y A
-        SPRITEINK 4
+        ; 4
         GET 12
         PUT X Y 13
     ENDIF
     IF SETTINGA = 243
         LET Y A
-        SPRITEINK 5
+        ; 5
         GET 13
         PUT X Y 14
     ENDIF
@@ -896,12 +896,12 @@ ELSE
         MULTIPLY DIRECTION BY 16
         ADD P TO DIRECTION
         IF K = 0
-            SPRITEINK 5
+            ; 5
         ENDIF
         IF K = 2
             GETRANDOM 5
             ADD 1 TO RND
-            SPRITEINK RND
+            ; RND
             LET LINE 21
             LET COLUMN 15
             PUTBLOCK 19
@@ -922,7 +922,7 @@ IF J = 5
     REMOVE
     EXIT
 ENDIF
-SPRITEINK 6
+; 6
 LET T DIRECTION
 LET I DIRECTION
 DIVIDE T BY 32
@@ -1161,15 +1161,15 @@ ENDIF
 ADD P TO O
 MULTIPLY I BY 4
 ADD O TO I
-SPRITEINK 4
+; 4
 IF T = 1
-    SPRITEINK 3
+    ; 3
 ENDIF
 IF T = 2
-    SPRITEINK 2
+    ; 2
 ENDIF
 IF T = 3
-    SPRITEINK 1
+    ; 1
 ENDIF
 MULTIPLY T BY 32
 ADD I TO T
@@ -1244,7 +1244,7 @@ LET Q I
 MULTIPLY Q BY 2
 SUBTRACT Q FROM T
 IF 200 > Y
-    SPRITEINK 6
+    ; 6
     LET IMAGE 11
     LET FRAME 0
     LET P DIRECTION
@@ -1489,7 +1489,7 @@ MULTIPLY I BY 2
 ADD T TO I
 ADD I TO S
 LET SETTINGA S
-SPRITEINK 4
+; 4
 
 
 EVENT SPRITETYPE3
@@ -1535,9 +1535,9 @@ ELSE
     IF 19 > OBJ
         ADD 1 TO O
     ENDIF
-    SPRITEINK 6
+    ; 6
     IF O = 2
-        SPRITEINK 4
+        ; 4
     ENDIF
     DIVIDE Y BY 2
     MULTIPLY Y BY 2
@@ -1756,12 +1756,12 @@ ELSE
         LET RND X
         LET Y SETTINGA
         LET X SETTINGB
-        SPRITEINK 3
+        ; 3
         IF S = 1
-            SPRITEINK 2
+            ; 2
         ENDIF
         IF S > 1
-            SPRITEINK 1
+            ; 1
         ENDIF
         LET Y Q
         LET X RND
@@ -1784,7 +1784,7 @@ IF J = 5
     REMOVE
     EXIT
 ENDIF
-SPRITEINK 6
+; 6
 IF IMAGE = 13
     ADD 15 TO X
     GET 15
@@ -1843,14 +1843,14 @@ IF SETTINGB > 1
     ADD 255 TO SETTINGB
     LET O SETTINGB
     DIVIDE O BY 10
-    SPRITEINK O
+    ; O
     IF IMAGE = 13
         LET RND 16
     ELSE
         LET RND 240
     ENDIF
     ADD RND TO X
-    SPRITEINK O
+    ; O
     SUBTRACT RND TO X
     IF SETTINGB = 1
         REMOVE
@@ -1861,7 +1861,7 @@ IF SETTINGB > 1
     ENDIF
     EXIT
 ENDIF
-SPRITEINK 6
+; 6
 LET Q Y
 IF Y > A
     SUBTRACT A FROM Q
@@ -2034,14 +2034,14 @@ ELSE
         LET IMAGE 13
     ENDIF
 ENDIF
-SPRITEINK 7
+; 7
 IF IMAGE = 14
     LET RND 240
 ELSE
     LET RND 16
 ENDIF
 ADD RND TO IMAGE
-SPRITEINK 7
+; 7
 SUBTRACT RND TO IMAGE
 
 
@@ -2242,7 +2242,7 @@ IF SCREEN = 0
                 LET X RND
                 EXIT
             ENDIF
-            SPRITEINK 4
+            ; 4
             ADD 1 TO DIRECTION
             LET O R
             IF O > 15
@@ -2414,7 +2414,7 @@ IF SCREEN = 0
             LET Y 152
             LET X 120
             LET OPT 1
-            SPRITEINK 0
+            ; 0
             SPAWN 0 0
             ENDSPRITE
             LET Y 200
@@ -2442,30 +2442,30 @@ IF SCREEN = 1
     IF SETTINGB = 255
         LET LINE 19
         LET COLUMN 10
-        COLOUR 68
+        ; 68
         MESSAGE 22
         LET LINE 19
         LET COLUMN 15
-        COLOUR 71
+        ; 71
         ; ASM 205
         ; ASM 149
         ; ASM 124
         LET LINE 22
         LET COLUMN 10
-        COLOUR 6
+        ; 6
         MESSAGE 23
         LET SETTINGB 28
         LET LINE 11
         LET COLUMN 10
-        COLOUR 71
+        ; 71
         MESSAGE 9
         LET LINE 13
         LET COLUMN 4
-        COLOUR 70
+        ; 70
         MESSAGE 10
         LET LINE 15
         LET COLUMN 3
-        COLOUR 69
+        ; 69
         MESSAGE 11
         LET OPT 128
         LET RND 20
@@ -2479,7 +2479,7 @@ IF SCREEN = 1
     LET LINE 21
     LET COLUMN 7
     ADD 38 TO SETTINGB
-    COLOUR SETTINGB
+    ; SETTINGB
     SUBTRACT 38 TO SETTINGB
     MESSAGE 12
     LET LINE 0
@@ -2509,7 +2509,7 @@ IF SCREEN = 1
     ENDIF
     IF KEY FIRE3
         IF T = 0
-            BEEP 20
+            ; 20
             ADD 1 TO RND
             IF RND > 2
                 LET RND 0
@@ -2527,9 +2527,9 @@ IF SCREEN = 1
     ENDIF
     LET LINE 17
     LET COLUMN 8
-    COLOUR 66
+    ; 66
     MESSAGE 13
-    COLOUR 70
+    ; 70
     LET LINE 17
     LET COLUMN 9
     MESSAGE 14
@@ -2537,7 +2537,7 @@ IF SCREEN = 1
     ADD RND TO OBJ
     LET LINE 17
     LET COLUMN 16
-    COLOUR 67
+    ; 67
     MESSAGE OBJ
 ENDIF
 
@@ -2547,7 +2547,7 @@ IF J = 5
     REMOVE
     EXIT
 ENDIF
-SPRITEINK 6
+; 6
 LET T SETTINGA
 LET I SETTINGA
 DIVIDE T BY 16
@@ -2581,7 +2581,7 @@ IF 12 > SETTINGB
         LET RND 7
         SUBTRACT SETTINGB TO RND
         ADD 248 TO Y
-        SPRITEINK RND
+        ; RND
         ADD 8 TO Y
         IF X = 16
             LET LINE 11
@@ -2735,9 +2735,9 @@ LET R 1
 LET A 0
 LET B 0
 LET D 0
-BORDER 0
+; 0
 IF SCREEN = 0
-    COLOUR 86
+    ; 86
     CLS
     LET LINE 23
     LET COLUMN 0
@@ -2753,13 +2753,13 @@ IF SCREEN = 0
     LET LINE 23
     LET COLUMN 8
     MESSAGE 2
-    COLOUR 71
+    ; 71
 ENDIF
 
 
 EVENT RESTARTSCREEN
 IF SCREEN = 0
-    COLOUR 86
+    ; 86
     CLS
     LET LINE 23
     LET COLUMN 0
@@ -2774,7 +2774,7 @@ IF SCREEN = 0
     LET LINE 23
     LET COLUMN 8
     MESSAGE 2
-    COLOUR 71
+    ; 71
 ENDIF
 
 

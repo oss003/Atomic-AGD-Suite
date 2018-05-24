@@ -1008,17 +1008,14 @@ DEFINEOBJECT    71 14 56 56
 
 MAP             WIDTH 11
                 STARTSCREEN 0
-		  0  23 255 255 255 255 255 255 255 255 255
-		255 255 255 255 255 255 255 255 255 255 255
-		255 255 255 255 255 255 255 255 255 255 255
-		255 255 255 255  16  17  18  20 255 255 255
-		255 255 255 255   8   3   7  19  22 255 255
-		255 255 255  15   4   1   2   6  21 255 255
-		255 255 255  12   9   5  10  11 255 255 255
-		255 255 255  14  13 255 255 255 255 255 255
- 
-
                   0  23 255 255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 255 255 255 255  
+                255 255 255 255 255 255 255 255 255 255 255  
+                255 255 255 255  16  17  18  20 255 255 255 
+                255 255 255 255   8   3   7  19  22 255 255 
+                255 255 255  15   4   1   2   6  21 255 255 
+                255 255 255  12   9   5  10  11 255 255 255 
+                255 255 255  14  13 255 255 255 255 255 255 
 ENDMAP
 
 
@@ -1031,19 +1028,19 @@ IF OBJ <> 255
     LET LINE 23
     LET COLUMN 12
     DISPLAY T
-    BEEP 255
+    ; 255
     IF T = 0
-        BEEP 230
-        BORDER 5
+        ; 230
+        ; 5
         DELAY 5
-        BEEP 240
-        BORDER 2
+        ; 240
+        ; 2
         DELAY 5
-        BEEP 180
-        BORDER 5
+        ; 180
+        ; 5
         DELAY 5
-        BEEP 75
-        BORDER 0
+        ; 75
+        ; 0
         DELAY 10
         REMOVE
         LET SCREEN = 23
@@ -1139,14 +1136,14 @@ IF G > 0
             SPRITELEFT
         ELSE
             LET SETTINGA = 1
-            BEEP 2
+            ; 2
         ENDIF
     ELSE
         IF CANGORIGHT
             SPRITERIGHT
         ELSE
             LET SETTINGA = 0
-            BEEP 2
+            ; 2
         ENDIF
     ENDIF
     IF DIRECTION = 0
@@ -1154,14 +1151,14 @@ IF G > 0
             SPRITEUP
         ELSE
             LET DIRECTION = 1
-            BEEP 2
+            ; 2
         ENDIF
     ELSE
         IF CANGODOWN
             SPRITEDOWN
         ELSE
             LET DIRECTION = 0
-            BEEP 2
+            ; 2
         ENDIF
     ENDIF
     ANIMATE
@@ -1178,14 +1175,14 @@ IF SETTINGA = 0
         SPRITEUP
     ELSE
         LET SETTINGA = 1
-        BEEP 5
+        ; 5
     ENDIF
 ELSE
     IF CANGODOWN
         SPRITEDOWN
     ELSE
         LET SETTINGA = 0
-        BEEP 5
+        ; 5
     ENDIF
 ENDIF
 ANIMATE
@@ -1200,14 +1197,14 @@ IF SETTINGA = 0
         SPRITELEFT
     ELSE
         LET SETTINGA = 1
-        BEEP 5
+        ; 5
     ENDIF
 ELSE
     IF CANGORIGHT
         SPRITERIGHT
     ELSE
         LET SETTINGA = 0
-        BEEP 5
+        ; 5
     ENDIF
 ENDIF
 ANIMATE
@@ -1288,8 +1285,8 @@ LET A 0
 LET B 140
 LET C 116
 LET G 0
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET LINE 23
 LET COLUMN 1
@@ -1319,17 +1316,17 @@ EVENT FELLTOOFAR
 
 
 EVENT KILLPLAYER
-BEEP 50
-BORDER 2
+; 50
+; 2
 DELAY 10
-BEEP 70
-BORDER 7
+; 70
+; 7
 DELAY 10
-BEEP 95
-BORDER 2
+; 95
+; 2
 DELAY 10
-BEEP 120
-BORDER 0
+; 120
+; 0
 DELAY 20
 SUBTRACT 1 FROM LIVES
 SUBTRACT 1 FROM L

@@ -89,8 +89,10 @@
 	lda #>(FONT-256)
 	sta FontPtr+1
 
-	jmp game	 	; start the game.
-
+	jsr game	 	; start the game.
+	lda #12			; Clear screen + exit to Basic
+	jmp $fff4
+	
 contrl:	.byte 0			; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
 joyval:	.byte 0			; joystick reading.
 frmno:	.byte 0			; selected frame.
@@ -603,7 +605,16 @@ blft:	.byte 0
 ;----------------------------------------------------
 
 prskey:
-	jmp OSRDCH		; wait until key pressed
+	tya
+	pha
+prsloop:
+	jsr vsync
+	jsr $fe71
+	cpy #255
+	beq prsloop		; wait until key pressed
+	pla
+	tay
+	rts
 
 ;----------------------------------------------------
 ; Delay routine 1/50 sec
@@ -711,15 +722,31 @@ iniob0:
 ;-------------------------------------------------------------
 
 vsync:
+	pha
+	tya
+	pha
+	txa
+	pha
 	jsr joykey		; read joystick/keyboard.
-	jsr SCRSYNC1		; Wait for flyback
+vsync1:
+	lda $b809
+	bpl vsync1
+	lda #<20000
+	sta $b808
+	lda #>20000
+	sta $b809
+
+;	jsr SCRSYNC1		; Wait for flyback
 	lda clock
 	and #1
 	bne:+
-.if pflag
 	jsr proshr
-.endif
 :
+	pla
+	tax
+	pla
+	tay
+	pla
 	rts
 
 ;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1261,8 +1288,8 @@ txtscr:	.word 16406
 ; Specialist routines.
 ; Process shrapnel.
 ;----------------------------------------------------
-.if pflag
 proshr:
+.if pflag
 	lda #<SHRAPN		; table.
 	sta z80_x
 	lda #>SHRAPN
@@ -1287,11 +1314,13 @@ proshx:
 :
 	dec shrctr		; round again.
 	bne prosh0
+.endif
 .if sflag
 	jsr scrly
 .endif
 	rts
 
+.if pflag
 shrctr:	.byte 0
 
 ;----------------------------------------------------
@@ -2470,21 +2499,41 @@ inisc0:
 ;  D = second number
 ;
 ; Output:
-;  H = result H x D
+;  L = result H x D
 ;-----------------------------------------------------
 
 imul:
-	ldy #8			; repeat 8 times.
+	lda z80_d		; HL = H * D
+	sta z80_e
+	lda z80_h
+	sta z80_c		; make c first multiplier.
 imul0:
-	asl a			; shift carry in result
-	asl z80_h		; shift h 1 bit left.
-	bcc imul1		; carry wasn't set.
-	clc
-	adc z80_d		; bit was set, so add d.
+	lda #0			; zeroise total.
+	sta z80_l
+	sta z80_h
+
+	lda z80_h
+	sta z80_d		; zeroise high byte.
+
+	lda #8			; repeat 8 times.
+	sta z80_b
 imul1:
-	dey
-	bne imul0		; repeat 8 times.
-	sta z80_h		; save result
+	lsr z80_c		; rotate rightmost bit into carry.
+	bcc imul2		; wasn't set.
+	clc			; bit was set, so add de.
+	lda z80_l
+	adc z80_e
+	sta z80_l
+	lda z80_h
+	adc z80_d
+	sta z80_h
+	clc 			; reset carry.
+imul2:
+	asl z80_e 		; shift de 1 bit left.
+	rol z80_d
+	dec z80_b
+	bne imul1		; repeat 8 times.
+
 	rts
 
 ;-----------------------------------------------
@@ -3639,7 +3688,7 @@ spaw1:
 	lda (z80_ix),y
 	sta (z80_hl),y		; direction
 
-	lda z80_b
+	lda #0
 	ldy #11
 	sta (z80_hl),y		; reset parameter.
 	iny
@@ -4009,7 +4058,7 @@ pchar0:
 	bpl pchar0		; repeat.
 	rts
 
-scrtab:	.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
+scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 
 ;----------------------------------------------
 ; Print attributes, properties and pixels.
@@ -5183,13 +5232,7 @@ achar:
 nexpos:
 	inc dispx		; move along one position.
 	lda dispx 		; get coordinate.
-	cmp #32
-	bcc :+
-	lda #0			; reached edge of screen?
-	sta dispx		; set new position.
-	rts 			; return with status in zero flag.
-:
-	lda #1
+	and #31
 	rts 			; return with status in zero flag.
 
 ;-------------------------------------------------
@@ -6672,58 +6715,62 @@ clw1:
 ;----------------------------------------------------------
 ; Effects code.
 ; Ticker routine is called 25 times per second.
+;
+; HL = txtscr = left text screen address
+; DE = txtscr+txtwid-1 = right text screen address
+; BC = txtpos = text scroller position
+;
 ;----------------------------------------------------------
+scr_l	= $90
+scr_r	= $92
+scr_txt	= $94
+
 .if sflag
 scrly:
 	rts
-	.word txtscr         	; get screen address.
-	sta z80_l
+	.word txtscr         	; get left screen address.
+	sta scr_l
 	lda txtscr+1
-	sta z80_h
-	sta z80_d
-
-	clc			; DE is screenaddress
-	lda z80_l
-	adc txtwid		; + textwide
-	sta z80_e
-;	dec z80_e
+	sta scr_l+1
+	sta scr_r+1
 	
-;	lda #8			; 8 pixel rows.
-;	sta z80_b
-scrly1:
-	ldy txtwid		; characters wide.
+	stx xtmp
 
+	clc         		; get right screen address.
+	lda scr_l
+	adc txtwid
+	sta scr_r
+	dec scr_r
+scrly1:
+	ldy txtwid		; set txtwide
+	dey
 	clc
 scrly0:
-	lda (z80_hl),y 		; rotate left.
+	lda (scr_l),y		; scroll 1 line
 	rol a
-	sta (z80_hl),y
-	dey	 		; char left.
-	bpl scrly0		; repeat for width of ticker message.
+	sta (scr_l),y
+	dey
+	bpl scrly0
 
-	clc			; next row down.
-	lda z80_l
+	clc			; point to next line
+	lda scr_l
 	adc #32
-	sta z80_l
-
-;	dec z80_b
-	bcc scrly1 		; repeat for all rows.
+	sta scr_l
+	bcc scrly1		; repeat 8 times
 
 	lda txtpos 		; get text pointer.
-	sta z80_l
+	sta scr_txt
 	lda txtpos+1
-	sta z80_h
+	sta scr_txt+1
 
 	ldy #0
-	lda (z80_hl),y 		; find character we"re displaying.
+	lda (scr_txt),y 		; find character we're displaying.
 	and #127 		; remove end marker bit if applicable.
 	cmp #13			; is it newline?
-	beq :+
-	jmp scrly5 		; no, it's okay.
-:
+	bne scrly5 		; no, it's okay.
 	lda #32			; convert to a space instead.
 scrly5:
-	sta fntaddr
+	sta fntaddr		; calculate char address
 	lda #0
 	sta fntaddr+1
 	asl fntaddr  		; multiply char by 8.
@@ -6732,65 +6779,54 @@ scrly5:
 	rol fntaddr+1
 	asl fntaddr
 	rol fntaddr+1
-
 	lda fntaddr
 	clc
 	adc FontPtr
-	sta fntaddr		; that's the low byte.
+	sta scrly3+1		; that's the low byte.
 	lda fntaddr+1
 	adc FontPtr+1
-	sta fntaddr+1		; add displacement.
+	sta scrly3+2		; add displacement.
 
-	lda #8
-	sta z80_b
+	ldx #0
 scrly3:
-	ldy #0
-	lda (fntaddr),y 	; get image of char line.
+	lda $3333,x		; get image of char line.
 	and txtbit
-	beq scrly2
-	lda (z80_de),y
+	beq scrly2		; don't plot pixel
+	ldy scrline,x
+	lda (scr_r),y
 	clc
-	adc #1
-	sta (z80_de),y
+	ora #1
+	sta (scr_r),y		; plot pixel
 scrly2:
-	inc fntaddr		; next line of char.
-	bne :+
-	inc fntaddr+1
-:
-	clc
-	lda z80_e 		; next line of window.
-	adc #32
-	sta z80_e
-	bcc :+
-	inc z80_d
-:
-	lsr txtbit		; bit of text to display.
-
-	dec z80_b
+	inx			; next line of char.
+	cpx #8
 	bne scrly3
 
-	inc z80_l 		; next character in message.
-	bne :+
-	inc z80_h
+	lsr txtbit		; bit of text to display.
+	bcs :+
+	rts
 :
 	ldy #0
-	lda (z80_hl),y 		; what was the character?
-	asl z80_a  		; end of message?
-	bcs :+
-	jmp scrly6 		; not yet - continue.
+	lda (scr_txt),y 	; what was the character?
+	asl a	  		; end of message?
+	bcs scrly4
+	inc txtpos
+	bne :+
+	inc txtpos+1
 :
+	jmp scrly6 		; not yet - continue.
 scrly4:
 	lda txtini 		; start of scrolling message.
-	sta z80_l
-	lda txtini+1
-	sta z80_h
-
-scrly6:
-	lda z80_l 		; new text pointer position.
 	sta txtpos
-	lda z80_h
+	lda txtini+1
 	sta txtpos+1
+scrly6:
+	lda #128
+	sta txtbit
+	ldx xtmp
 	rts
+
+scrline:	.byte $00,$20,$40,$60,$80,$a0,$c0,$e0
 
 ;-------------------------------------------------------
 ; Entry TICKER command
@@ -6813,6 +6849,7 @@ iscrly:
 	sbc #1			; subtract one.
 	cmp #32 		; is it between 1 and 32?
 	bcc :+
+	lda #$60
 	jmp iscrl0		; no, disable messages.
 :
 	ldx z80_b		; message number.
@@ -6823,7 +6860,7 @@ iscrly:
 	lda z80_h
 	sta txtini+1
 
-	lda #173		; code for lda adrr
+	lda #$ad		; code for lda adrr
 iscrl0:
 	sta scrly		; enable/disable scrolling routine.
 

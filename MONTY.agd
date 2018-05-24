@@ -581,7 +581,7 @@ DEFINEBLOCK     EMPTYBLOCK
                 11 16 36 47 47 47 32 31
                 70
 
-DEFINEBLOCK     $///                 70
+DEFINEBLOCK     EMPTYBLOCK
                 146 65 8 0 0 0 0 0
                 79
 
@@ -1569,8 +1569,8 @@ ELSE
     DETECTOBJ
     IF OBJ <> 255
         GET OBJ
-        BEEP 40
-        BEEP 40
+        ; 40
+        ; 40
         ADD 1 TO C
         SCORE 100
         LET LINE = 21
@@ -1636,7 +1636,7 @@ ELSE
                     IF A = 0
                         ANIMATE
                         IF FRAME 0
-                            BEEP 5
+                            ; 5
                         ENDIF
                     ENDIF
                     SPRITERIGHT
@@ -1671,7 +1671,7 @@ ELSE
                     IF A = 0
                         ANIMATE
                         IF FRAME 0
-                            BEEP 5
+                            ; 5
                         ENDIF
                     ENDIF
                     SPRITELEFT
@@ -1705,10 +1705,10 @@ ELSE
             ELSE
                 IF L = 0
                     JUMP 7
-                    BEEP 5
-                    BEEP 10
-                    BEEP 20
-                    BEEP 30
+                    ; 5
+                    ; 10
+                    ; 20
+                    ; 30
                 ENDIF
             ENDIF
         ENDIF
@@ -1722,7 +1722,7 @@ ENDIF
 
 
 EVENT SPRITETYPE1
-SPRITEINK 71
+; 71
 IF SETTINGA = 0
     IF CANGOLEFT
         SPRITELEFT
@@ -1750,10 +1750,10 @@ IF A = 0
     ANIMATE
 ENDIF
 IF SCREEN 13
-    SPRITEINK 69
+    ; 69
 ENDIF
 IF IMAGE 10
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF COLLISION 0
     KILL
@@ -1761,7 +1761,7 @@ ENDIF
 
 
 EVENT SPRITETYPE2
-SPRITEINK 71
+; 71
 IF SETTINGA = 0
     IF CANGOUP
         IF A = 0
@@ -1797,44 +1797,44 @@ IF COLLISION 0
     ELSE
         IF B = 1
         ELSE
-            BEEP 60
+            ; 60
             KILL
         ENDIF
     ENDIF
 ENDIF
 IF IMAGE 10
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF IMAGE 7
     IF B = 0
-        SPRITEINK 67
+        ; 67
     ELSE
-        SPRITEINK 65
+        ; 65
     ENDIF
 ENDIF
 IF IMAGE 6
-    SPRITEINK 67
+    ; 67
 ENDIF
 IF IMAGE 8
-    SPRITEINK 71
+    ; 71
 ENDIF
 IF IMAGE 16
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF IMAGE 2
-    SPRITEINK 70
+    ; 70
 ENDIF
 IF IMAGE = 1
     IF FRAME = 1
-        SPRITEINK 71
+        ; 71
     ELSE
-        SPRITEINK 69
+        ; 69
     ENDIF
 ENDIF
 
 
 EVENT SPRITETYPE3
-SPRITEINK 71
+; 71
 LET I = IMAGE
 IF I = 11
     LET J = 12
@@ -1886,7 +1886,7 @@ ANIMATE
 IF COLLISION 0
     KILL
 ENDIF
-SPRITEINK M
+; M
 
 
 EVENT SPRITETYPE4
@@ -1895,8 +1895,8 @@ IF SETTINGA 0
         SPRITEDOWN
     ELSE
         LET SETTINGA 1
-        BEEP 10
-        BEEP 10
+        ; 10
+        ; 10
     ENDIF
 ELSE
     IF CANGOUP
@@ -2007,7 +2007,7 @@ ENDIF
 IF COLLISION 0
     KILL
 ENDIF
-SPRITEINK 69
+; 69
 
 
 EVENT SPRITETYPE6
@@ -2038,7 +2038,7 @@ ELSE
 ENDIF
 IF SCREEN 22
     IF COLLISION 0
-        SPRITEINK 71
+        ; 71
         LET SCREEN = 25
     ENDIF
 ENDIF
@@ -2048,7 +2048,7 @@ EVENT SPRITETYPE7
 IF SCREEN 22
     IF COLLISION 0
         IF C = 28
-            SPRITEINK 71
+            ; 71
             LET SCREEN = 25
         ENDIF
     ENDIF
@@ -2056,18 +2056,18 @@ ENDIF
 
 
 EVENT SPRITETYPE8
-SPRITEINK 71
+; 71
 IF SCREEN 9
     IF GOT 2
         IF G = 0
-            SPRITEINK 66
+            ; 66
             IF A = 0
                 ANIMATE
                 IF FRAME 6
-                    SPRITEINK 71
+                    ; 71
                     REMOVE
-                    BEEP 20
-                    BEEP 20
+                    ; 20
+                    ; 20
                     ADD 1 TO G
                 ENDIF
             ENDIF
@@ -2077,14 +2077,14 @@ ENDIF
 IF SCREEN 11
     IF GOT 12
         IF N = 0
-            SPRITEINK 66
+            ; 66
             IF A = 0
                 ANIMATE
                 IF FRAME 6
-                    SPRITEINK 71
+                    ; 71
                     REMOVE
-                    BEEP 20
-                    BEEP 20
+                    ; 20
+                    ; 20
                     ADD 1 TO N
                 ENDIF
             ENDIF
@@ -2092,25 +2092,25 @@ IF SCREEN 11
     ENDIF
 ENDIF
 IF SCREEN 22
-    SPRITEINK 66
-    BEEP 20
-    BEEP 20
+    ; 66
+    ; 20
+    ; 20
     IF A = 0
         ANIMATE
         IF FRAME 6
-            SPRITEINK 71
+            ; 71
             REMOVE
         ENDIF
     ENDIF
 ENDIF
 IF SCREEN 23
-    SPRITEINK 66
-    BEEP 20
-    BEEP 20
+    ; 66
+    ; 20
+    ; 20
     IF A = 0
         ANIMATE
         IF FRAME 6
-            SPRITEINK 71
+            ; 71
             REMOVE
         ENDIF
     ENDIF
@@ -2183,7 +2183,7 @@ IF SCREEN 9
 ENDIF
 IF SCREEN 25
     IF TYPE 0
-        SPRITEINK 71
+        ; 71
         LET Y = 160
         LET X = 116
     ENDIF
@@ -2199,18 +2199,18 @@ ENDIF
 
 EVENT MAINLOOP2
 IF SCREEN 0
-    BORDER 0
+    ; 0
     LET LINE 1
     LET COLUMN 11
-    COLOUR 70
+    ; 70
     MESSAGE 5
     LET LINE 3
     LET COLUMN 7
-    COLOUR 69
+    ; 69
     MESSAGE 6
     LET LINE 22
     LET COLUMN 1
-    COLOUR 68
+    ; 68
     MESSAGE 32
     IF KEY FIRE2
         SCREENUP
@@ -2218,7 +2218,7 @@ IF SCREEN 0
     ENDIF
     LET LINE 20
     LET COLUMN 8
-    COLOUR 199
+    ; 199
     MESSAGE 33
 ELSE
     IF SCREEN 25
@@ -2241,19 +2241,19 @@ ELSE
         LET COLUMN 4
         MESSAGE 39
     ENDIF
-    COLOUR 69
+    ; 69
     LET LINE 21
     LET COLUMN 2
     MESSAGE 1
-    COLOUR 71
+    ; 71
     LET LINE 21
     LET COLUMN 8
     DISPLAY LIVES
-    COLOUR 69
+    ; 69
     LET LINE 21
     LET COLUMN 18
     MESSAGE 2
-    COLOUR 71
+    ; 71
     LET LINE 21
     LET COLUMN 24
     SHOWSCORE
@@ -2265,7 +2265,7 @@ IF SCREEN 22
 ENDIF
 LET LINE 22
 LET COLUMN 0
-COLOUR 71
+; 71
 IF SCREEN 1
     MESSAGE 10
 ENDIF
@@ -2351,41 +2351,41 @@ ENDIF
 
 
 EVENT INTROMENU
-BORDER 0
-COLOUR 71
+; 0
+; 71
 CLS
 LET LINE 3
 LET COLUMN 0
 MESSAGE 42
 LET LINE 5
 LET COLUMN 0
-COLOUR 70
+; 70
 MESSAGE 40
 LET LINE 16
 LET COLUMN 10
-COLOUR 67
+; 67
 MESSAGE 7
 LET LINE 17
 LET COLUMN 10
-COLOUR 68
+; 68
 MESSAGE 8
 LET LINE 18
 LET COLUMN 10
-COLOUR 69
+; 69
 MESSAGE 9
 LET LINE 14
 LET COLUMN 0
-COLOUR 71
+; 71
 MESSAGE 44
 LET LINE 20
 LET COLUMN 0
-COLOUR 71
+; 71
 MESSAGE 43
 WAITKEY
 
 
 EVENT GAMEINIT
-BORDER 0
+; 0
 CLS
 SILENCE
 LET C = 0
@@ -2410,8 +2410,8 @@ LET X = P
 
 EVENT KILLPLAYER
 ; FADE
-BEEP 50
-BEEP 40
+; 50
+; 40
 SUBTRACT 1 FROM LIVES
 LET LINE = 21
 LET COLUMN = 8

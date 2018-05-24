@@ -35,7 +35,7 @@ DEFINEMESSAGES
     "     ASSIGN REINFORCEMENTS"
     "SKY 1 DECOLLO IMMEDIATOINTERCETTARE E DISTRUGGERE UFO"
     "               []             vwxy#$THIS IS MOONBASE"
-    "     - 2017 FRANCESCO FORTEALL RIGHTS RESERVED - THIS IS A  FREE GAME - EVERY COMMERCIAL  DISTRIBUTION OF THIS PRODUCT WITHOUT THE EXPRESS CONSENT OFITS AUTHOR IS STRICTLY FORBIDDEN"
+    "      2017 FRANCESCO FORTEALL RIGHTS RESERVED - THIS IS A  FREE GAME - EVERY COMMERCIAL  DISTRIBUTION OF THIS PRODUCT WITHOUT THE EXPRESS CONSENT OFITS AUTHOR IS STRICTLY FORBIDDEN"
     "               rs               tu          UFOz VICTORY  SHADO SUFFERED HEAVY LOSSES   IT WON'T BE ABLE TO FIGHT        FOR A LONG TIME"
     "SKY 1 IMMEDIATE LAUNCH"
     "PRESS:- R TO REDEFINE KEYS- ANY OTHER KEY TO START"
@@ -1502,7 +1502,7 @@ IF SCREEN = 0
 ENDIF
 IF SCREEN = 28
     LET FRAME = 3
-    SPRITEINK 1
+    ; 1
 ENDIF
 IF SCREEN <> 0
     IF SCREEN <> 28
@@ -1542,7 +1542,7 @@ IF SCREEN <> 0
             IF M = 7
                 IF L > R
                     IF L > T
-                        SPRITEINK 0
+                        ; 0
                         LET Y = 168
                         LET X = 9
                         LET SCREEN = 26
@@ -1556,7 +1556,7 @@ IF SCREEN <> 0
                         IF X = 192
                             IF S = 0
                                 LET S = 1
-                                SOUND 1
+                                ; 1
                                 LET LINE = 8
                                 LET COLUMN = 22
                                 PUTBLOCK 125
@@ -1600,7 +1600,7 @@ IF SCREEN <> 0
                                 DELAY 8
                                 LET COLUMN = 15
                                 PUTBLOCK 127
-                                SOUND 0
+                                ; 0
                                 DELAY 8
                                 LET COLUMN = 15
                                 PUTBLOCK 128
@@ -1738,7 +1738,7 @@ ENDIF
 EVENT SPRITETYPE1
 IF CUSTOM
     IF Y > 9
-        SPRITEINK 7
+        ; 7
     ENDIF
 ENDIF
 ANIMATE
@@ -1834,7 +1834,7 @@ IF I = 0
 ENDIF
 LET J = Y
 LET A = X
-COLOUR 70
+; 70
 LET LINE = 0
 LET COLUMN = 7
 DISPLAY R
@@ -1915,7 +1915,7 @@ IF KEY FIRE
         LET S = 1
         LET IMAGE = 1
         IF E = 0
-            SOUND 0
+            ; 0
             LET E = D
             IF D = 1
                 SPAWN 3 2
@@ -1926,7 +1926,7 @@ IF KEY FIRE
     ENDIF
 ENDIF
 IF COLLISION 10
-    SOUND 0
+    ; 0
     EXPLODE 4
     ADD 1 TO T
     ADD 1 TO I
@@ -1966,7 +1966,7 @@ IF COLLISION 1
     LET E = 0
     ADD 1 TO R
     SUBTRACT 1 FROM N
-    SOUND 0
+    ; 0
     IF R = L
         IF R > T
             LET L = 250
@@ -2000,10 +2000,10 @@ ENDIF
 
 
 EVENT SPRITETYPE4
-SPRITEINK 4
+; 4
 LET J = Y
 LET A = X
-COLOUR 70
+; 70
 LET LINE = 0
 LET COLUMN = 7
 DISPLAY R
@@ -2036,7 +2036,7 @@ IF KEY UP
 ENDIF
 IF KEY FIRE
     IF E = 0
-        SOUND 0
+        ; 0
         LET E = D
         IF D = 1
             SPAWN 3 2
@@ -2047,7 +2047,7 @@ IF KEY FIRE
 ENDIF
 IF COLLISION 10
     ADD 1 TO T
-    SOUND 0
+    ; 0
     EXPLODE 4
     IF T = L
         IF T > R
@@ -2105,11 +2105,11 @@ ENDIF
 
 EVENT SPRITETYPE6
 IF Y <> 72
-    SPRITEINK 0
+    ; 0
     LET IMAGE = 3
     LET FRAME = 0
 ELSE
-    SPRITEINK 1
+    ; 1
     LET IMAGE = 3
     LET FRAME = 0
 ENDIF
@@ -2121,9 +2121,9 @@ IF K = 1
     ENDIF
 ENDIF
 IF COLLISION 0
-    SPRITEINK 2
+    ; 2
     OTHER
-    SPRITEINK 2
+    ; 2
     ENDSPRITE
     IF M = 2
         LET F = O
@@ -2157,7 +2157,7 @@ IF COLLISION 0
         ENDIF
     ENDIF
     DELAY 100
-    SOUND 0
+    ; 0
     IF F > G
         IF SCREEN = 19
             LET LINE = 9
@@ -2169,7 +2169,7 @@ IF COLLISION 0
             PUTBLOCK 99
             PUTBLOCK 99
         ENDIF
-        SOUND 0
+        ; 0
         ADD 1 TO R
         SUBTRACT 1 FROM N
         IF N > 0
@@ -2182,14 +2182,14 @@ IF COLLISION 0
                 LET SCREEN = 1
             ELSE
                 OTHER
-                SPRITEINK 7
+                ; 7
                 ENDSPRITE
             ENDIF
         ENDIF
         IF N = 0
             IF R = L
                 OTHER
-                SPRITEINK 0
+                ; 0
                 REMOVE
                 ENDSPRITE
                 REMOVE
@@ -2220,8 +2220,8 @@ IF COLLISION 0
             LET J = 6
         ENDIF
         IF L > R
-            SPRITEINK 0
-            SPRITEINK 7
+            ; 0
+            ; 7
             REMOVE
         ENDIF
     ELSE
@@ -2235,12 +2235,12 @@ IF COLLISION 0
             LET SCREEN = 1
         ELSE
             OTHER
-            SPRITEINK 0
+            ; 0
             ENDSPRITE
             IF SCREEN <> 19
-                SPRITEINK 7
+                ; 7
             ELSE
-                SPRITEINK 0
+                ; 0
             ENDIF
             LET LINE = 0
             LET COLUMN = 29
@@ -2277,21 +2277,21 @@ IF SCREEN = 1
             LET SCREEN = 27
         ELSE
             CLS
-            SPRITEINK = 0
+            ; = 0
             LET FRAME = 1
-            COLOUR 71
+            ; 71
             LET LINE = 1
             LET COLUMN = 0
             MESSAGE 21
-            COLOUR 66
+            ; 66
             IF N = 1
                 MESSAGE 6
             ELSE
                 MESSAGE 7
             ENDIF
-            COLOUR 71
+            ; 71
             MESSAGE 10
-            COLOUR 70
+            ; 70
             MESSAGE 23
             WAITKEY
             CLS
@@ -2309,13 +2309,13 @@ IF SCREEN = 1
             PUTBLOCK 13
             LET LINE = 4
             LET COLUMN = 0
-            COLOUR 71
+            ; 71
             MESSAGE 5
-            COLOUR 66
+            ; 66
             MESSAGE 20
-            COLOUR 68
+            ; 68
             MESSAGE 11
-            COLOUR 70
+            ; 70
             MESSAGE 23
             LET B = 3
             LET C = 4
@@ -2477,8 +2477,8 @@ ENDIF
 EVENT MAINLOOP2
 IF SCREEN = 26
     LET M = 8
-    COLOUR 71
-    BORDER 0
+    ; 71
+    ; 0
     CLS
     LET LINE = 1
     LET COLUMN = 14
@@ -2492,13 +2492,13 @@ IF SCREEN = 26
         PUTBLOCK 11
     ENDREPEAT
     PUTBLOCK 13
-    COLOUR 66
+    ; 66
     LET LINE = 4
     LET COLUMN = 0
     MESSAGE 25
-    COLOUR 68
+    ; 68
     MESSAGE 35
-    COLOUR 70
+    ; 70
     MESSAGE 23
     LET E = 0
     LET D = 2
@@ -2506,7 +2506,7 @@ IF SCREEN = 26
     WAITKEY
     CLS
     LET SCREEN = 28
-    COLOUR 70
+    ; 70
     LET LINE = 0
     LET COLUMN = 1
     MESSAGE 12
@@ -2516,20 +2516,20 @@ IF SCREEN = 26
     EXIT
 ENDIF
 IF SCREEN = 27
-    COLOUR 71
-    BORDER 0
+    ; 71
+    ; 0
     CLS
     LET LINE = 0
     LET COLUMN = 0
     MESSAGE 0
-    COLOUR 66
+    ; 66
     MESSAGE 2
     MESSAGE 3
-    COLOUR 71
+    ; 71
     MESSAGE 32
-    COLOUR 68
+    ; 68
     MESSAGE 4
-    COLOUR 70
+    ; 70
     MESSAGE 23
     WAITKEY
     CLS
@@ -2538,7 +2538,7 @@ IF SCREEN = 27
     LET I = 0
     LET N = 4
     LET S = 0
-    COLOUR 70
+    ; 70
     LET LINE = 0
     LET COLUMN = 1
     MESSAGE 12
@@ -2554,16 +2554,16 @@ IF SCREEN = 23
     LET LINE = 8
     LET COLUMN = 0
     IF N = 4
-        COLOUR 66
+        ; 66
         MESSAGE 26
-        COLOUR 70
+        ; 70
         MESSAGE 23
         WAITKEY
     ENDIF
     IF N = 3
-        COLOUR 68
+        ; 68
         MESSAGE 30
-        COLOUR 71
+        ; 71
         MENU 27
         IF OPT 0
             LET O = 53
@@ -2576,9 +2576,9 @@ IF SCREEN = 23
         ENDIF
     ENDIF
     IF N = 2
-        COLOUR 68
+        ; 68
         MESSAGE 30
-        COLOUR 71
+        ; 71
         MENU 29
         IF OPT 0
             LET O = 53
@@ -2599,15 +2599,15 @@ IF SCREEN = 23
         ENDIF
     ENDIF
     IF N = 1
-        COLOUR 69
+        ; 69
         MESSAGE 28
-        COLOUR 70
+        ; 70
         MESSAGE 23
         WAITKEY
     ENDIF
     CLS
     LET SCREEN = A
-    COLOUR 70
+    ; 70
     LET LINE = 0
     LET COLUMN = 1
     MESSAGE 12
@@ -2629,30 +2629,30 @@ EVENT INTROMENU
 
 EVENT GAMEINIT
 SILENCE
-BORDER 0
+; 0
 DELAY 150
 DELAY 150
-COLOUR 66
+; 66
 LET LIVES = 1
 LET LINE = 3
 LET COLUMN = 0
 CLS
 MESSAGE 16
-COLOUR 71
+; 71
 MESSAGE 17
-COLOUR 68
+; 68
 MESSAGE 22
-COLOUR 70
+; 70
 MESSAGE 23
 WAITKEY
 CLS
 LET LINE = 2
 LET COLUMN = 0
-COLOUR 71
+; 71
 MESSAGE 33
-COLOUR 67
+; 67
 MESSAGE 24
-COLOUR 70
+; 70
 MESSAGE 23
 WAITKEY
 CLS
@@ -2663,7 +2663,7 @@ WAITKEY
 IF KEY FIRE2
     LET LINE = 8
     LET COLUMN = 0
-    COLOUR 68
+    ; 68
     MESSAGE 37
     ; ASM 205
     ; ASM 72
@@ -2688,7 +2688,7 @@ SUBTRACT 1 FROM LIVES
 EVENT LOSTGAME
 SILENCE
 CLS
-COLOUR 66
+; 66
 LET LINE = 1
 LET COLUMN = 0
 MESSAGE 34
@@ -2697,7 +2697,7 @@ MESSAGE 34
 EVENT COMPLETEDGAME
 SILENCE
 CLS
-COLOUR 68
+; 68
 LET LINE = 1
 LET COLUMN = 0
 MESSAGE 14

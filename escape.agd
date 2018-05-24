@@ -1915,17 +1915,17 @@ ELSE
     ELSE
         IF OBJ = 15
             GET OBJ
-            BEEP 100
+            ; 100
             LET K = 1
-            COLOUR 71
+            ; 71
             LET LINE = 21
             LET COLUMN = 13
             MESSAGE 11
         ELSE
             IF OBJ = 16
                 GET OBJ
-                BEEP 100
-                COLOUR 71
+                ; 100
+                ; 71
                 LET L = 1
                 LET LINE = 20
                 LET COLUMN = 18
@@ -1933,39 +1933,39 @@ ELSE
             ELSE
                 IF OBJ = 17
                     GET OBJ
-                    BEEP 100
+                    ; 100
                     ADD 3 TO LIVES
                     IF LIVES > 9
-                        COLOUR 71
+                        ; 71
                         LET LINE = 20
                         LET COLUMN = 8
                         DISPLAY LIVES
                     ELSE
                         LET LINE = 20
                         LET COLUMN = 8
-                        COLOUR 0
+                        ; 0
                         MESSAGE 13
                         LET LINE = 20
                         LET COLUMN = 9
-                        COLOUR 71
+                        ; 71
                         DISPLAY LIVES
                     ENDIF
                 ELSE
                     IF OBJ = 18
                         GET OBJ
-                        BEEP 100
+                        ; 100
                         ADD 3 TO LIVES
                         IF LIVES > 9
-                            COLOUR 71
+                            ; 71
                             LET LINE = 20
                             LET COLUMN = 8
                             DISPLAY LIVES
                         ELSE
                             LET LINE = 20
                             LET COLUMN = 8
-                            COLOUR 0
+                            ; 0
                             MESSAGE 13
-                            COLOUR 71
+                            ; 71
                             LET LINE = 20
                             LET COLUMN = 9
                             DISPLAY LIVES
@@ -1973,7 +1973,7 @@ ELSE
                     ELSE
                         IF OBJ = 19
                             GET OBJ
-                            BEEP 100
+                            ; 100
                             ADD 3 TO LIVES
                             IF LIVES > 9
                                 LET LINE = 20
@@ -1982,18 +1982,18 @@ ELSE
                             ELSE
                                 LET LINE = 20
                                 LET COLUMN = 8
-                                COLOUR 0
+                                ; 0
                                 MESSAGE 13
                                 LET LINE = 20
                                 LET COLUMN = 9
-                                COLOUR 71
+                                ; 71
                                 DISPLAY LIVES
                             ENDIF
                         ELSE
                             GET OBJ
-                            BEEP 100
+                            ; 100
                             ADD 1 TO F
-                            COLOUR 71
+                            ; 71
                             IF F > 9
                                 LET LINE = 20
                                 LET COLUMN = 28
@@ -2100,7 +2100,7 @@ IF KEY FIRE
             ELSE
                 IF R = 0
                     LASER DIRECTION
-                    BEEP 64
+                    ; 64
                     LET R = 10
                 ENDIF
             ENDIF
@@ -2111,13 +2111,13 @@ ENDIF
 IF CUSTOM
     IF SCREEN = 12
         LET IMAGE = 7
-        IF KEY = 0
+        IF KEY 0
             SPRITERIGHT
             IF A = 0
                 ANIMBACK
             ENDIF
         ELSE
-            IF KEY = 1
+            IF KEY 1
                 SPRITELEFT
                 IF A = 0
                     ANIMATE
@@ -2129,13 +2129,13 @@ ENDIF
 IF CUSTOM
     IF SCREEN = 17
         LET IMAGE = 7
-        IF KEY = 0
+        IF KEY 0
             SPRITERIGHT
             IF A = 0
                 ANIMBACK
             ENDIF
         ELSE
-            IF KEY = 1
+            IF KEY 1
                 SPRITELEFT
                 IF A = 0
                     ANIMATE
@@ -2147,13 +2147,13 @@ ENDIF
 IF CUSTOM
     IF SCREEN = 25
         LET IMAGE = 7
-        IF KEY = 0
+        IF KEY 0
             SPRITERIGHT
             IF A = 0
                 ANIMBACK
             ENDIF
         ELSE
-            IF KEY = 1
+            IF KEY 1
                 SPRITELEFT
                 IF A = 0
                     ANIMATE
@@ -2228,14 +2228,14 @@ IF CUSTOM
     ENDIF
 ENDIF
 IF DEADLY
-    BEEP 20
+    ; 20
     KILL
 ENDIF
 IF F > 13
     IF K = 1
         IF S = 1
             LET E = 1
-            COLOUR = 1
+            ; = 1
             LET LINE = 21
             LET COLUMN = 18
             MESSAGE 14
@@ -2280,7 +2280,7 @@ ENDIF
 IF COLLISION 10
     REMOVE
     EXPLODE 8
-    BEEP 32
+    ; 32
 ENDIF
 
 
@@ -2336,7 +2336,7 @@ ENDIF
 IF COLLISION 10
     REMOVE
     EXPLODE 8
-    BEEP 32
+    ; 32
 ENDIF
 
 
@@ -2378,7 +2378,7 @@ ELSE
         IF SCREEN = 26
             REMOVE
             EXPLODE 8
-            BEEP 32
+            ; 32
             LET Y = 112
             LET X = 208
             IF Q = 0
@@ -2393,7 +2393,7 @@ ELSE
             IF SCREEN = 32
                 REMOVE
                 EXPLODE 8
-                BEEP 32
+                ; 32
                 LET Y = 44
                 LET X = 192
                 IF Q = 0
@@ -2408,7 +2408,7 @@ ELSE
                 IF SCREEN = 30
                     REMOVE
                     EXPLODE 8
-                    BEEP 32
+                    ; 32
                     LET Y = 72
                     LET X = 88
                     IF Q = 0
@@ -2421,7 +2421,7 @@ ELSE
                     SPAWN 3 4
                 ELSE
                     REMOVE
-                    BEEP 32
+                    ; 32
                     EXPLODE 8
                 ENDIF
             ENDIF
@@ -2495,7 +2495,7 @@ ENDIF
 IF COLLISION 10
     REMOVE
     EXPLODE 8
-    BEEP 32
+    ; 32
 ENDIF
 
 
@@ -2505,8 +2505,8 @@ IF CANGODOWN
 ELSE
     EXPLODE 8
     REMOVE
-    BEEP 5
-    BEEP 10
+    ; 5
+    ; 10
     IF SCREEN = 15
         GETRANDOM 50
         LET X = RND
@@ -2583,7 +2583,7 @@ ENDIF
 IF COLLISION 10
     REMOVE
     EXPLODE 8
-    BEEP 32
+    ; 32
     IF SCREEN = 37
         LET S = 1
     ENDIF
@@ -2639,16 +2639,16 @@ ENDIF
 
 
 EVENT INTROMENU
-BORDER 0
-COLOUR 0
+; 0
+; 0
 CLS
-COLOUR 68
+; 68
 LET LINE = 3
 LET COLUMN = 9
 MESSAGE 1
 LET LINE = 7
 LET COLUMN = 10
-COLOUR 71
+; 71
 MESSAGE 2
 LET LINE = 9
 LET COLUMN = 10
@@ -2656,19 +2656,19 @@ MESSAGE 3
 LET LINE = 11
 LET COLUMN = 10
 MESSAGE 4
-COLOUR 68
+; 68
 LET LINE = 20
 LET COLUMN = 2
 MESSAGE 17
-COLOUR 65
+; 65
 LET LINE = 20
 LET COLUMN = 15
 MESSAGE 19
-COLOUR 68
+; 68
 LET LINE = 21
 LET COLUMN = 2
 MESSAGE 16
-COLOUR 65
+; 65
 LET LINE = 21
 LET COLUMN = 20
 MESSAGE 18
@@ -2677,8 +2677,8 @@ WAITKEY
 
 EVENT GAMEINIT
 LET LIVES = 6
-COLOUR 71
-BORDER 0
+; 71
+; 0
 CLS
 LET A = 0
 LET F = 0
@@ -2687,56 +2687,56 @@ LET L = 0
 LET E = 0
 LET Q = 0
 LET S = 0
-COLOUR 68
+; 68
 LET LINE = 20
 LET COLUMN = 2
 MESSAGE 6
 IF LIVES > 9
-    COLOUR 71
+    ; 71
     LET LINE = 20
     LET COLUMN = 8
     DISPLAY LIVES
 ELSE
-    COLOUR 0
+    ; 0
     LET LINE = 20
     LET COLUMN = 8
     MESSAGE 13
-    COLOUR 71
+    ; 71
     LET LINE = 20
     LET COLUMN = 9
 ENDIF
-COLOUR 68
+; 68
 LET LINE = 20
 LET COLUMN = 12
 MESSAGE 7
-COLOUR 71
+; 71
 LET LINE = 20
 LET COLUMN = 19
 MESSAGE 12
-COLOUR 68
+; 68
 LET LINE = 20
 LET COLUMN = 23
 MESSAGE 8
-COLOUR 71
+; 71
 LET LINE = 20
 LET COLUMN = 29
 DISPLAY F
-COLOUR 68
+; 68
 LET LINE = 21
 LET COLUMN = 2
 MESSAGE 9
-COLOUR 71
+; 71
 LET LINE = 21
 LET COLUMN = 14
 MESSAGE 12
-COLOUR 7
+; 7
 LET LINE = 21
 LET COLUMN = 18
 MESSAGE 10
 
 
 EVENT RESTARTSCREEN
-COLOUR 71
+; 71
 IF LIVES > 9
     LET LINE = 20
     LET COLUMN = 8
@@ -2744,20 +2744,20 @@ IF LIVES > 9
 ELSE
     LET LINE = 20
     LET COLUMN = 8
-    COLOUR 0
+    ; 0
     MESSAGE 13
-    COLOUR 71
+    ; 71
     LET LINE = 20
     LET COLUMN = 9
     DISPLAY LIVES
 ENDIF
 IF L = 1
-    COLOUR 71
+    ; 71
     LET LINE = 20
     LET COLUMN = 18
     MESSAGE 11
 ELSE
-    COLOUR 71
+    ; 71
     LET LINE = 20
     LET COLUMN = 19
     MESSAGE 12
@@ -2781,12 +2781,12 @@ ELSE
     MESSAGE 12
 ENDIF
 IF E = 1
-    COLOUR = 1
+    ; = 1
     LET LINE = 21
     LET COLUMN = 18
     MESSAGE 14
 ELSE
-    COLOUR 7
+    ; 7
     LET LINE = 21
     LET COLUMN = 18
     MESSAGE 10
@@ -2798,7 +2798,7 @@ EVENT FELLTOOFAR
 
 EVENT KILLPLAYER
 SUBTRACT 1 FROM LIVES
-COLOUR 66
+; 66
 LET LINE = 21
 LET COLUMN = 18
 MESSAGE 15
@@ -2806,8 +2806,8 @@ WAITKEY
 
 
 EVENT LOSTGAME
-BORDER 2
-COLOUR 2
+; 2
+; 2
 CLS
 LET LINE = 10
 LET COLUMN = 11
@@ -2817,8 +2817,8 @@ DELAY 50
 
 
 EVENT COMPLETEDGAME
-BORDER 68
-COLOUR 68
+; 68
+; 68
 CLS
 LET LINE = 10
 LET COLUMN = 10

@@ -1,6 +1,10 @@
 
 DEFINEWINDOW    0 0 22 22
 
+DEFINEMESSAGES
+    "GAME OVER"
+    "GET READY"
+
 DEFINEFONT      0 0 0 0 0 0 0 0
                 0 48 48 48 48 0 48 0
                 0 108 108 0 0 0 0 0
@@ -97,10 +101,6 @@ DEFINEFONT      0 0 0 0 0 0 0 0
                 0 240 48 28 48 48 240 0
                 0 60 120 0 0 0 0 0
                 124 198 187 227 227 187 198 124
-
-DEFINEMESSAGES
-    "GAME OVER"
-    "GET READY"
 
 DEFINEBLOCK     EMPTYBLOCK
                 0 0 0 0 0 0 0 0
@@ -688,7 +688,7 @@ ENDIF
 EVENT SPRITETYPE1
 SPRITEINK 7
 IF Y = 200
-    IF KEY FIRE1
+    IF KEY FIRE
         IF F = 0
             LET F 5
             BEEP 10
@@ -814,11 +814,11 @@ ELSE
         ENDIF
     ENDIF
     IF SETTINGB = 1
-        GETRANDOM 2
+        GETRANDOM 3
         LET IMAGE RND
-        GETRANDOM 2
+        GETRANDOM 1
         LET SETTINGA = RND
-        GETRANDOM 2
+        GETRANDOM 1
         LET DIRECTION = RND
         ADD 7 TO IMAGE
         LET SETTINGB = 0

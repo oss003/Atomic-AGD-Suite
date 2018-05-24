@@ -1406,7 +1406,7 @@ IF COLLISION 0
             ADD Y TO P
             LET Y = P
             SUBTRACT 16 FROM Y
-            STOPFALL
+;            STOPFALL
         ENDIF
         IF KEY FIRE
             JUMP 7

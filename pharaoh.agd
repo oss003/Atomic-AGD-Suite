@@ -36,7 +36,7 @@ DEFINEMESSAGES
     "...Trail Of The Lonesome Pine..."
     ".......The Final Frontier......."
     "Help Page recover the treasure"
-    "!!"
+    "!'"
     "#$    1........KEYBOARD"
     "%&"
     "()    2.........KEMPSON"
@@ -1711,7 +1711,7 @@ ENDIF
 IF KEY FIRE
     IF F = 0
         JUMP 7
-        SOUND 4
+        ; 4
         LET F 1
     ENDIF
 ELSE
@@ -1731,9 +1731,9 @@ IF OBJ = 255
 ELSE
     IF OBJ = 30
         GET OBJ
-        SOUND 3
+        ; 3
         SCORE 100
-        COLOUR 71
+        ; 71
         LET LINE 22
         LET COLUMN 24
         SHOWSCORE
@@ -1741,9 +1741,9 @@ ELSE
     ELSE
         IF OBJ = 7
             GET OBJ
-            SOUND 2
+            ; 2
             SCORE 100
-            COLOUR 71
+            ; 71
             LET LINE 22
             LET COLUMN 24
             SHOWSCORE
@@ -1756,9 +1756,9 @@ ELSE
         ELSE
             IF OBJ = 15
                 GET OBJ
-                SOUND 2
+                ; 2
                 SCORE 100
-                COLOUR 71
+                ; 71
                 LET LINE 22
                 LET COLUMN 24
                 SHOWSCORE
@@ -1777,9 +1777,9 @@ ELSE
             ELSE
                 IF OBJ = 10
                     GET OBJ
-                    SOUND 2
+                    ; 2
                     SCORE 100
-                    COLOUR 71
+                    ; 71
                     LET LINE 22
                     LET COLUMN 24
                     SHOWSCORE
@@ -1792,9 +1792,9 @@ ELSE
                 ELSE
                     IF OBJ = 14
                         GET OBJ
-                        SOUND 3
+                        ; 3
                         SCORE 100
-                        COLOUR 71
+                        ; 71
                         LET L 1
                         REPEAT 6
                             LET LINE = L
@@ -1812,9 +1812,9 @@ ELSE
                     ELSE
                         IF OBJ = 17
                             GET OBJ
-                            SOUND 2
+                            ; 2
                             SCORE 100
-                            COLOUR 71
+                            ; 71
                             LET LINE 22
                             LET COLUMN 24
                             SHOWSCORE
@@ -1834,9 +1834,9 @@ ELSE
                         ELSE
                             IF OBJ = 8
                                 GET OBJ
-                                SOUND 2
+                                ; 2
                                 SCORE 100
-                                COLOUR 71
+                                ; 71
                                 LET LINE 22
                                 LET COLUMN 24
                                 SHOWSCORE
@@ -1849,9 +1849,9 @@ ELSE
                             ELSE
                                 IF OBJ = 9
                                     GET OBJ
-                                    SOUND 2
+                                    ; 2
                                     SCORE 100
-                                    COLOUR 71
+                                    ; 71
                                     LET LINE 22
                                     LET COLUMN 24
                                     SHOWSCORE
@@ -1873,9 +1873,9 @@ ELSE
                                     ENDREPEAT
                                 ELSE
                                     GET OBJ
-                                    SOUND 2
+                                    ; 2
                                     SCORE 100
-                                    COLOUR 71
+                                    ; 71
                                     LET LINE 22
                                     LET COLUMN 24
                                     SHOWSCORE
@@ -1893,35 +1893,35 @@ ELSE
     IF OBJ = 3
         ADD 1 TO LIVES
         SCORE 120
-        SOUND 2
+        ; 2
     ENDIF
     IF OBJ = 4
         SCORE 120
-        SOUND 2
+        ; 2
         ADD 1 TO LIVES
     ENDIF
     IF OBJ = 5
         SCORE 120
-        SOUND 2
+        ; 2
         ADD 1 TO LIVES
     ENDIF
     IF OBJ = 6
         SCORE 120
-        SOUND 2
+        ; 2
         ADD 1 TO LIVES
     ENDIF
     IF OBJ = 19
         SCORE 120
-        SOUND 2
+        ; 2
         ADD 1 TO LIVES
     ENDIF
     IF OBJ = 20
         SCORE 120
-        SOUND 2
+        ; 2
         ADD 1 TO LIVES
     ENDIF
     GET OBJ
-    COLOUR 71
+    ; 71
     LET LINE = 22
     LET COLUMN = 24
     SHOWSCORE
@@ -1949,7 +1949,7 @@ IF A = 0
     ANIMATE
 ENDIF
 IF COLLISION 0
-    BEEP 20
+    ; 20
     KILL
 ENDIF
 
@@ -1982,7 +1982,7 @@ IF A = 0
     ANIMATE
 ENDIF
 IF COLLISION 0
-    BEEP 20
+    ; 20
     KILL
 ENDIF
 
@@ -2019,7 +2019,7 @@ ELSE
 ENDIF
 ANIMATE
 IF COLLISION 0
-    BEEP 20
+    ; 20
     KILL
 ENDIF
 
@@ -2051,8 +2051,8 @@ EVENT MAINLOOP2
 
 
 EVENT INTROMENU
-BORDER 0
-COLOUR 7
+; 0
+; 7
 CLS
 LET LINE 9
 LET COLUMN 5
@@ -2072,15 +2072,15 @@ MESSAGE 38
 LET LINE 16
 LET COLUMN 5
 MESSAGE 39
-COLOUR 5
+; 5
 LET LINE 21
 LET COLUMN 2
 MESSAGE 40
-COLOUR 6
+; 6
 LET LINE 3
 LET COLUMN 0
 MESSAGE 41
-COLOUR 65
+; 65
 LET LINE 0
 LET COLUMN 0
 MESSAGE 44
@@ -2089,11 +2089,11 @@ WAITKEY
 
 EVENT GAMEINIT
 LET LIVES 3
-COLOUR 7
-BORDER 0
+; 7
+; 0
 CLS
 LET A 0
-COLOUR 71
+; 71
 LET LINE 22
 LET COLUMN 18
 MESSAGE 1
@@ -2112,7 +2112,7 @@ EVENT RESTARTSCREEN
 LET F 1
 LET LINE 0
 LET COLUMN 0
-COLOUR 6
+; 6
 LET M SCREEN
 ADD 3 TO M
 MESSAGE M
@@ -2124,34 +2124,34 @@ ENDIF
 
 
 EVENT KILLPLAYER
-SOUND 0
+; 0
 SUBTRACT 1 FROM LIVES
 LET LINE 22
 LET COLUMN 8
-COLOUR 71
+; 71
 DISPLAY LIVES
-BEEP 30
+; 30
 IF LIVES = 0
     DELAY 50
     CLS
     LET LINE 6
     LET COLUMN 11
-    COLOUR 2
+    ; 2
     MESSAGE 0
-    COLOUR 5
+    ; 5
     LET LINE 10
     LET COLUMN 8
     MESSAGE 1
     LET LINE 10
     LET COLUMN 17
     SHOWSCORE
-    COLOUR 6
+    ; 6
     LET LINE 21
     LET COLUMN 0
     MESSAGE 43
     LET C 5
     REPEAT 100
-        BEEP C
+        ; C
         ADD 5 TO C
     ENDREPEAT
     WAITKEY
@@ -2166,17 +2166,17 @@ EVENT COMPLETEDGAME
 CLS
 LET C 10
 REPEAT 200
-    SOUND 1
-    BEEP C
+    ; 1
+    ; C
     REPEAT 200
-        BORDER 1
-        BORDER 2
-        BORDER 3
-        BORDER 4
-        BORDER 5
-        BORDER 6
-        BORDER 7
-        BORDER 0
+        ; 1
+        ; 2
+        ; 3
+        ; 4
+        ; 5
+        ; 6
+        ; 7
+        ; 0
         ADD 1 TO C
     ENDREPEAT
 ENDREPEAT
@@ -2184,11 +2184,11 @@ DELAY 50
 LET LINE 0
 LET COLUMN 0
 MESSAGE 42
-COLOUR 5
+; 5
 LET LINE 21
 LET COLUMN 0
 MESSAGE 43
-COLOUR 3
+; 3
 LET LINE 11
 LET COLUMN 8
 MESSAGE 1

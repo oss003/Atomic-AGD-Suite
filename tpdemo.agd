@@ -946,7 +946,7 @@ IF 2 > G
         MESSAGE 24
         LET LINE 7
         LET COLUMN 29
-        COLOUR 71
+        ;colour 71
         DISPLAY K
         BEEP 50
         IF K > 15
@@ -957,7 +957,7 @@ IF 2 > G
         LET X 96
         DETECTOBJ
         IF OBJ = 8
-            SPRITEINK 7
+            ;spriteink 7
         ENDIF
         LET Y A
         LET X B
@@ -998,7 +998,7 @@ IF 2 > G
             ENDSPRITE
             LET IMAGE 19
             LET FRAME 1
-            SPRITEINK 0
+            ;spriteink 0
             LET Y 0
             LET X 240
             IF G = 3
@@ -1031,7 +1031,7 @@ LET Y 24
 IF SCREEN > 1
     LET Y 48
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 0
     PUT X Y 0
@@ -1055,7 +1055,7 @@ IF OBJ = 1
     LET G 2
     LET D 1
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 1
     PUT X Y 1
@@ -1074,7 +1074,7 @@ IF OBJ = 2
     LET P X
     LET G 2
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 2
     PUT X Y 2
@@ -1090,7 +1090,7 @@ IF OBJ = 3
     LET P X
     LET G 2
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 3
     PUT X Y 3
@@ -1107,7 +1107,7 @@ IF OBJ = 4
     LET P X
     LET G 2
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 4
     PUT X Y 4
@@ -1124,7 +1124,7 @@ IF OBJ = 5
     LET G 2
     LET D 1
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 5
     GET 5
     PUT X Y 5
@@ -1154,7 +1154,7 @@ IF G = 6
         PUT X Y 6
     ENDIF
 ENDIF
-SPRITEINK 2
+;spriteink 2
 LET X 144
 IF SCREEN > 1
     LET X 168
@@ -1179,7 +1179,7 @@ IF G = 6
     LET G 3
     EXIT
 ENDIF
-SPRITEINK 2
+;spriteink 2
 IF G = 2
     LET DIRECTION OBJ
     GET OBJ
@@ -1216,7 +1216,7 @@ IF G = 2
         IF OBJ = T
             LET Q 1
             SCORE 80
-            COLOUR 71
+            ;colour 71
             LET LINE 1
             LET COLUMN 27
             SHOWSCORE
@@ -1242,7 +1242,7 @@ IF G = 2
             EXIT
         ELSE
             SCORE 100
-            COLOUR 71
+            ;colour 71
             LET LINE 1
             LET COLUMN 27
             SHOWSCORE
@@ -1258,7 +1258,7 @@ IF G = 2
             ENDSPRITE
             LET Y A
             LET X B
-            SPRITEINK 4
+            ;spriteink 4
             EXIT
         ENDIF
     ENDIF
@@ -1409,7 +1409,7 @@ IF G = 1
         ADD 4 TO IMAGE
     ENDIF
 ENDIF
-SPRITEINK 4
+;spriteink 4
 
 
 EVENT SPRITETYPE1
@@ -1714,8 +1714,6 @@ ELSE
 ENDIF
 LET IMAGE D
 ADD 9 TO IMAGE
-; warning - ENDIF without IF?
-ENDIF
 IF SETTINGA = 0
     IF C = 0
         LET O 0
@@ -1830,12 +1828,12 @@ IF X > P
     ENDIF
 ENDIF
 LET DIRECTION D
-SPRITEINK 6
+;spriteink 6
 IF SETTINGA = 2
-    SPRITEINK 5
+    ;spriteink 5
 ENDIF
 IF SETTINGA = 1
-    SPRITEINK 3
+    ;spriteink 3
 ENDIF
 
 
@@ -1888,7 +1886,7 @@ IF COLLISION 1
         ENDIF
         IF 5 > Q
             SCORE 50
-            COLOUR 71
+            ;colour 71
             LET LINE 1
             LET COLUMN 27
             SHOWSCORE
@@ -1911,11 +1909,11 @@ IF COLLISION 1
         ENDIF
     ENDIF
 ENDIF
-SPRITEINK 7
+;spriteink 7
 
 
 EVENT SPRITETYPE3
-SPRITEINK 7
+;spriteink 7
 IF 200 > Y
     IF COLLISION 0
         SCORE 150
@@ -2054,14 +2052,14 @@ IF SETTINGB > 0
     ENDIF
 ENDIF
 IF Y = 0
-    SPRITEINK 2
+    ;spriteink 2
     ADD 8 TO Y
-    SPRITEINK 7
+    ;spriteink 7
     SUBTRACT 8 FROM Y
 ELSE
-    SPRITEINK 7
+    ;spriteink 7
     SUBTRACT 8 FROM Y
-    SPRITEINK 2
+    ;spriteink 2
     ADD 8 TO Y
 ENDIF
 IF C = 0
@@ -2083,7 +2081,7 @@ IF C = 0
 ENDIF
 IF G = 2
 ENDIF
-SPRITEINK 4
+;spriteink 4
 IF DIRECTION > 1
     LET IMAGE 15
 ENDIF
@@ -2154,7 +2152,7 @@ IF SCREEN = 5
         SUBTRACT 6 FROM F
         LET O 255
     ENDIF
-    SPRITEINK 7
+    ;spriteink 7
     IF C = 0
         ADD 255 TO Y
         ANIMATE
@@ -2181,22 +2179,22 @@ IF SCREEN = 5
         RESTART
     ENDIF
     IF IMAGE = 9
-        SPRITEINK 6
+        ;spriteink 6
         IF F > 3
             IF X = 96
-                SPRITEINK 3
+                ;spriteink 3
             ENDIF
         ENDIF
         IF F > 6
             IF X = 96
-                SPRITEINK 5
+                ;spriteink 5
             ELSE
-                SPRITEINK 3
+                ;spriteink 3
             ENDIF
         ENDIF
     ENDIF
     IF IMAGE = 0
-        SPRITEINK 4
+        ;spriteink 4
     ENDIF
 ENDIF
 IF SCREEN = 6
@@ -2225,23 +2223,23 @@ IF SCREEN = 6
             ENDIF
         ENDIF
     ENDIF
-    COLOUR 6
+    ;colour 6
     LET LINE 15
     LET COLUMN 5
     MESSAGE 30
-    COLOUR 66
+    ;colour 66
     LET LINE 16
     LET COLUMN 6
     MESSAGE 31
     LET LINE 15
     LET COLUMN 13
-    COLOUR 7
+    ;colour 7
     ADD 27 TO N
     MESSAGE N
     SUBTRACT 27 TO N
     LET LINE 12
     LET COLUMN 4
-    COLOUR 69
+    ;colour 69
     IF CLOCK > 180
         REPEAT 18
             PUTBLOCK 23
@@ -2253,19 +2251,19 @@ IF SCREEN = 6
         LET O 255
         LET LINE 2
         LET COLUMN 10
-        COLOUR 66
+        ;colour 66
         MESSAGE 15
         LET LINE 3
         LET COLUMN 7
         MESSAGE 16
-        COLOUR 67
+        ;colour 67
         LET LINE 8
         LET COLUMN 2
         MESSAGE 17
         LET LINE 9
         LET COLUMN 4
         MESSAGE 18
-        COLOUR 71
+        ;colour 71
         LET LINE 21
         LET COLUMN 1
         MESSAGE 19
@@ -2280,7 +2278,7 @@ IF SCREEN = 6
             ADD 1 TO Q
         ENDREPEAT
         PUTBLOCK 23
-        COLOUR 5
+        ;colour 5
         MESSAGE 22
     ENDIF
     IF IMAGE = 16
@@ -2307,7 +2305,7 @@ IF SCREEN = 6
             LET IMAGE 16
         ENDIF
     ENDIF
-    SPRITEINK 4
+    ;spriteink 4
 ENDIF
 
 
@@ -2315,7 +2313,7 @@ EVENT SPRITETYPE6
 IF SETTINGB > 0
     ADD 255 TO SETTINGB
     IF SETTINGB > 150
-        SPRITEINK 4
+        ;spriteink 4
         IF C = 0
             ADD 1 TO IMAGE
             BEEP SETTINGB
@@ -2362,7 +2360,7 @@ IF SETTINGB > 0
     ENDIF
     IF 150 > SETTINGB
         IF SETTINGB > 80
-            SPRITEINK 7
+            ;spriteink 7
             LET IMAGE 19
         ENDIF
     ENDIF
@@ -2420,7 +2418,7 @@ IF J > 0
 ENDIF
 IF J = 95
     LET Y 160
-    COLOUR 71
+    ;colour 71
     LET LINE 0
     LET COLUMN 7
     MESSAGE 25
@@ -2432,9 +2430,9 @@ IF J = 99
     ENDIF
     LET M 11
 ENDIF
-SPRITEINK 4
+;spriteink 4
 IF J = 93
-    COLOUR 66
+    ;colour 66
     LET LINE 0
     LET COLUMN 0
     MESSAGE 26
@@ -2562,9 +2560,9 @@ IF SETTINGB > 0
         IF SETTINGB > 80
             BEEP SETTINGB
         ENDIF
-        SPRITEINK 2
+        ;spriteink 2
     ELSE
-        SPRITEINK 6
+        ;spriteink 6
     ENDIF
     IF SETTINGB = 0
         LET O = 0
@@ -2669,7 +2667,7 @@ IF 4 > SCREEN
         IF OBJ = 8
         ELSE
             IF 15 > K
-                SPRITEINK 7
+                ;spriteink 7
                 PUT X Y 8
             ENDIF
         ENDIF
@@ -2678,13 +2676,13 @@ IF 4 > SCREEN
     ENDIF
     IF K = 0
         IF CLOCK = 50
-            COLOUR 66
+            ;colour 66
             LET COLUMN 27
             LET LINE 6
             MESSAGE 3
         ENDIF
         IF CLOCK 100
-            COLOUR 5
+            ;colour 5
             LET COLUMN 27
             LET LINE 6
             MESSAGE 3
@@ -2714,10 +2712,10 @@ LET L 0
 LET I 0
 LET J 0
 LET LIVES = 3
-COLOUR 4
-BORDER 0
+;colour 4
+;border 0
 CLS
-COLOUR 32
+;colour 32
 LET F = 0
 
 
@@ -2727,8 +2725,8 @@ LET S 15
 IF L = 1
     LET S 71
 ENDIF
-COLOUR 5
-BORDER 0
+;colour 5
+;border 0
 CLS
 IF 6 > SCREEN
     LET LINE 0
@@ -2759,7 +2757,7 @@ IF 6 > SCREEN
     MESSAGE 5
     LET LINE 1
     LET COLUMN 27
-    COLOUR 71
+    ;colour 71
     SHOWSCORE
     LET LINE 4
     LET COLUMN 27
@@ -2805,7 +2803,7 @@ IF SCREEN = 4
         PUTBLOCK 26
     ENDREPEAT
 ENDIF
-COLOUR 7
+;colour 7
 GETRANDOM 8
 LET O RND
 GETRANDOM 8
