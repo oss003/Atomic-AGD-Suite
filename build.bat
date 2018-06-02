@@ -8,8 +8,9 @@ rem Compile AGD file
  copy %1.inc ..\cc65\
  del %1.*
 
+rem Assemble file
  cd ..\cc65
- call make %1 %2 %3 %4
+ call make %1 %2 %3 %4 %5
  copy %1.atm ..\atomulator\mmc\menu
  del %1.*
 

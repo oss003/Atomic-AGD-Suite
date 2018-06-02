@@ -5,16 +5,25 @@ rem Set flags
  if "%2"=="m" set mf=1
  if "%3"=="m" set mf=1
  if "%4"=="m" set mf=1
+ if "%5"=="m" set mf=1
 
  set pf=0
  if "%2"=="p" set pf=1
  if "%3"=="p" set pf=1
  if "%4"=="p" set pf=1
+ if "%5"=="p" set pf=1
 
  set sf=0
  if "%2"=="s" set sf=1
  if "%3"=="s" set sf=1
  if "%4"=="s" set sf=1
+ if "%5"=="s" set sf=1
+
+ set if=0
+ if "%2"=="i" set if=1
+ if "%3"=="i" set if=1
+ if "%4"=="i" set if=1
+ if "%5"=="i" set if=1
 
 rem Build asm file
  echo.
@@ -27,7 +36,7 @@ rem Conditional assemble game
  if %mf%==1 echo - Menu/inventory code loaded ...
  if %pf%==1 echo - Particle code loaded ...
  if %sf%==1 echo - Scrollytext code loaded ...
- ca65 -l -o %1.o game.asm -D mflag=%mf% -D pflag=%pf% -D sflag=%sf% 
+ ca65 -l -o %1.o game.asm -D mflag=%mf% -D pflag=%pf% -D sflag=%sf% -D iflag=%if%
  if not "%errorlevel%" == "0" goto failed
 
 rem Linking

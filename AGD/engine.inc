@@ -51,8 +51,13 @@
 
 ; System constants
 
+.if iflag
+	TxtInvert   = $ff	; Invert byte for character printing
+	ScrFillByte = $ff	; Screen fill byte for CLS
+.else
 	TxtInvert   = $00	; Invert byte for character printing
 	ScrFillByte = $00	; Screen fill byte for CLS
+.endif
 	ScrMode     = $f0	; Screen mode:
 				;  $d0 = CLEAR4a colour
 				;  $f0 = CLEAR4  mono
@@ -79,6 +84,8 @@
 ;===============================================================
 
 .segment "CODE"
+
+	sei
 
 ;--------------------------------------------------------------
 ; If a font is required...
@@ -729,19 +736,33 @@ vsync:
 	pha
 	jsr joykey		; read joystick/keyboard.
 vsync1:
-	lda $b809
-	bpl vsync1
-	lda #<20000
-	sta $b808
-	lda #>20000
-	sta $b809
+;	lda $b809
+;	bpl vsync1
+;	sei
+;	lda #<20000
+;	sta $b808
+;	lda #>20000
+;	sta $b809
 
-;	jsr SCRSYNC1		; Wait for flyback
+	jsr SCRSYNC1		; Wait for flyback
 	lda clock
 	and #1
 	bne:+
 	jsr proshr
 :
+	lda sndtyp
+	beq sndskip
+sndloop:
+	lda $b002
+	ldy sndtyp
+sndwait:
+	dey
+	bne sndwait
+	eor #4
+	sta $b002
+	dec sndtyp
+	bne sndloop
+sndskip: 
 	pla
 	tax
 	pla
@@ -987,7 +1008,7 @@ vsync1:
 ;	jmp vsynca
 ;
 ;	; 98.00.00 sndtyp .byte 0
-;sndtyp:	.byte 0
+sndtyp:	.byte 0
 ;
 ;
 ; clock  .byte 0              ; last clock reading.
@@ -2296,7 +2317,8 @@ mloop:
 	sta z80_i
 	jsr dspr 		; display even sprites.
 
-;	jsr plsnd 		; play sounds.
+;
+	jsr plsnd 		; play sounds.
 	jsr vsync 		; synchronise with display.
 
 	lda #<(sprtab+TABSIZ) 	; address of first odd sprite.
@@ -6657,7 +6679,25 @@ cpsp:
 	ldy #16
 	sta (z80_ix),y
 evis0:
+	lda z80_i
+	pha
+	lda z80_x
+	pha
+	lda z80_h
+	pha
+	lda z80_l
+	pha
+
 	jsr evnt09 			; perform event.
+
+	pla
+	sta z80_l
+	pla
+	sta z80_h
+	pla
+	sta z80_x
+	pla
+	sta z80_i
 
 	clc
 	lda z80_x 			; distance to next odd/even entry.
