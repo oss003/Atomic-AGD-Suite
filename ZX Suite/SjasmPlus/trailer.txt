@@ -1,0 +1,2 @@
+
+	savetap "test.tap",start
