@@ -590,13 +590,14 @@ fopt0:
 fobj:
 	ldy combyt		; object number.
 	inc combyt		; ready for next item.
-	cpy #0
-	bne :+			; in case we loop back to zero.
-	rts
-:
+;	cpy #0
+;	bne :+			; in case we loop back to zero.
+;	rts
+;:
+	tya
 	jsr gotob		; do we have this item?
 	cmp #255
-	beq :+
+	bne :+
 	rts
 :
 	jmp fobj		; yes, it's on the list.
