@@ -1,0 +1,3 @@
+WinAPE Automatic Update Executable Updater Version 2.0
+
+Command Line: "C:\Users\gebruiker\Documents\AGD\CPC Suite\WinAPE\Update.exe"  /O

@@ -737,15 +737,15 @@ vsync:
 	pha
 	jsr joykey		; read joystick/keyboard.
 vsync1:
-;	lda $b809
-;	bpl vsync1
+	bit $b809
+	bpl vsync1
 ;	sei
-;	lda #<20000
-;	sta $b808
-;	lda #>20000
-;	sta $b809
+	lda #<25000
+	sta $b809
+	lda #>25000
+	sta $b808
 
-	jsr SCRSYNC1		; Wait for flyback
+;	jsr SCRSYNC1		; Wait for flyback
 	lda clock
 	and #1
 	bne:+
@@ -2215,7 +2215,7 @@ setsa0:
 	lda scraddr+1
 	cpy #192		; vertical lines on screen.
 	bcc :+
-	ora #40
+	ora #$F0
 :
 	sta SCADTB_hb,y		; write high byte.
 	jsr nline		; next line down.
@@ -2320,7 +2320,7 @@ mloop:
 
 ;
 	jsr plsnd 		; play sounds.
-	jsr vsync 		; synchronise with display.
+;	jsr vsync 		; synchronise with display.
 
 	lda #<(sprtab+TABSIZ) 	; address of first odd sprite.
 	sta z80_x
@@ -5805,6 +5805,8 @@ dline:
 	lda (z80_de),y 		; second bit of data.
 	eor (scraddr),y 	; XOR with what's there.
 	sta (scraddr),y 	; bung it in.
+	lda scraddr+1
+	sta $f0
 
 	inc z80_e 		; point to next line of data.
 	bne :+
