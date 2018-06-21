@@ -280,17 +280,17 @@ EVENT PLAYER
 ; Test Inventory menu
  IF KEY FIRE1
    INV "OBJ0,OBJ1,OBJ2,OBJ3,OBJ4,OBJ5"
-   IF OPT=0
+   IF OPT=3
      LET D X
      ADD 16 TO D
      PUT D Y 3
    ENDIF
-   IF OPT=1
+   IF OPT=4
      LET D X
      ADD 16 TO D
      PUT D Y 4
    ENDIF
-   IF OPT=2
+   IF OPT=5
      LET D X
      ADD 16 TO D
      PUT D Y 5
