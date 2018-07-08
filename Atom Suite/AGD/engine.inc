@@ -7,14 +7,6 @@
 ; Global definitions ------------------------------------------------------------
 
 	FONT = font		; Font address
-	SIMASK = 248		; SPRITEINK mask - default to just INK.
-;	SHRAPN = 63926		; shrapnel table, just below screen address table.
-;	SCADTB = 64256		; screen address table, just below map.
-;	MAP = 22528		; properties map buffer.
-
-;	loopa = 23681           ; loop counter system variable.
-;	loopb = 23728           ; loop counter system variable.
-;	loopc = 23729           ; loop counter system variable.
 
 ; Block characteristics.
 
@@ -49,8 +41,36 @@
 	bufaddr	= $86
 	tmp     = $88
 
+	scr_l	= $90
+	scr_r	= $92
+	scr_txt	= $94
+
 ; System constants
 
+	ScreenAddr  = $8000	; Startaddress video RAM
+	ScrSelAddr  = $b000	; Screen selection address
+	KeyRowAddr  = $b000	; PIA key matrix row
+	KeyColAddr  = $b001	; PIA key matrix column
+	SpeakerBit  = $b002	; Speaker bit
+	CmdReg      = $b400	; Command register AtoMMC
+	DatReg      = $b401	; Data register AtoMMC 
+	Timer2_Low  = $b808	; Timer 2 low byte
+	Timer2_High = $b809	; Timer 2 high byte
+
+; System calls
+
+	SCRSYNC	 = $fe66	; wait for next CRT field flyback 60 Hz
+	SCRSYNC1 = $fe6b	; wait for CRT field flyback 60 Hz
+	OSRDCH   = $fe94	; get key subroutine
+        READKEY  = $fe71	; scan key matrix subroutine
+
+; Conditional compilation flags
+; Flags are set in commandline assembly
+
+;	mflag = 0 		; MENU + INV
+;	pflag = 0		; Particle engine
+;	sflag = 0		; scrollytext
+;	fflag = 1		; Fontflag
 .if iflag
 	TxtInvert   = $ff	; Invert byte for character printing
 	ScrFillByte = $ff	; Screen fill byte for CLS
@@ -61,31 +81,12 @@
 	ScrMode     = $f0	; Screen mode:
 				;  $d0 = CLEAR4a colour
 				;  $f0 = CLEAR4  mono
-	ScrSelAddr  = $b000	; Screen selection address
-	KeyRowAddr  = $b000	; PIA key matrix row
-	KeyColAddr  = $b001	; PIA key matrix column
-
-; System calls
-
-	SCRSYNC	 = $fe66	; wait for next CRT field flyback 60 Hz
-	SCRSYNC1 = $fe6b	; wait for CRT field flyback 60 Hz
-	OSRDCH   = $fe94	; get key subroutine
-        READKEY  = $fe71	; scan key matrix subroutine
-
-; Conditional compilation flags
-
-;	mflag = 0 		; MENU + INV
-;	pflag = 0		; Particle engine
-;	sflag = 0		; scrollytext
-	fflag = 1		; Fontflag
 
 ;===============================================================
 ; Game starts here
 ;===============================================================
 
 .segment "CODE"
-
-	sei
 
 ;--------------------------------------------------------------
 ; If a font is required...
@@ -590,10 +591,6 @@ fopt0:
 fobj:
 	ldy combyt		; object number.
 	inc combyt		; ready for next item.
-;	cpy #0
-;	bne :+			; in case we loop back to zero.
-;	rts
-;:
 	tya
 	jsr gotob		; do we have this item?
 	cmp #255
@@ -617,7 +614,7 @@ prskey:
 	pha
 prsloop:
 	jsr vsync
-	jsr $fe71
+	jsr READKEY
 	cpy #255
 	beq prsloop		; wait until key pressed
 	pla
@@ -724,9 +721,9 @@ iniob0:
 ; Screen synchronisation.
 ;
 ;  - read joystick/keyboard
-;  - handle sound		NOT IMPLEMENTED!!
-;  - sync framerate with clock	NOT IMPLEMENTED!!
-;  - handle shrapnel		NOT IMPLEMENTED!!
+;  - handle sound
+;  - sync framerate with clock
+;  - handle shrapnel every even frame
 ;-------------------------------------------------------------
 
 vsync:
@@ -737,30 +734,28 @@ vsync:
 	pha
 	jsr joykey		; read joystick/keyboard.
 vsync1:
-	bit $b809
-	bpl vsync1
-;	sei
-	lda #<25000
-	sta $b809
-	lda #>25000
-	sta $b808
+	lda Timer2_High		; sync framerate with clock
+	bne vsync1
+	lda #>50000
+	sta Timer2_High
+	lda #<50000
+	sta Timer2_Low
 
-;	jsr SCRSYNC1		; Wait for flyback
 	lda clock
 	and #1
 	bne:+
-	jsr proshr
+	jsr proshr		; handle shrapnel every even frame
 :
 	lda sndtyp
 	beq sndskip
 sndloop:
-	lda $b002
+	lda SpeakerBit		; handle sound
 	ldy sndtyp
 sndwait:
 	dey
 	bne sndwait
 	eor #4
-	sta $b002
+	sta SpeakerBit
 	dec sndtyp
 	bne sndloop
 sndskip: 
@@ -771,249 +766,7 @@ sndskip:
 	pla
 	rts
 
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-; Sound + border colour, NOT IMPLEMENTED!!
-;
-;	lda sndtyp 	; sound to play.
-;	bne :+ 	; any sound?
-;	jmp vsync1 	; no.
-;:
-;	sta z80_b 	; outer loop.
-;	lda 23624 	; border colour.
-;	sta z80_a
-;
-;	; 52.xx.xx rra
-;	lsr z80_a  	; put border bits into d0, d1 and d2.
-;
-;	; 52.xx.xx rra  	
-;	lsr z80_a
-;
-;	; 52.xx.xx rra  	
-;	lsr z80_a
-;
-;	; 29.03.03 ld c, a 	; first value to write to speaker.
-;	lda z80_a
-;	sta z80_c
-;
-;	; 29.03.03 ld a, b 	; sound.
-;	lda z80_b
-;	sta z80_a
-;
-;	; 02.03.xx and a 	; test it.
-;	lda z80_a
-;	and z80_a
-;
-;	; 27.06.00 jp m, vsync6 	; play white noise.
-;	bpl :+
-;	jmp vsync6
-;:
-;vsync2:
-;	; 29.03.03 ld a, c 	; get speaker value.
-;	lda z80_c
-;	sta z80_a
-;
-;	; 39.02.03 out (254), a 	; write to speaker.
-;	lda z80_a
-;	sta 254
-;
-;	; 64.05.xx xor 248 	; toggle all except the border bits.
-;	lda z80_a
-;	eor #248
-;	sta z80_a
-;
-;	; 29.03.03 ld c, a 	; store value for next time.
-;	lda z80_a
-;	sta z80_c
-;
-;	; 29.03.03 ld d, b 	; store loop counter.
-;	lda z80_b
-;	sta z80_d
-;
-;vsync3:
-;	; 29.04.00 ld hl, clock 	; previous clock setting.
-;	lda #<(clock)
-;	sta z80_l
-;	lda #>(clock)
-;	sta z80_h
-;
-;	; 29.03.02 ld a, (23672) 	; current clock setting.
-;	lda 23672
-;	sta z80_a
-;
-;	; 06.01.xx cp (hl) 	; subtract last reading.
-;	lda z80_a
-;	ldy #0
-;	cmp (z80_hl),y
-;
-;	; 27.06.00 jp nz, vsync4 	; yes, no more processing please.
-;	beq :+
-;	jmp vsync4
-;:
-;	; 15.00.xx djnz vsync3 	; loop.
-;	dec z80_b
-;	beq :+
-;	jmp vsync3
-;:
-;	; 29.03.03 ld b, d 	; restore loop counter.
-;	lda z80_d
-;	sta z80_b
-;
-;	; 15.00.xx djnz vsync2 	; continue noise.
-;	dec z80_b
-;	beq :+
-;	jmp vsync2
-;:
-;vsync4:
-;	; 29.03.03 ld a, d 	; where we got to.
-;	lda z80_d
-;	sta z80_a
-;
-;vsynca:
-;	; 29.02.03 ld (sndtyp), a 	; remember for next time.
-;	lda z80_a
-;	sta sndtyp
-;
-;vsync1:
-;	; 29.03.02 ld a, (23672) 	; clock low.
-;	lda 23672
-;	sta z80_a
-;
-;	; 52.xx.xx rra  	; rotate bit into carry.
-;	lsr z80_a
-;
-;	; 04.06.00 call c, vsync5 	; time to play sound and do shrapnel/ticker stuff.
-;	bcc :+
-;	jsr vsync5
-;:
-;	; 29.04.00 ld hl, clock 	; last clock reading.
-;	lda #<(clock)
-;	sta z80_l
-;	lda #>(clock)
-;	sta z80_h
-;
-;vsync0:
-;	; 29.03.02 ld a, (23672) 	; current clock reading.
-;	lda 23672
-;	sta z80_a
-;
-;	; 06.01.xx cp (hl) 	; are they the same?
-;	lda z80_a
-;	ldy #0
-;	cmp (z80_hl),y
-;
-;	; 28.06.00 jr z, vsync0 	; yes, wait until clock changes.
-;	bne :+
-;	jmp vsync0
-;:
-;	; 29.01.03 ld (hl), a 	; set new clock reading.
-;	lda z80_a
-;	ldy #0
-;	sta (z80_hl),y
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;vsync5:
-;	; 04.00.xx call plsnd 	; play sound.
-;	jsr plsnd
-;
-;	; 27.00.xx jp proshr 	; shrapnel and stuff.
-;	jmp proshr
-;
-;
-;; Play white noise.
-;
-;vsync6:
-;	; 29.03.03 ld a, b 	; 128 - 255.
-;	lda z80_b
-;	sta z80_a
-;
-;	; 63.05.xx sub 127 	
-;	sec
-;	lda z80_a
-;	sbc #(127)
-;	sta z80_a
-;
-;	; 29.03.03 ld b, a 	
-;	lda z80_a
-;	sta z80_b
-;
-;	; 29.04.00 ld hl, clock 	; previous clock setting.
-;	lda #<(clock)
-;	sta z80_l
-;	lda #>(clock)
-;	sta z80_h
-;
-;vsync7:
-;	; 29.03.03 ld a, r 	; get random speaker value.
-;	lda z80_r
-;	sta z80_a
-;
-;	; 02.05.xx and 248 	; only rtsain the speaker/earphone bits.
-;	lda z80_a
-;	and #248
-;
-;	; 36.03.xx or c 	; merge with border colour.
-;	lda z80_a
-;	ora z80_a
-;	sta z80_a
-;
-;	; 39.02.03 out (254), a 	; write to speaker.
-;	lda z80_a
-;	sta 254
-;
-;	; 29.03.02 ld a, (23672) 	; current clock setting.
-;	lda 23672
-;	sta z80_a
-;
-;	; 06.01.xx cp (hl) 	; subtract last reading.
-;	lda z80_a
-;	ldy #0
-;	cmp (z80_hl),y
-;
-;	; 27.06.00 jp nz, vsync8 	; yes, no more processing please.
-;	beq :+
-;	jmp vsync8
-;:
-;	; 29.03.03 ld a, b 	
-;	lda z80_b
-;	sta z80_a
-;
-;	; 02.05.xx and 127 	
-;	lda z80_a
-;	and #127
-;
-;	; 22.03.xx inc a 	
-;	inc z80_a
-;
-;vsync9:
-;	; 13.03.xx dec a 	
-;	dec z80_a
-;
-;	; 28.06.00 jr nz, vsync9 	; loop.
-;	beq :+
-;	jmp vsync9
-;:
-;	; 15.00.xx djnz vsync7 	; continue noise.
-;	dec z80_b
-;	beq :+
-;	jmp vsync7
-;:
-;vsync8:
-;	; 64.03.xx xor a 	
-;	lda z80_a
-;	eor z80_a
-;	sta z80_a
-;
-;	; 28.00.xx jr vsynca 	
-;	jmp vsynca
-;
-;	; 98.00.00 sndtyp .byte 0
 sndtyp:	.byte 0
-;
-;
-; clock  .byte 0              ; last clock reading.
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ;-----------------------------------------------
 ; Redraw the screen.
@@ -1076,17 +829,17 @@ rpblc1:
 ;----------------------------------------------------------------------
 
 cls:
-	lda #>$8000		; screen address.
+	lda #>ScreenAddr		; screen address.
 	sta clsloop+2
 	lda #ScrFillByte
 	ldy #0
 clsloop:
-	sta $8000,y
+	sta ScreenAddr,y
 	iny
 	bne clsloop
 	inc clsloop+2
 	ldx clsloop+2
-	cpx #>$9800
+	cpx #>(ScreenAddr+$1800)
 	bne clsloop
 	rts
 
@@ -1097,205 +850,60 @@ clsloop:
 setpal:
 	rts
 
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+;----------------------------------------------------------------------
 ; FODDER check
+;----------------------------------------------------------------------
 
 fdchk:
-	; 29.03.01 ld a, (hl) 	; fetch cell.
 	ldy #0
-	lda (z80_hl),y
-	sta z80_a
-
-	; 06.00.xx cp FODDER 	; is it fodder?
-	lda z80_a
-	cmp FODDER
-
-	; 43.06.xx rts nz 	; no.
+	lda (z80_hl),y	 	; fetch cell.
+	cmp #FODDER 		; is it fodder?
 	beq :+
-	rts
+	rts 			; no.
 :
-	; 29.01.05 ld (hl), 0 	; rewrite block type.
 	lda #0
 	ldy #0
-	sta (z80_hl),y
+	sta (z80_hl),y 		; rewrite block type.
 
-	; 41.04.xx push hl 	; store pointer to block.
-	lda z80_h
+	lda z80_h		; store pointer to block.
 	pha
 	lda z80_l
 	pha
 
-	; 29.04.00 ld de, MAP 	; address of map.
-	lda #<(MAP)
-	sta z80_e
-	lda #>(MAP)
-	sta z80_d
-
-	; 02.03.xx and a 	; clear carry flag for subtraction.
-	lda z80_a
-	and z80_a
-
-	; 57.04.04 sbc hl, de 	; find simple displacement for block.
-	jsr sbc_hl_de
-
-	; 29.03.03 ld a, l 	; low byte is y coordinate.
-	lda z80_l
-	sta z80_a
-
-	; 02.05.xx and 31 	; column position 0 - 31.
-	lda z80_a
-	and #31
-
-	; 29.02.03 ld (dispy), a 	; set up y position.
-	lda z80_a
-	sta dispy
-
-	; 01.04.04 add hl, hl 	; multiply displacement by 8.
-	jsr add_hl_hl
-
-	; 01.04.04 add hl, hl 	
-	jsr add_hl_hl
-
-	; 01.04.04 add hl, hl 	
-	jsr add_hl_hl
-
-	; 29.03.03 ld a, h 	; x coordinate now in h.
+	sec			; set carry flag for subtraction.
+	lda z80_l 		; find simple displacement for block.
+	sbc #<MAP
+	sta z80_l
 	lda z80_h
-	sta z80_a
+	sbc #>MAP
+	sta z80_h
 
-	; 29.02.03 ld (dispx), a 	; set the display coordinate.
-	lda z80_a
-	sta dispx
+	lda z80_l		; low byte is y coordinate.
+	and #31 		; column position 0 - 31.
+	sta dispx		; set up x position.
 
-	; 64.03.xx xor a 	; block to write.
-	lda z80_a
-	eor z80_a
-	sta z80_a
+	asl z80_l		; multiply displacement by 8.
+	rol z80_h
+	asl z80_l
+	rol z80_h
+	asl z80_l
+	rol z80_h
 
-	; 04.00.xx call pattr 	; write block.
-	jsr pattr
+	lda z80_h		; x coordinate now in h.
+	sta dispy		; set the display coordinate.
 
-	; 40.04.xx pop hl 	; restore block pointer.
-	pla
+	lda #0 			; block to write.
+	jsr pattr 		; write block.
+
+	pla 			; restore block pointer.
 	sta z80_l
 	pla
 	sta z80_h
 
-	; 43.xx.xx rts  	
 	rts
-
-; Colour a sprite.
-
-cspr:
-	; 29.03.01 ld l, (ix+8) 	; y coordinate.
-	ldy #8
-	lda (z80_ix),y
-	sta z80_l
-
-	; 29.03.01 ld h, (ix+9) 	; x coordinate.
-	ldy #9
-	lda (z80_ix),y
-	sta z80_h
-
-	; 29.03.05 ld e, 3 	; default width.
-	lda #3; default width.
-	sta z80_e
-
-	; 29.03.03 ld a, h 	; horizontal position.
-	lda z80_h
-	sta z80_a
-
-	; 02.05.xx and 7 	; is it straddling cells?
-	lda z80_a
-	and #7
-
-	; 28.06.00 jr nz, cspr0 	; yes, width is okay.
-	beq :+
-	jmp cspr0
-:
-	; 13.03.xx dec e 	; decrement width as we"re aligned on char boundary.
-	dec z80_e
-
-cspr0:
-	; 29.02.04 ld (dispx), hl 	; set up coords for calculation.
-	lda z80_l
-	sta dispx
-	lda z80_h
-	sta dispx+1
-
-	; 04.00.xx call scadd 	; find screen address.
-	jsr scadd
-
-	; 59.05.03 set 5, h 	; switch to attribute screen.
-	lda z80_h
-	ora #_bitvalue5
-	sta z80_h
-
-	; 29.03.05 ld b, 16 	; height of sprite.
-	lda #16; height of sprite.
-	sta z80_b
-
-cspr2:
-	; 29.03.03 ld d, e 	; copy width to d.
-	lda z80_e
-	sta z80_d
-
-	; 41.04.xx push hl 	; store attribute address.
-	lda z80_h
-	pha
-	lda z80_l
-	pha
-
-cspr1:
-	; 29.03.01 ld a, (hl) 	; fetch screen contents.
-	ldy #0
-	lda (z80_hl),y
-	sta z80_a
-
-	; 02.00.xx and SIMASK 	; remove ink.
-	lda z80_a
-	and SIMASK
-
-	; 36.03.xx or c 	; put in the new ink.
-	lda z80_a
-	ora z80_a
-	sta z80_a
-
-	; 29.01.03 ld (hl), a 	; write back to screen.
-	lda z80_a
-	ldy #0
-	sta (z80_hl),y
-
-	; 22.03.xx inc l 	; adjacent byte.
-	inc z80_l
-
-	; 13.03.xx dec d 	; one less byte to write.
-	dec z80_d
-
-	; 28.06.00 jr nz, cspr1 	; repeat for all columns.
-	beq :+
-	jmp cspr1
-:
-	; 40.04.xx pop hl 	; restore attribute address.
-	pla
-	sta z80_l
-	pla
-	sta z80_h
-
-	; 04.00.xx call nattr 	; get address of next attribute cell down.
-	jsr nattr
-
-	; 15.00.xx djnz cspr2 	; repeat for all rows.
-	dec z80_b
-	beq :+
-	jmp cspr2
-:
-	; 43.xx.xx rts  	
-	rts
-
 
 ;----------------------------------------------------
-; Scrolly text and puzzle variables. NOT IMPLEMENTED!!
+; Scrolly text and puzzle variables.
 ;----------------------------------------------------
 
 .if sflag
@@ -1303,7 +911,7 @@ txtbit:	.byte 128		; bit to write.
 txtwid:	.byte 16		; width of ticker message.
 txtpos:	.word msgdat
 txtini:	.word msgdat
-txtscr:	.word 16406
+txtscr:	.word ScreenAddr
 .endif
 
 ;----------------------------------------------------
@@ -1489,7 +1097,7 @@ dotd:
 	rts
 
 ;----------------------------------------------------
-; Check coordinates are good before redrawing at new position.
+; Check if coordinates are ok before redrawing at new position.
 ;
 ; left:   X>L		X=L	Ok
 ; right:  R+15>X	X=R	Ok
@@ -2062,13 +1670,11 @@ expld1:
 	ldy #0
 	sta (z80_ix),y		; switch it on.
 
-;	jsr exx 		; store coordinates.
 	jsr chkxy		; plot first position.
 	jsr qrand		; quick random angle.
 	and #60 		; keep within range.
 	ldy #1
 	sta (z80_ix),y		; angle.
-;	jsr exx			; restore coordinates.
 
 	dec z80_c		; one less piece of shrapnel to generate.
 	bne expld2 		; back to main explosion loop.
@@ -2203,9 +1809,9 @@ game:
 ; Set up screen address table.
 
 setsat:
-	lda #<$8000		; start of screen.
+	lda #<ScreenAddr		; start of screen.
 	sta scraddr
-	lda #>$8000
+	lda #>ScreenAddr
 	sta scraddr+1
 
 	ldy #0			; vertical lines on screen.
@@ -2215,7 +1821,7 @@ setsa0:
 	lda scraddr+1
 	cpy #192		; vertical lines on screen.
 	bcc :+
-	ora #$F0
+	ora #$F0		; plot sprites in rom if of screen
 :
 	sta SCADTB_hb,y		; write high byte.
 	jsr nline		; next line down.
@@ -2226,9 +1832,11 @@ setsa0:
 
 	lda #ScrMode		; graphics mode
 	sta ScrSelAddr 		; screen selection address
-	jsr cls
-
 	jsr setpal 		; set up palette.
+
+; Init AtoMMC joystick
+	jsr joyinit		; AtoMMC joystick on PORT B
+
 rpblc2:
 .if pflag
 	jsr inishr 		; initialise particle engine.
@@ -2318,9 +1926,7 @@ mloop:
 	sta z80_i
 	jsr dspr 		; display even sprites.
 
-;
 	jsr plsnd 		; play sounds.
-;	jsr vsync 		; synchronise with display.
 
 	lda #<(sprtab+TABSIZ) 	; address of first odd sprite.
 	sta z80_x
@@ -2522,7 +2128,7 @@ inisc0:
 ;  D = second number
 ;
 ; Output:
-;  L = result H x D
+;  HL = result H x D
 ;-----------------------------------------------------
 
 imul:
@@ -2586,688 +2192,12 @@ idiv1:
 	bne idiv0		; repeat
 	rts
 
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-; Initialise a sound.
-;
-;isnd:
-;	; 29.04.02 ld de, (ch1ptr) 	; first pointer.
-;	lda ch1ptr
-;	sta z80_e
-;	lda ch1ptr+1
-;	sta z80_d
-;
-;	; 29.03.01 ld a, (de) 	; get first byte.
-;	ldy #0
-;	lda (z80_de),y
-;	sta z80_a
-;
-;	; 22.03.xx inc a 	; reached the end?
-;	inc z80_a
-;
-;	; 28.06.00 jr z, isnd1 	; that"ll do.
-;	bne :+
-;	jmp isnd1
-;:
-;	; 29.04.02 ld de, (ch2ptr) 	; second pointer.
-;	lda ch2ptr
-;	sta z80_e
-;	lda ch2ptr+1
-;	sta z80_d
-;
-;	; 29.03.01 ld a, (de) 	; get first byte.
-;	ldy #0
-;	lda (z80_de),y
-;	sta z80_a
-;
-;	; 22.03.xx inc a 	; reached the end?
-;	inc z80_a
-;
-;	; 28.06.00 jr z, isnd2 	; that"ll do.
-;	bne :+
-;	jmp isnd2
-;:
-;	; 29.04.02 ld de, (ch3ptr) 	; final pointer.
-;	lda ch3ptr
-;	sta z80_e
-;	lda ch3ptr+1
-;	sta z80_d
-;
-;	; 29.03.01 ld a, (de) 	; get first byte.
-;	ldy #0
-;	lda (z80_de),y
-;	sta z80_a
-;
-;	; 22.03.xx inc a 	; reached the end?
-;	inc z80_a
-;
-;	; 28.06.00 jr z, isnd3 	; that"ll do.
-;	bne :+
-;	jmp isnd3
-;:
-;	; 43.xx.xx rts  	
-;	rts
-;
-;isnd1:
-;	; 29.02.04 ld (ch1ptr), hl 	; set up the sound.
-;	lda z80_l
-;	sta ch1ptr
-;	lda z80_h
-;	sta ch1ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;isnd2:
-;	; 29.02.04 ld (ch2ptr), hl 	; set up the sound.
-;	lda z80_l
-;	sta ch2ptr
-;	lda z80_h
-;	sta ch2ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;isnd3:
-;	; 29.02.04 ld (ch3ptr), hl 	; set up the sound.
-;	lda z80_l
-;	sta ch3ptr
-;	lda z80_h
-;	sta ch3ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;	; 98.00.01 ch1ptr .word spmask
-;ch1ptr:	.word spmask
-;
-;	; 98.00.01 ch2ptr .word spmask
-;ch2ptr:	.word spmask
-;
-;	; 98.00.01 ch3ptr .word spmask
-;ch3ptr:	.word spmask
-;
+;---------------------------------------------------
+; Play AY sound effect
+;---------------------------------------------------
 
 plsnd:
 	rts
-
-;	; 04.00.xx call plsnd1 	; first channel.
-;	jsr plsnd1
-;
-;	; 04.00.xx call plsnd2 	; second one.
-;	jsr plsnd2
-;
-;	; 04.00.xx call plsnd3 	; final channel.
-;	jsr plsnd3
-;
-
-; Write the contents of our AY buffer to the AY registers.
-;
-;w8912:
-;	; 29.04.00 ld hl, snddat 	; start of AY-3-8912 register data.
-;	lda #<(snddat)
-;	sta z80_l
-;	lda #>(snddat)
-;	sta z80_h
-;
-;	; 29.04.00 ld de, 14*256 	; start with register 0, 14 to write.
-;	lda #<(14*256)
-;	sta z80_e
-;	lda #>(14*256)
-;	sta z80_d
-;
-;	; 29.03.05 ld c, 253 	; low byte of port to write.
-;	lda #253; low byte of port to write.
-;	sta z80_c
-;
-;w8912a:
-;	; 29.03.05 ld b, 255 	; port 65533=select soundchip register.
-;	lda #255; port 65533=select soundchip register.
-;	sta z80_b
-;
-;	; 39.02.03 out (c), e 	; tell chip which register we"re writing.
-;	lda z80_e
-;	sta z80_c
-;
-;	; 29.03.01 ld a, (hl) 	; value to write.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 29.03.05 ld b, 191 	; port 49149=write value to register.
-;	lda #191; port 49149=write value to register.
-;	sta z80_b
-;
-;	; 39.02.03 out (c), a 	; this is what we"re putting there.
-;	lda z80_a
-;	sta z80_c
-;
-;	; 22.03.xx inc e 	; next sound chip register.
-;	inc z80_e
-;
-;	; 22.04.xx inc hl 	; next byte to write.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 13.03.xx dec d 	; decrement loop counter.
-;	dec z80_d
-;
-;	; 27.06.00 jp nz, w8912a 	; repeat until done.
-;	beq :+
-;	jmp w8912a
-;:
-;	; 43.xx.xx rts  	
-;	rts
-;
-;	; 98.00.01 snddat .word 0              ; tone registers, channel A.
-;snddat:	.word 0              ; tone registers, channel A.
-;
-;	; 98.00.01 .word 0              ; channel B tone registers.
-;	.word 0              ; channel B tone registers.
-;
-;	; 98.00.01 .word 0              ; as above, channel C.
-;	.word 0              ; as above, channel C.
-;
-;	; 98.00.00 sndwnp .byte 0              ; white noise period.
-;sndwnp:	.byte 0              ; white noise period.
-;
-;	; 98.00.00 sndmix .byte 60             ; tone/noise mixer control.
-;sndmix:	.byte 60             ; tone/noise mixer control.
-;
-;	; 98.00.00 sndv1  .byte 0              ; channel A amplitude/envelope generator.
-;sndv1:	.byte 0              ; channel A amplitude/envelope generator.
-;
-;	; 98.00.00 sndv2  .byte 0              ; channel B amplitude/envelope.
-;sndv2:	.byte 0              ; channel B amplitude/envelope.
-;
-;	; 98.00.00 sndv3  .byte 0              ; channel C amplitude/envelope.
-;sndv3:	.byte 0              ; channel C amplitude/envelope.
-;
-;	; 98.00.01 .word 0              ; duration of each note.
-;	.word 0              ; duration of each note.
-;
-;	; 98.00.00 .byte 0
-;	.byte 0
-;
-;plwn:
-;	; 22.04.xx inc hl 	; next byte of sound.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 02.05.xx and 56 	; check if we"re bothering with white noise.
-;	lda z80_a
-;	and #56
-;
-;	; 43.06.xx rts nz 	; we"re not.
-;	beq :+
-;	rts
-;:
-;	; 29.03.01 ld a, (hl) 	; fetch byte.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndwnp), a 	; set white noise period.
-;	lda z80_a
-;	sta sndwnp
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;plsnd2:
-;	; 04.00.xx call cksnd2 	; check sound for first channel.
-;	jsr cksnd2
-;
-;	; 06.05.xx cp 255 	; reached end?
-;	lda z80_a
-;	cmp #255
-;
-;	; 28.06.00 jr z, silen2 	; silence this channel.
-;	bne :+
-;	jmp silen2
-;:
-;	; 02.05.xx and 15 	; sound bits.
-;	lda z80_a
-;	and #15
-;
-;	; 29.02.03 ld (sndv2), a 	; set volume for channel.
-;	lda z80_a
-;	sta sndv2
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 02.05.xx and 237 	; remove bits for this channel.
-;	lda z80_a
-;	and #237
-;
-;	; 29.03.03 ld b, a 	; store in b register.
-;	lda z80_a
-;	sta z80_b
-;
-;	; 04.00.xx call plmix 	; fetch mixer details.
-;	jsr plmix
-;
-;	; 02.05.xx and 18 	; mixer bits we want.
-;	lda z80_a
-;	and #18
-;
-;	; 36.03.xx or b 	; combine with mixer bits.
-;	lda z80_a
-;	ora z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; new mixer value.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 04.00.xx call plwn 	; white noise check.
-;	jsr plwn
-;
-;	; 22.04.xx inc hl 	; tone low.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld e, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_e
-;
-;	; 22.04.xx inc hl 	; tone high.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld d, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_d
-;
-;	; 29.02.04 ld (snddat+2), de 	; set tone.
-;	lda z80_e
-;	sta snddat+2
-;	lda z80_d
-;	sta snddat+2+1
-;
-;	; 22.04.xx inc hl 	; next bit of sound.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.02.04 ld (ch2ptr), hl 	; set pointer.
-;	lda z80_l
-;	sta ch2ptr
-;	lda z80_h
-;	sta ch2ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;plsnd3:
-;	; 04.00.xx call cksnd3 	; check sound for first channel.
-;	jsr cksnd3
-;
-;	; 06.05.xx cp 255 	; reached end?
-;	lda z80_a
-;	cmp #255
-;
-;	; 28.06.00 jr z, silen3 	; silence last channel.
-;	bne :+
-;	jmp silen3
-;:
-;	; 02.05.xx and 15 	; sound bits.
-;	lda z80_a
-;	and #15
-;
-;	; 29.02.03 ld (sndv3), a 	; set volume for channel.
-;	lda z80_a
-;	sta sndv3
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 02.05.xx and 219 	; remove bits for this channel.
-;	lda z80_a
-;	and #219
-;
-;	; 29.03.03 ld b, a 	; store in b register.
-;	lda z80_a
-;	sta z80_b
-;
-;	; 04.00.xx call plmix 	; fetch mixer details.
-;	jsr plmix
-;
-;	; 02.05.xx and 36 	; mixer bits we want.
-;	lda z80_a
-;	and #36
-;
-;	; 36.03.xx or b 	; combine with mixer bits.
-;	lda z80_a
-;	ora z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; new mixer value.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 04.00.xx call plwn 	; white noise check.
-;	jsr plwn
-;
-;	; 22.04.xx inc hl 	; tone low.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld e, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_e
-;
-;	; 22.04.xx inc hl 	; tone high.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld d, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_d
-;
-;	; 29.02.04 ld (snddat+4), de 	; set tone.
-;	lda z80_e
-;	sta snddat+4
-;	lda z80_d
-;	sta snddat+4+1
-;
-;	; 22.04.xx inc hl 	; next bit of sound.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.02.04 ld (ch3ptr), hl 	; set pointer.
-;	lda z80_l
-;	sta ch3ptr
-;	lda z80_h
-;	sta ch3ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;plmix:
-;	; 29.03.01 ld a, (hl) 	; fetch mixer byte.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 02.05.xx and 192 	; mix bits are d6 and d7.
-;	lda z80_a
-;	and #192
-;
-;	; 49.xx.xx rlca  	; rotate into d0 and d1.
-;	rol z80_a
-;
-;	; 49.xx.xx rlca  	
-;	rol z80_a
-;
-;	; 29.03.03 ld e, a 	; displacement in de.
-;	lda z80_a
-;	sta z80_e
-;
-;	; 29.03.05 ld d, 0 	
-;	lda #0
-;	sta z80_d
-;
-;	; 41.04.xx push hl 	; store pointer on stack.
-;	lda z80_h
-;	pha
-;	lda z80_l
-;	pha
-;
-;	; 29.04.00 ld hl, mixtab 	; mixer table.
-;	lda #<(mixtab)
-;	sta z80_l
-;	lda #>(mixtab)
-;	sta z80_h
-;
-;	; 01.04.04 add hl, de 	; point to mixer byte.
-;	jsr add_hl_de
-;
-;	; 29.03.01 ld a, (hl) 	; fetch mixer value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 40.04.xx pop hl 	; restore pointer.
-;	pla
-;	sta z80_l
-;	pla
-;	sta z80_h
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;	; 98.00.00 mixtab .byte 63,56,7,0      ; mixer byte settings.
-;mixtab:	.byte 63,56,7,0      ; mixer byte settings.
-;
-;silen1:
-;	; 64.03.xx xor a 	; zero.
-;	lda z80_a
-;	eor z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndv1), a 	; sound off.
-;	lda z80_a
-;	sta sndv1
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 36.05.xx or 9 	; mix bits off.
-;	lda z80_a
-;	ora #9
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; mixer setting for channel.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;silen2:
-;	; 64.03.xx xor a 	; zero.
-;	lda z80_a
-;	eor z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndv2), a 	; sound off.
-;	lda z80_a
-;	sta sndv2
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 36.05.xx or 18 	; mix bits off.
-;	lda z80_a
-;	ora #18
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; mixer setting for channel.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;silen3:
-;	; 64.03.xx xor a 	; zero.
-;	lda z80_a
-;	eor z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndv3), a 	; sound off.
-;	lda z80_a
-;	sta sndv3
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 36.05.xx or 36 	; mix bits off.
-;	lda z80_a
-;	ora #36
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; mixer setting for channel.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;cksnd1:
-;	; 29.04.02 ld hl, (ch1ptr) 	; pointer to sound.
-;	lda ch1ptr
-;	sta z80_l
-;	lda ch1ptr+1
-;	sta z80_h
-;
-;	; 29.03.01 ld a, (hl) 	; fetch mixer/flag.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;cksnd2:
-;	; 29.04.02 ld hl, (ch2ptr) 	; pointer to sound.
-;	lda ch2ptr
-;	sta z80_l
-;	lda ch2ptr+1
-;	sta z80_h
-;
-;	; 29.03.01 ld a, (hl) 	; fetch mixer/flag.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;cksnd3:
-;	; 29.04.02 ld hl, (ch3ptr) 	; pointer to sound.
-;	lda ch3ptr
-;	sta z80_l
-;	lda ch3ptr+1
-;	sta z80_h
-;
-;	; 29.03.01 ld a, (hl) 	; fetch mixer/flag.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_a
-;
-;	; 43.xx.xx rts  	
-;	rts
-;
-;plsnd1:
-;	; 04.00.xx call cksnd1 	; check sound for first channel.
-;	jsr cksnd1
-;
-;	; 06.05.xx cp 255 	; reached end?
-;	lda z80_a
-;	cmp #255
-;
-;	; 28.06.00 jr z, silen1 	; silence first channel.
-;	bne :+
-;	jmp silen1
-;:
-;	; 02.05.xx and 15 	; sound bits.
-;	lda z80_a
-;	and #15
-;
-;	; 29.02.03 ld (sndv1), a 	; set volume for channel.
-;	lda z80_a
-;	sta sndv1
-;
-;	; 29.03.02 ld a, (sndmix) 	; mixer byte.
-;	lda sndmix
-;	sta z80_a
-;
-;	; 02.05.xx and 246 	; remove bits for this channel.
-;	lda z80_a
-;	and #246
-;
-;	; 29.03.03 ld b, a 	; store in b register.
-;	lda z80_a
-;	sta z80_b
-;
-;	; 04.00.xx call plmix 	; fetch mixer details.
-;	jsr plmix
-;
-;	; 02.05.xx and 9 	; mixer bits we want.
-;	lda z80_a
-;	and #9
-;
-;	; 36.03.xx or b 	; combine with mixer bits.
-;	lda z80_a
-;	ora z80_a
-;	sta z80_a
-;
-;	; 29.02.03 ld (sndmix), a 	; new mixer value.
-;	lda z80_a
-;	sta sndmix
-;
-;	; 04.00.xx call plwn 	; white noise check.
-;	jsr plwn
-;
-;	; 22.04.xx inc hl 	; tone low.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld e, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_e
-;
-;	; 22.04.xx inc hl 	; tone high.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.03.01 ld d, (hl) 	; fetch value.
-;	ldy #0
-;	lda (z80_hl),y
-;	sta z80_d
-;
-;	; 29.02.04 ld (snddat), de 	; set tone.
-;	lda z80_e
-;	sta snddat
-;	lda z80_d
-;	sta snddat+1
-;
-;	; 22.04.xx inc hl 	; next bit of sound.
-;	inc z80_l
-;	bne :+
-;	inc z80_h
-;:
-;	; 29.02.04 ld (ch1ptr), hl 	; set pointer.
-;	lda z80_l
-;	sta ch1ptr
-;	lda z80_h
-;	sta ch1ptr+1
-;
-;	; 43.xx.xx rts  	
-;	rts
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 ;---------------------------------------------------
 ; Objects handling.
@@ -3325,114 +2255,6 @@ dobj:
 	sta dispx
 dobj1:
 	jmp sprite 			; draw this sprite.
-
-
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-; Colour an object/sprite at dispx, dispy.
-; set up colour in c register first.
-
-cobj:
-	; 41.04.xx push hl 	; store sprite graphic address.
-	lda z80_h
-	pha
-	lda z80_l
-	pha
-
-	; 04.00.xx call scadd 	; get screen address in hl.
-	jsr scadd
-
-	; 59.05.03 set 5, h 	; switch to attribute screen.
-	lda z80_h
-	ora #_bitvalue5
-	sta z80_h
-
-	; 29.03.05 ld d, 3 	; default columns to write.
-	lda #3; default columns to write.
-	sta z80_d
-
-	; 29.03.02 ld a, (dispy) 	; y position.
-	lda dispy
-	sta z80_a
-
-	; 02.05.xx and 7 	; does y straddle cells?
-	lda z80_a
-	and #7
-
-	; 28.06.00 jr nz, cobj0 	; yes, loop counter is good.
-	beq :+
-	jmp cobj0
-:
-	; 13.03.xx dec d 	; one less column to write.
-	dec z80_d
-
-cobj0:
-	; 29.03.05 ld b, 16 	; rows to write.
-	lda #16; rows to write.
-	sta z80_b
-
-cobj2:
-	; 41.04.xx push bc 	; store row counter.
-	lda z80_b
-	pha
-	lda z80_c
-	pha
-
-	; 29.03.03 ld b, d 	; column counter.
-	lda z80_d
-	sta z80_b
-
-	; 41.04.xx push hl 	; store address.
-	lda z80_h
-	pha
-	lda z80_l
-	pha
-
-cobj1:
-	; 29.01.03 ld (hl), c 	; write attribute.
-	lda z80_c
-	ldy #0
-	sta (z80_hl),y
-
-	; 22.04.xx inc hl 	; next cell.
-	inc z80_l
-	bne :+
-	inc z80_h
-:
-	; 15.00.xx djnz cobj1 	; repeat for columns.
-	dec z80_b
-	beq :+
-	jmp cobj1
-:
-	; 40.04.xx pop hl 	; restore attribute address.
-	pla
-	sta z80_l
-	pla
-	sta z80_h
-
-	; 04.00.xx call nattr 	; next attribute address in hl.
-	jsr nattr
-
-	; 40.04.xx pop bc 	; restore row counter.
-	pla
-	sta z80_c
-	pla
-	sta z80_b
-
-	; 15.00.xx djnz cobj2 	; repeat for all rows.
-	dec z80_b
-	beq :+
-	jmp cobj2
-:
-	; 40.04.xx pop hl 	
-	pla
-	sta z80_l
-	pla
-	sta z80_h
-
-	; 43.xx.xx rts  	
-	rts
-;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 ;--------------------------------------
 ; Remove an object.
@@ -3747,7 +2569,7 @@ seed:	.byte 0			; seed for random numbers.
 score:	.byte "000000"		; player"s score.
 hiscor:	.byte "000000"		; high score.
 bonus:	.byte "000000"		; bonus.
-grbase:	.word 15360		; graphics base address.
+grbase:	.word ScreenAddr	; graphics base address.
 
 ;----------------------------------------------------
 ; Check y-pos
@@ -3759,7 +2581,7 @@ checkx:
 	bcs :+
 	rts			; no, it's okay.
 :
-	pla					; remove return address from stack.
+	pla			; remove return address from stack.
 	sta z80_l
 	pla
 	sta z80_h
@@ -3947,7 +2769,6 @@ incsc2:
 
 ;------------------------------------
 ; Add bonus to score and reset bonus
-; NEEDS TO BE TESTED!!!!!!!!!!!!!!!!!
 ;------------------------------------
 
 addbo:
@@ -4087,7 +2908,7 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 ; Print attributes, properties and pixels.
 ;
 ; Input:
-;  A		= tile number
+;  A	= tile number
 ;----------------------------------------------
 
 pattr:
@@ -4142,7 +2963,7 @@ panp0:
 ; Print character pixels, no more.
 ;
 ; Input:
-;  A		= character to print
+;  A	= character to print
 ;----------------------------------------------
 
 pchr:
@@ -4899,7 +3720,7 @@ random:
 ;--------------------------------------------------------
 ; Keys
 ;
-; Out: joyval=x65FUDLR (bit set if key pressed)
+; Out: joyval=x65FUDLR (bit cleared if key pressed)
 ;             ||||||||
 ;             |||||||+> Right    KEY 0  - X
 ;             ||||||+-> Left     KEY 1  - Z
@@ -4929,8 +3750,8 @@ jkeys:  .byte $03,$01,$02,$04,$00,$04,$14       ; Joykey keys
 ;  A = key to read, high nibble=row and low nibble=col
 ;
 ; Output:
-;  carry set = key pressed
-;  carry clr = key not pressed
+;  carry clr = key pressed
+;  carry set = key not pressed
 ;--------------------------------------------------------
 
 ktest:
@@ -4941,19 +3762,19 @@ ktest:
 	lsr a
 	lsr a
 	ora #ScrMode		; don't flip screenmode
-	sta ScrSelAddr
+	sta KeyRowAddr
 
 	lda z80_a
 	and #$0f
 	tax
-	lda $b001		; read column
+	lda KeyColAddr		; read column
 
 	and keymask,x		; check key pressed
-	beq no_press
-	sec			; key pressed
+	beq pressed
+	sec			; key not pressed
 	rts
-no_press:
-	clc			; key not pressed
+pressed:
+	clc			; key pressed
 	rts
 
 keymask:	.byte $01,$02,$04,$08,$10,$20
@@ -5014,8 +3835,60 @@ joyjo2:
 
 ; AtoMMC joystick controls.
 
-joysin:
+; Set PORTB direction
+
+joyinit:
+	lda #$ff   		; Write value to latch, bits 0-7 input
+	sta DatReg
+	jsr interwritedelay
+	lda #$a1   		; Write direction in latch to PORTB
+	sta CmdReg
+
+wait_until_not_busy:
+	lda CmdReg
+	bmi wait_until_not_busy
 	rts
+
+; Get PORTB value
+
+joysin:
+	lda #$a2   		; Read value PORTB in latch
+	sta CmdReg
+	jsr interwritedelay
+
+	lda DatReg		; Read joystick status
+	and #$7f
+	sta joyval
+	sta $f0
+
+	lda keys+5		; check fire2
+	jsr ktest
+	bcs :+
+	lda joyval
+	and #$df
+	sta joyval
+:
+	lda keys+6		; check fire3
+	jsr ktest
+	bcs :+
+	lda joyval
+	and #$bf
+	sta joyval
+:
+	rts
+
+; Short delay
+; Enough to intersperse 2 writes to the FATPIC.
+
+interwritedelay:
+	lda  #8
+	sec
+loop:
+	sbc  #1
+	bne  loop
+	rts
+
+;tmp_byte:   .byte 0
 
 ;---------------------------------------------------------------
 ; Getkey in column,row format
@@ -5344,7 +4217,7 @@ bsort0:
 	lda (z80_ix),y 		; fetch next sprite's coordinate.
 	ldy #3
 	cmp (z80_ix),y 		; compare with this x coordinate.
-	bcs bsort1		; next sprite is higher - may need to switch.
+	bcc bsort1		; next sprite is higher - may need to switch.
 bsort2:
 	clc
 	lda z80_x
@@ -5740,7 +4613,7 @@ sspri0:
 	bne sspri0		; repeat 16 times
 	rts
 
-acnt = $7b
+acnt:	.byte 0
 
 ;-----------------------------------------------------------------
 
@@ -5805,8 +4678,6 @@ dline:
 	lda (z80_de),y 		; second bit of data.
 	eor (scraddr),y 	; XOR with what's there.
 	sta (scraddr),y 	; bung it in.
-	lda scraddr+1
-	sta $f0
 
 	inc z80_e 		; point to next line of data.
 	bne :+
@@ -5827,86 +4698,6 @@ nline:
 	inc scraddr+1 		; new high byte of address.
 :
 	rts
-
-; Attributes filled, now work out next attribute address.
-
-nattr:
-	; 22.03.xx inc h 	; increment pixel.
-	inc z80_h
-
-	; 29.03.03 ld a, h 	; get pixel address.
-	lda z80_h
-	sta z80_a
-
-	; 02.05.xx and 7 	; straddling character position?
-	lda z80_a
-	and #7
-
-	; 43.06.xx rts nz 	; no, we"re on next line already.
-	beq :+
-	rts
-:
-	; 29.03.03 ld a, h 	; get pixel address.
-	lda z80_h
-	sta z80_a
-
-	; 63.05.xx sub 8 	; subtract 8 for start of segment.
-	sec
-	lda z80_a
-	sbc #(8)
-	sta z80_a
-
-	; 29.03.03 ld h, a 	; new high byte of address.
-	lda z80_a
-	sta z80_h
-
-	; 29.03.03 ld a, l 	; get low byte of address.
-	lda z80_l
-	sta z80_a
-
-	; 01.03.05 add a, 32 	; one line down.
-	lda #(32)
-	clc
-	adc z80_a
-	sta z80_a
-
-	; 29.03.03 ld l, a 	; new low byte.
-	lda z80_a
-	sta z80_l
-
-	; 43.06.xx rts nc 	; not reached next segment yet.
-	bcs :+
-	rts
-:
-	; 29.03.03 ld a, h 	; address high.
-	lda z80_h
-	sta z80_a
-
-	; 01.03.05 add a, 8 	; add 8 to next segment.
-	lda #(8)
-	clc
-	adc z80_a
-	sta z80_a
-
-	; 29.03.03 ld h, a 	; new high byte.
-	lda z80_a
-	sta z80_h
-
-	; 06.05.xx cp 120 	; reached end of screen?
-	lda z80_a
-	cmp #120
-
-	; 43.06.xx rts c 	; not yet.
-	bcc :+
-	rts
-:
-	; 29.03.05 ld h, 0 	; back to ROM.
-	lda #0; back to ROM.
-	sta z80_h
-
-	; 43.xx.xx rts  	
-	rts
-
 
 ;-----------------------------------------------------------
 ; Animates a sprite.
@@ -6034,13 +4825,6 @@ colty0:
 	lda (z80_hl),y				; fetch y coordinate.
 	sta z80_d
 
-;	clc
-;	lda z80_l
-;	adc #9
-;	sta z80_l
-;	bcc :+
-;	inc z80_h
-:
 ; Drop into collision detection.
 
 colc16:
@@ -6232,8 +5016,6 @@ grav:
 	ldy #0
 	lda (z80_hl),y			; pixels to move.
 	sta z80_a
-;	cmp #98				; reached the end?
-;	beq grav2			; yes, continue.
 	cmp #99				; reached the end?
 	bne grav0			; no, continue.
 grav2:
@@ -6764,9 +5546,6 @@ clw1:
 ; BC = txtpos = text scroller position
 ;
 ;----------------------------------------------------------
-scr_l	= $90
-scr_r	= $92
-scr_txt	= $94
 
 .if sflag
 scrly:
@@ -6935,13 +5714,11 @@ iscrl0:
 ; ix+3  = y coord.
 ; ix+4  = x coord.
 
-
 ; ix+5  = new type.
 ; ix+6  = new image number.
 ; ix+7  = new frame.
 ; ix+8  = new y coord.
 ; ix+9  = new x coord.
-
 
 ; ix+10 = direction.
 ; ix+11 = parameter 1.
@@ -6952,323 +5729,25 @@ iscrl0:
 ; ix+16 = data pointer high.
 
 ; block NUMSPR * TABSIZ,255
-sprtab:
-	.res NUMSPR*TABSIZ,255
 
+sprtab:	.res NUMSPR*TABSIZ,255
 ssprit:	.byte 255,255,255,255,255,255,255,0,192,120,0,0,0,255,255,255,255
-
-	; 98.00.00 roomtb .byte 0                      ; start room map offset.
 roomtb:	.byte 7                      ; start room map offset.
-
-
-; Everything below here will be generated by the editors.
-
-
-; Sounds.
-;
-;	; 98.00.00 fx1    .byte 128+15         ; volume and mixer.
-;fx1:	.byte 128+15         ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+15         ; volume and mixer.
-;	.byte 128+15         ; volume and mixer.
-;
-;	; 98.00.00 .byte 25             ; white noise.
-;	.byte 25             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+14         ; volume and mixer.
-;	.byte 128+14         ; volume and mixer.
-;
-;	; 98.00.00 .byte 19             ; white noise.
-;	.byte 19             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+13         ; volume and mixer.
-;	.byte 128+13         ; volume and mixer.
-;
-;	; 98.00.00 .byte 13             ; white noise.
-;	.byte 13             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+12         ; volume and mixer.
-;	.byte 128+12         ; volume and mixer.
-;
-;	; 98.00.00 .byte 7              ; white noise.
-;	.byte 7              ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+11         ; volume and mixer.
-;	.byte 128+11         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+10         ; volume and mixer.
-;	.byte 128+10         ; volume and mixer.
-;
-;	; 98.00.00 .byte 6              ; white noise.
-;	.byte 6              ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+8          ; volume and mixer.
-;	.byte 128+8          ; volume and mixer.
-;
-;	; 98.00.00 .byte 12             ; white noise.
-;	.byte 12             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+6          ; volume and mixer.
-;	.byte 128+6          ; volume and mixer.
-;
-;	; 98.00.00 .byte 18             ; white noise.
-;	.byte 18             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 128+3          ; volume and mixer.
-;	.byte 128+3          ; volume and mixer.
-;
-;	; 98.00.00 .byte 24             ; white noise.
-;	.byte 24             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 255
-;	.byte 255
-;
-;	; 98.00.00 fx2    .byte 064+15         ; volume and mixer.
-;fx2:	.byte 064+15         ; volume and mixer.
-;
-;	; 98.00.00 .byte 27             ; white noise.
-;	.byte 27             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 064+14         ; volume and mixer.
-;	.byte 064+14         ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 2000           ; tone register.
-;	.word 2000           ; tone register.
-;
-;	; 98.00.00 .byte 064+13         ; volume and mixer.
-;	.byte 064+13         ; volume and mixer.
-;
-;	; 98.00.00 .byte 28             ; white noise.
-;	.byte 28             ; white noise.
-;
-;	; 98.00.01 .word 3000           ; tone register.
-;	.word 3000           ; tone register.
-;
-;	; 98.00.00 .byte 064+12         ; volume and mixer.
-;	.byte 064+12         ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 2000           ; tone register.
-;	.word 2000           ; tone register.
-;
-;	; 98.00.00 .byte 064+11         ; volume and mixer.
-;	.byte 064+11         ; volume and mixer.
-;
-;	; 98.00.00 .byte 29             ; white noise.
-;	.byte 29             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 064+10         ; volume and mixer.
-;	.byte 064+10         ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 2000           ; tone register.
-;	.word 2000           ; tone register.
-;
-;	; 98.00.00 .byte 064+9          ; volume and mixer.
-;	.byte 064+9          ; volume and mixer.
-;
-;	; 98.00.00 .byte 30             ; white noise.
-;	.byte 30             ; white noise.
-;
-;	; 98.00.01 .word 3000           ; tone register.
-;	.word 3000           ; tone register.
-;
-;	; 98.00.00 .byte 064+8          ; volume and mixer.
-;	.byte 064+8          ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 2000           ; tone register.
-;	.word 2000           ; tone register.
-;
-;	; 98.00.00 .byte 064+7          ; volume and mixer.
-;	.byte 064+7          ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 1000           ; tone register.
-;	.word 1000           ; tone register.
-;
-;	; 98.00.00 .byte 064+6          ; volume and mixer.
-;	.byte 064+6          ; volume and mixer.
-;
-;	; 98.00.00 .byte 31             ; white noise.
-;	.byte 31             ; white noise.
-;
-;	; 98.00.01 .word 2000           ; tone register.
-;	.word 2000           ; tone register.
-;
-;	; 98.00.00 .byte 255
-;	.byte 255
-;
-;	; 98.00.00 fx3    .byte 064+15         ; volume and mixer.
-;fx3:	.byte 064+15         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4000           ; tone register.
-;	.word 4000           ; tone register.
-;
-;	; 98.00.00 .byte 064+15         ; volume and mixer.
-;	.byte 064+15         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4100           ; tone register.
-;	.word 4100           ; tone register.
-;
-;	; 98.00.00 .byte 064+14         ; volume and mixer.
-;	.byte 064+14         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4200           ; tone register.
-;	.word 4200           ; tone register.
-;
-;	; 98.00.00 .byte 064+14         ; volume and mixer.
-;	.byte 064+14         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4300           ; tone register.
-;	.word 4300           ; tone register.
-;
-;	; 98.00.00 .byte 064+13         ; volume and mixer.
-;	.byte 064+13         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4400           ; tone register.
-;	.word 4400           ; tone register.
-;
-;	; 98.00.00 .byte 064+13         ; volume and mixer.
-;	.byte 064+13         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4500           ; tone register.
-;	.word 4500           ; tone register.
-;
-;	; 98.00.00 .byte 064+12         ; volume and mixer.
-;	.byte 064+12         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4600           ; tone register.
-;	.word 4600           ; tone register.
-;
-;	; 98.00.00 .byte 064+12         ; volume and mixer.
-;	.byte 064+12         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4700           ; tone register.
-;	.word 4700           ; tone register.
-;
-;	; 98.00.00 .byte 064+11         ; volume and mixer.
-;	.byte 064+11         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4800           ; tone register.
-;	.word 4800           ; tone register.
-;
-;	; 98.00.00 .byte 064+10         ; volume and mixer.
-;	.byte 064+10         ; volume and mixer.
-;
-;	; 98.00.00 .byte 0              ; white noise.
-;	.byte 0              ; white noise.
-;
-;	; 98.00.01 .word 4900           ; tone register.
-;	.word 4900           ; tone register.
-;
-;	; 98.00.00 .byte 255
-;	.byte 255
-;
-;	; 98.00.00 .byte 99             ; temporary marker.
-;	.byte 99             ; temporary marker.
-;
 
 ; User routine.  Put your own code in here to be called with USER instruction.
 ; if USER has an argument it will be passed in the accumulator.
 
 user:
-	; 43.xx.xx rts  	
 	rts
 
 ;----------------------------------------------------
 ; Missing vars 
 ;----------------------------------------------------
 
-;MAP:		.res 3*256	; properties map buffer.
-;SCADTB_lb:	.res 193	; screen address table, just below map.
-;SCADTB_hb:	.res 193
-;SHRAPN:		.res 55*6	; shrapnel table, just below screen address table.
-
-MAP 		= $9a00
-SCADTB_lb 	= MAP+3*256
-SCADTB_hb 	= SCADTB_lb+256
-SHRAPN 		= SCADTB_hb+256
+MAP 		= $9a00			; properties map buffer (3x256 bytes)
+SCADTB_lb 	= MAP+3*256		; screen address table lo-byte (256 bytes)
+SCADTB_hb 	= SCADTB_lb+256		; screen address table hi-byte (256 bytes)
+SHRAPN 		= SCADTB_hb+256		; shrapnel table (55x6 bytes)
 
 FontPtr:	.byte 0,0
 TmpAddr:	.byte 0,0
@@ -7277,3 +5756,4 @@ loopa:		.byte 0
 loopb:		.byte 0
 loopc:		.byte 0
 
+; Everything below here will be generated by the editors.
