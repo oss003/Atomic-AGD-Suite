@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                255 255 255 255 255 255 255 255 71                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -202,6 +202,13 @@ EVENT INITSPRITE
 
 EVENT MAINLOOP1
 AT 0,0
+PRINTMODE 1
+PRINT "BEEP TEST"
+PRINTMODE 0
+
+AT 3,0
+PRINT "DECREASE=; INCREASE=."
+AT 5,0
 DISPLAY A
 PRINT "  "
 IF KEY UP
@@ -217,6 +224,7 @@ ENDIF
 EVENT MAINLOOP2
 
 EVENT INTROMENU
+ CLS
 
 EVENT GAMEINIT
 LET A=80

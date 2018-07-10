@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                255 255 255 255 255 255 255 255 71                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -203,12 +203,14 @@ EVENT INITSPRITE
 EVENT MAINLOOP1
  PRINTMODE0
  AT 1 1
+ PRINTMODE 1
  PRINT "BIGTEXT TEST:"
+ PRINTMODE 0
 
- AT 3 1
+ AT 4 1
  PRINT "NORMAL TEXT TEST TO SEE IF TEXT GOES ON ON NEXT LINE"
  PRINTMODE1
- AT 7 1
+ AT 8 1
  PRINT "BIGTEXT TEST TO SEE IF TEXT GOES ON ON NEXT LINE"
 
  WAITKEY
@@ -216,6 +218,7 @@ EVENT MAINLOOP1
 EVENT MAINLOOP2
 
 EVENT INTROMENU
+ CLS
 
 EVENT GAMEINIT
 
