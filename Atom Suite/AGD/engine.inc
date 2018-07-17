@@ -5744,7 +5744,7 @@ user:
 ; Missing vars 
 ;----------------------------------------------------
 
-MAP 		= $9a00			; properties map buffer (3x256 bytes)
+MAP 		= $9800			; properties map buffer (3x256 bytes)
 SCADTB_lb 	= MAP+3*256		; screen address table lo-byte (256 bytes)
 SCADTB_hb 	= SCADTB_lb+256		; screen address table hi-byte (256 bytes)
 SHRAPN 		= SCADTB_hb+256		; shrapnel table (55x6 bytes)
