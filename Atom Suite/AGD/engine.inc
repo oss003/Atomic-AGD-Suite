@@ -16,7 +16,8 @@
 	FODDER = LADDER + 1	; fodder block.
 	DEADLY = FODDER + 1	; deadly block.
 	CUSTOM = DEADLY + 1	; custom block.
-	NUMTYP = CUSTOM + 1	; number of types.
+	WATER  = CUSTOM + 1	; water block.
+	NUMTYP = WATER + 1	; number of types.
 
 ; Sprites.
 
@@ -1971,6 +1972,7 @@ bsortx:
 
 ; back to start of main loop.
 
+	inc frmno
 	inc clock
 	jmp mloop		; switched to a jmp mloop during test mode.
 
@@ -3738,8 +3740,8 @@ random:
 ;--------------------------------------------------------
 
 ;              X   Z   .   ;  SPC  Q   P
-keys:   .byte $35,$15,$93,$22,$90,$04,$14       ; Keys defined by game designer.
-        .byte $21,$11,$01,$92                   ; menu options.
+;keys:   .byte $35,$15,$93,$22,$90,$04,$14       ; Keys defined by game designer.
+;        .byte $21,$11,$01,$92                   ; menu options.
 jkeys:  .byte $03,$01,$02,$04,$00,$04,$14       ; Joykey keys
         .byte $21,$11,$01,$92                   ; menu options.
 
@@ -4708,6 +4710,10 @@ nline:
 ;-----------------------------------------------------------
 
 animsp:
+	and frmno
+	beq :+
+	rts
+:
 	ldy #6
 	lda (z80_ix),y		; sprite image
 	jsr gfrm		; get frame data.
@@ -4738,6 +4744,10 @@ anims0:
 ;--------------------------------------------------------------
 
 animbk:
+	and frmno
+	beq :+
+	rts
+:
 	ldy #6
 	lda (z80_ix),y		; sprite image.
 	jsr gfrm		; get frame data.
