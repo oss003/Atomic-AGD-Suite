@@ -2068,11 +2068,11 @@ num2ch:
 
 	lda #0
 	sta flag
-
+numdg3:
 	ldx #100		; hundreds column.
 	stx z80_e
 	jsr numdg		; show digit.
-
+numdg2:
 	ldx #10			; tens column.
 	stx z80_e
 	jsr numdg		; show digit.
@@ -2105,6 +2105,19 @@ numdg0:
 	inc z80_b
 :
 	rts
+num2dd:
+	sta z80_d		; Save number
+
+	lda #1
+	sta flag
+
+	jmp numdg2
+num2td:
+	sta z80_d		; Save number
+
+	lda #1
+	sta flag
+	jmp numdg3
 
 flag:	.byte 0
 
@@ -4900,7 +4913,7 @@ disply:
 	sta z80_b
 	lda z80_a
 	jsr num2ch				; convert accumulator to string.
-
+displ1:
 	dec z80_c				; back one character.
 	bne :+
 	dec z80_b

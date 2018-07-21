@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 56                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -164,7 +164,7 @@ SPRITEPOSITION 0,0,88,128
 ; Coordinates are based on Spectrum screen, even for CPC so need to change for conversions
 
 ; Spectrum:
-DEFINEOBJECT    66,0,160,32     ; attribute, room, Y, X
+DEFINEOBJECT    56,0,160,32     ; attribute, room, Y, X
                 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
                 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ; Map.
@@ -203,13 +203,56 @@ EVENT INITSPRITE
 EVENT MAINLOOP1
  AT 0 1
  PRINTMODE 1
- PRINT "CLOCK TEST: "
+ PRINT "TEST DISPLAY: "
  PRINTMODE 0
 
- AT 3 1
- PRINT "CURRENT CLOCK: "
- DISPLAY CLOCK
+ AT 3,1
+ PRINT "NORMAL: "
+ LET A = 1
+ DISPLAY A
+ AT 3,15
+ LET A = 12
+ DISPLAY A
+ AT 3,20
+ LET A = 123
+ DISPLAY A
+
+ AT 5 1
+ PRINT "DOUBLE: "
+ LET A = 1
+ DISPLAY DOUBLEDIGITS A
+ AT 5 15
+ LET A = 12
+ DISPLAY DOUBLEDIGITS A
+
+ AT 7 1
+ PRINT "TRIPLE: "
+ LET A=1
+ DISPLAY TRIPLEDIGITS A
+ AT 7 15
+ LET A=12
+ DISPLAY TRIPLEDIGITS A
+ AT 7 20
+ LET A=123
+ DISPLAY TRIPLEDIGITS A
+
+ AT 9 1
+ PRINT "SECONDS:   :"
+ AT 9 11
+ DISPLAY SECONDS CLOCK
  PRINT "  "
+
+ LET A=5
+ AT 11,1
+ DISPLAY A
+
+ LET A=52
+ AT 12,1
+ DISPLAY A
+
+ LET A=253
+ AT 13,1
+ DISPLAY A
 
 EVENT MAINLOOP2
 
