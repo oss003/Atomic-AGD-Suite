@@ -17,7 +17,8 @@
 	DEADLY = FODDER + 1	; deadly block.
 	CUSTOM = DEADLY + 1	; custom block.
 	WATER  = CUSTOM + 1	; water block.
-	NUMTYP = WATER + 1	; number of types.
+        COLECT = WATER + 1      ; collectable block.
+        NUMTYP = COLECT + 1     ; number of types.
 
 ; Sprites.
 
@@ -1321,7 +1322,12 @@ laserm:
 	bne :+
 	jmp trailk		; yes, it cannot pass.
 :
-	rts
+        cmp #FODDER             ; is it fodder?
+        bne :+
+        jsr fdchk               ; remove fodder block.
+        jmp trailk              ; destroy laser.
+:
+        rts                     ; no, ignore it.
 
 ;----------------------------------------------------
 ; Dots mask
@@ -2008,6 +2014,7 @@ evdie:
 :
 evfail:
 	jsr evnt17 			; failure event.
+	jmp game			; restart game
 
 ;----------------------------------------------------------
 ; Tidy things up
@@ -2845,7 +2852,7 @@ gprad:
 ; Get property buffer address of char at (dispx, dispy) in hl.
 ; 
 ; Output:
-;  buffaddr = bufaddr = MAP + dispy*32 + dispx
+;  bufaddr = MAP + dispy*32 + dispx
 ;--------------------------------------------------------------
 
 pradd:
@@ -2926,11 +2933,18 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 ;  A	= tile number
 ;----------------------------------------------
 
+colpatt:	.byte 0
+
 pattr:
 	sta z80_b		; store cell in b register for now.
 	tax
 	lda bprop,x 		; block properties.
 	sta z80_c
+	cmp #COLECT
+	bne :+
+	lda z80_b
+	sta colpatt
+:
 	jsr pradd 		; get property buffer address.
 	lda z80_c
 	ldy #0
@@ -3492,11 +3506,86 @@ ldchk:
 	ldy #0
 	lda (bufaddr),y 	; fetch cell.
 	cmp #LADDER 		; is it a ladder?
-	beq ldchk1
+	beq :+
 	lda #1
 	rts  			; return with zero flag set accordingly.
-ldchk1:
+:
 	lda #0
+	rts
+
+;--------------------------------------------------------------
+; Get collectables.
+;--------------------------------------------------------------
+
+getcol:
+        lda #COLECT             ; collectable blocks.
+        sta z80_b
+        jsr tded                ; test for collectable blocks.
+        cmp z80_b               ; did we find one?
+        beq :+
+        rts                     ; none were found, job done.
+:
+        jsr gtblk               ; get block.
+        jsr evnt20              ; collected block event.
+        jmp getcol              ; repeat until none left.
+
+; Get collectable block.
+
+gtblk:
+	ldy #0
+	lda (bufaddr),y
+	sta z80_a
+        lda #0
+        sta (bufaddr),y		; make it empty now.
+       
+	lda bufaddr		; set dispx
+	and #31
+	sta dispx
+
+	lda bufaddr+1		; Set dispy
+	sec
+	sbc #>MAP
+	sta bufaddr+1
+	asl bufaddr
+	rol bufaddr+1
+	asl bufaddr
+	rol bufaddr+1
+	asl bufaddr
+	rol bufaddr+1
+	lda bufaddr+1
+	sta dispy
+ 
+	lda colpatt		; get blocknr
+	sta z80_e		; displacement in e.
+	lda #0
+	sta z80_d		; no high byte.
+	asl z80_e  		; multiply char by 8.
+	rol z80_d
+	asl z80_e
+	rol z80_d
+	asl z80_e
+	rol z80_d
+	clc
+	lda z80_e
+	adc #<chgfx 		; address of graphics.
+	sta tileaddr
+	lda z80_d
+	adc #>chgfx
+	sta tileaddr+1
+	jsr gprad 		; get screen address.
+	ldx #7			; number of pixel rows to write.
+gtblk0:
+	ldy #0
+	lda (tileaddr),y 	; get image byte.
+	ldy scrtab,x
+	eor (scraddr),y 	; XOR tile on screen
+	sta (scraddr),y 	; copy to screen.
+	inc tileaddr 		; next image byte.
+	bne :+
+	inc tileaddr+1
+:
+	dex	 		; repeat for 8 pixel rows.
+	bpl gtblk0
 	rts
 
 ;--------------------------------------------------------------
@@ -5043,10 +5132,16 @@ grav:
 	bne grav0			; no, continue.
 grav2:
 	dec z80_l			; go back to previous value.
+	bcc :+
+	dec z80_h
+:
 	lda (z80_hl),y			; fetch that from table.
 	sta z80_a
 grav0:
 	inc z80_l			; point to next table entry.
+	bne :+
+	inc z80_h
+:
 	lda z80_l
 	ldy #13
 	sta (z80_ix),y			; store new pointer low.
@@ -5162,6 +5257,9 @@ ifalls:
 	sta z80_h
 ifal0:
 	inc z80_l			; point to next value.
+	bne :+
+	inc z80_h
+:
 	ldy #0
 	lda (z80_hl),y			; fetch value.
 	beq ifal0			; no, get next value.
