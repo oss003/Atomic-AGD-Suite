@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                255 255 255 255 255 255 255 255 71                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -226,20 +226,20 @@ EVENT MAINLOOP1
  DIVIDE L BY 4
  DISPLAY L
  AT 8 1
- PRINT "123 / 5 = "
+ PRINT "123 /  5 = "
  LET L = 123
  DIVIDE L BY 5
  DISPLAY L
  AT 9 1
  PRINT "123 / 32 = "
  LET L = 123
-; DIVIDE L BY 32
-; DISPLAY L
+ DIVIDE L BY 32
+ DISPLAY L
  AT 10 1
  PRINT "123 / 64 = "
  LET L = 123
-; DIVIDE L BY 64
-; DISPLAY L
+ DIVIDE L BY 64
+ DISPLAY L
 
 ;--------------------
 ; Test multiply
@@ -260,20 +260,20 @@ EVENT MAINLOOP1
  MULTIPLY L BY 4
  DISPLAY L
  AT 8 18
- PRINT "3 x 5 = "
+ PRINT "3 x  5 = "
  LET L = 3
  MULTIPLY L BY 5
  DISPLAY L
  AT 9 18
  PRINT "3 x 32 = "
  LET L = 3
-; MULTIPLY L BY 32
-; DISPLAY L
+ MULTIPLY L BY 32
+ DISPLAY L
  AT 10 18
  PRINT "3 x 64 = "
  LET L = 3
-; MULTIPLY L BY 64
-; DISPLAY L
+ MULTIPLY L BY 64
+ DISPLAY L
 
 ;--------------------
 ; Test addition
@@ -365,9 +365,4 @@ EVENT COMPLETEDGAME
 
 EVENT NEWHIGHSCORE
 
-
-
-
-
-
-
+EVENT COLLECTBLOCK

@@ -2,7 +2,7 @@
 
 ; Arcade Game Designer.
 ; (C) 2008 - 2018 Jonathan Cauldwell.
-; ZX Spectrum Engine v0.6.
+; ZX Spectrum Engine v0.7.
 
 ; Global definitions.
 
@@ -22,7 +22,8 @@ LADDER equ WALL + 1        ; ladder.
 FODDER equ LADDER + 1      ; fodder block.
 DEADLY equ FODDER + 1      ; deadly block.
 CUSTOM equ DEADLY + 1      ; custom block.
-COLECT equ CUSTOM + 1      ; collectable block.
+WATER  equ CUSTOM + 1      ; water block.
+COLECT equ WATER + 1       ; collectable block.
 NUMTYP equ COLECT + 1      ; number of types.
 
 ; Sprites.
@@ -484,8 +485,8 @@ vsync0 ld a,(23672)        ; current clock reading.
        jr z,vsync0         ; yes, wait until clock changes.
        ld (hl),a           ; set new clock reading.
        ret
-vsync5 call plsnd          ; play sound.
-       jp proshr           ; shrapnel and stuff.
+;vsync5 call plsnd          ; play sound.
+vsync5 jp proshr           ; shrapnel and stuff.
 
 ; Play white noise.
 
@@ -1142,7 +1143,7 @@ mloop  call vsync          ; synchronise with display.
        ld ix,sprtab        ; address of sprite table, even sprites.
        call dspr           ; display even sprites.
 
-       call plsnd          ; play sounds.
+;       call plsnd          ; play sounds.
        call vsync          ; synchronise with display.
        ld ix,sprtab+TABSIZ ; address of first odd sprite.
        call dspr           ; display odd sprites.
@@ -1229,9 +1230,9 @@ evrs   jp evnt14           ; call restart event.
 num2ch ld l,a              ; put accumulator in l.
        ld h,0              ; blank high byte of hl.
        ld a,32             ; leading spaces.
-       ld de,100           ; hundreds column.
+numdg3 ld de,100           ; hundreds column.
        call numdg          ; show digit.
-       ld de,10            ; tens column.
+numdg2 ld de,10            ; tens column.
        call numdg          ; show digit.
        or 16               ; last digit is always shown.
        ld de,1             ; units column.
@@ -1247,6 +1248,17 @@ numdg0 add hl,de           ; restore total.
        ld (bc),a           ; write digit to buffer.
        inc bc              ; next buffer position.
        ret
+num2dd ld l,a              ; put accumulator in l.
+       ld h,0              ; blank high byte of hl.
+       ld a,32             ; leading spaces.
+       ld de,100           ; hundreds column.
+       call numdg          ; show digit.
+       or 16               ; second digit is always shown.
+       jr numdg2
+num2td ld l,a              ; put accumulator in l.
+       ld h,0              ; blank high byte of hl.
+       ld a,48             ; leading spaces.
+       jr numdg3
 
 inisc  ld b,6              ; digits to initialise.
 inisc0 ld (hl),'0'         ; write zero digit.
@@ -1736,17 +1748,10 @@ checkx ld a,e              ; x position.
        pop hl              ; remove return address from stack.
        ret
 
-; Displays the current high score.
-
-dhisc  ld hl,hiscor        ; high score text.
-       jr dscor1           ; check in printable range then show 6 digits.
-
 ; Displays the current score.
 
-dscor  ld hl,score         ; score text.
-dscor1 call preprt         ; set up font and print position.
+dscor  call preprt         ; set up font and print position.
        call checkx         ; make sure we're in a printable range.
-       ld b,6              ; digits to display.
        ld a,(prtmod)       ; get print mode.
        and a               ; standard size text?
        jp nz,bscor0        ; no, show double-height.
@@ -1977,12 +1982,20 @@ pchark call gprad          ; get screen address.
 
 ; Print attributes, properties and pixels.
 
+colpatt defb 0
+
 pattr  ld b,a              ; store cell in b register for now.
        ld e,a              ; displacement in e.
        ld d,0              ; no high byte.
        ld hl,(proptr)      ; pointer to properties.
        add hl,de           ; property cell address.
        ld c,(hl)           ; fetch byte.
+	ld a,c
+	cp COLECT
+	jp nz,pattr1
+	ld a,b
+	ld (colpatt),a
+pattr1
        call pradd          ; get property buffer address.
        ld (hl),c           ; write property.
        ld a,b              ; restore cell.
@@ -2316,8 +2329,59 @@ gtblk  ld (hl),0           ; make it empty now.
        add hl,hl           ; x is now in h.
        ld e,h              ; put x in e.
        ld (dispx),de       ; set display coordinates.
-       xor a               ; block zero.
-       call pchr           ; display block on screen.
+
+	ld a,(colpatt)
+       rlca                ; multiply char by 8.
+       rlca
+       rlca
+       ld e,a              ; store shift in e.
+       and 7               ; only want high byte bits.
+       ld d,a              ; store in d.
+       ld a,e              ; restore shifted value.
+       and 248             ; only want low byte bits.
+       ld e,a              ; that's the low byte.
+       ld hl,(blkptr)      ; address of graphics.
+       add hl,de           ; add displacement.
+       call gprad          ; get screen address.
+
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(de)           ; get image byte.
+	xor (hl)
+       ld (de),a           ; copy to screen.
        ret
 
 ; Touched deadly block check.
@@ -3150,7 +3214,7 @@ colty1 push ix             ; base sprite address onto stack.
 
 disply ld bc,displ0        ; display workspace.
        call num2ch         ; convert accumulator to string.
-       dec bc              ; back one character.
+displ1 dec bc              ; back one character.
        ld a,(bc)           ; fetch digit.
        or 128              ; insert end marker.
        ld (bc),a           ; new value.

@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                0 0 0 0 0 0 0 0 63                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -201,8 +201,10 @@ EVENT SPRITETYPE8
 EVENT INITSPRITE
 
 EVENT MAINLOOP1
- AT 1 1
+ AT 0 1
+ PRINTMODE 1
  PRINT "CALCULATIONS TEST:"
+ PRINTMODE 0
 
 ;--------------------
 ; Test divide
@@ -431,6 +433,7 @@ EVENT MAINLOOP1
 EVENT MAINLOOP2
 
 EVENT INTROMENU
+ CLS
 
 EVENT GAMEINIT
 
@@ -446,9 +449,4 @@ EVENT COMPLETEDGAME
 
 EVENT NEWHIGHSCORE
 
-
-
-
-
-
-
+EVENT COLLECTBLOCK

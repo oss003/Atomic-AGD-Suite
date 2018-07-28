@@ -111,7 +111,7 @@ DEFINEFONT      0 0 0 0 0 0 0 0
 ; Block 0
 
 DEFINEBLOCK     EMPTYBLOCK      ; property
-                255 255 255 255 255 255 255 255 71                                      ; Spectrum.
+                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
 
 ; Sprites
 ; First argument defines the number of frames
@@ -201,8 +201,10 @@ EVENT SPRITETYPE8
 EVENT INITSPRITE
 
 EVENT MAINLOOP1
- AT 1 1
+ AT 0 1
+ PRINTMODE 1
  PRINT "KEY TEST: "
+ PRINTMODE 0
 
  AT 3 1
  PRINT "KEY RIGHT: "
@@ -295,8 +297,11 @@ EVENT MAINLOOP1
 EVENT MAINLOOP2
 
 EVENT INTROMENU
- AT 1,1
+ CLS
+ PRINTMODE 1
+ AT 0,1
  PRINT "DEFINE KEYS:"
+ PRINTMODE 0
 
  AT 3,1
  PRINT "DEFINE KEY RIGHT:"
@@ -341,6 +346,7 @@ EVENT INTROMENU
  AT 13,1
  PRINT "DEFINE KEY OPT4:"
  DEFINEKEY OPTION4
+ CLS
 
 
 EVENT GAMEINIT
@@ -357,9 +363,4 @@ EVENT COMPLETEDGAME
 
 EVENT NEWHIGHSCORE
 
-
-
-
-
-
-
+EVENT COLLECTBLOCK

@@ -1,5 +1,5 @@
 
-DEFINEWINDOW    0 0 22 30
+DEFINEWINDOW    1 1 21 30
 
 DEFINEMESSAGES
     " "
@@ -7,12 +7,12 @@ DEFINEMESSAGES
 DEFINEFONT      0 0 0 0 0 0 0 0
                 0 48 48 48 48 0 48 0
                 0 108 108 0 0 0 0 0
-                0 108 254 108 108 254 108 0
-                0 24 126 120 126 30 126 24
-                0 230 236 24 48 110 206 0
-                0 48 120 48 126 204 126 0
-                0 24 48 0 0 0 0 0
-                0 12 24 24 24 24 12 0
+                $2c $6e $ff $ff $ff $ff $ff $ff
+                $07 $6f $ff $ff $ff $ff $ff $ff
+                $2d $ff $ff $ff $ff $ff $ff $ff
+                $0d $5f $ff $ff $ff $ff $ff $ff
+                $2c $6e $ff $ff $ff $ff $ff $ff
+                $2c $6e $ff $ff $ff $ff $ff $ff
                 0 96 48 48 48 48 96 0
                 0 0 60 24 126 24 60 0
                 0 0 24 24 126 24 24 0
@@ -102,17 +102,63 @@ DEFINEFONT      0 0 0 0 0 0 0 0
                 124 198 187 227 227 187 198 124
 
 DEFINEBLOCK     EMPTYBLOCK
-                255 255 255 255 255 255 255 255 
+                0 0 0 0 0 0 0 0 
                 $38
 
 
-DEFINESPRITE    1
-                255 255 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1  
-                $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 255 255
+DEFINESPRITE    4
+                0 6 0 7 0 5 0 4 0 6 0 7 127 255 0 127
+                206 0 132 149 38 19 9 192 57 24 6 80 18 0 7 0
 
-DEFINESPRITE    1
-                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                0 6 0 7 0 5 0 4 0 6 0 7 127 255 0 127
+                199 0 146 21 6 83 57 0 9 216 38 16 4 128 12 0
+
+                0 6 0 7 0 5 0 4 0 6 0 7 127 255 0 127
+                202 0 129 149 54 19 9 64 41 24 6 208 24 0 1 0
+
+                0 6 0 7 0 5 0 4 0 6 0 7 127 255 0 127
+                197 0 152 21 6 211 41 0 9 88 54 16 1 128 10 0
+
+DEFINESPRITE    4
+                252 0 99 128 188 96 223 152 96 4 127 248 1 254 255 3
+                0 112 76 36 237 48 0 78 25 200 8 50 0 144 0 56
+
+                252 0 99 128 188 96 223 152 96 4 127 248 1 254 255 3
+                0 56 76 144 236 50 1 200 24 78 9 48 0 36 0 96
+
+                252 0 99 128 188 96 223 152 96 4 127 248 1 254 255 3
+                0 80 76 12 237 176 0 74 25 72 8 54 0 192 0 8
+
+                252 0 99 128 188 96 223 152 96 4 127 248 1 254 255 3
+                0 40 76 192 236 54 1 72 24 74 9 176 0 12 0 80
+
+DEFINESPRITE    9
+                0 0 0 0 0 0 0 0 0 0 0 0 127 192 61 160
+                8 80 8 80 8 80 8 16 58 92 50 76 0 0 0 0
+
+                0 0 0 0 0 0 0 0 48 0 60 0 31 192 12 96
+                8 176 8 176 8 176 8 16 36 148 36 148 0 0 0 0
+
+                0 0 0 0 8 0 12 0 14 0 7 0 7 192 4 224
+                9 112 9 112 9 112 8 16 41 36 41 36 0 0 0 0
+
+                0 0 0 0 2 0 3 0 3 0 3 128 3 192 4 224
+                10 208 10 208 10 208 8 16 50 76 50 76 0 0 0 0
+
+                0 0 0 0 1 128 1 128 1 128 1 128 3 192 5 160
+                13 176 13 176 13 176 8 16 36 148 36 148 0 0 0 0
+
+                0 0 0 0 0 64 0 192 0 192 1 192 3 192 7 32
+                11 80 11 80 11 80 8 16 41 36 41 36 0 0 0 0
+
+                0 0 0 0 0 16 0 48 0 112 0 224 3 224 7 32
+                14 144 14 144 14 144 8 16 50 76 50 76 0 0 0 0
+
+                0 0 0 0 0 0 0 0 0 12 0 60 3 248 6 48
+                13 16 13 16 13 16 8 16 36 148 36 148 0 0 0 0
+
+                0 0 0 0 0 0 0 0 0 0 0 0 3 254 5 188
+                10 16 10 16 10 16 8 16 41 36 41 36 0 0 0 0
 
 DEFINESCREEN
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
@@ -136,8 +182,9 @@ DEFINESCREEN
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
-                  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
-SPRITEPOSITION  0 0 80 124
+SPRITEPOSITION  0 0 160 120
+SPRITEPOSITION  0 2 152 120
+SPRITEPOSITION  0 1 160 136
 
 DEFINEOBJECT    71 254 56 120
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -150,79 +197,22 @@ MAP             WIDTH 3
 ENDMAP
 
 EVENT PLAYER
-SPAWN 1 1
- LET M = 0
- IF KEY UP
-  LET M = 1
-  IF CANGOUP
-   SPRITEUP
-  ENDIF
- ENDIF
- IF KEY DOWN
-  LET M = 1
-  IF CANGODOWN
-   SPRITEDOWN
-  ENDIF
- ENDIF
+
  IF KEY LEFT
-  LET M = 1
   IF CANGOLEFT
    SPRITELEFT
   ENDIF
  ENDIF
+
  IF KEY RIGHT
-  LET M = 1
   IF CANGORIGHT
    SPRITERIGHT
   ENDIF
  ENDIF
- IF M > 0
-  ANIMATE
- ENDIF
 
-
- IF COLLISION BULLET
-  WAITKEY
- ENDIF
+ANIMATE
 
 EVENT SPRITETYPE1
-    LET X = RIGHTEDGE                   ; move it to the right edge.
-    ADD 8 TO X                          ; move centre of sprite to the very edge.
-    IF H = 0
-        LET H = BOTTOMEDGE
-        ADD 9 TO H
-    ENDIF
-    LET Y = H                           ; set the height.
-    LASER LEFT
-ADD I TO H                              ; adjust height by increment.
-
-IF P = 0                                ; no pixels left to plot.
-    IF H > BOTTOMEDGE
-        GETRANDOM 3                     ; up or level.
-        SUBTRACT 2 FROM RND
-    ELSE
-        LET K = BOTTOMEDGE
-        SUBTRACT 32 FROM K
-        IF H < K                        ; too close to top?
-            GETRANDOM 3                 ; down or level.
-        ELSE
-            GETRANDOM 5                 ; up, down or level.
-            SUBTRACT 2 FROM RND
-        ENDIF
-    ENDIF
-    LET I = RND                         ; put y increment/decrement in I.
-    LET P = 8
-ENDIF
-
-SUBTRACT 1 FROM P
-
-LET K = TOPEDGE
-ADD 32 TO K
-IF H < K                                ; too close to top?
-    LET I = 2                           ; force landscape down.
-ENDIF
-
-REMOVE                                  ; remove our dummy sprite before it is displayed.
 
 EVENT SPRITETYPE2
 
@@ -243,17 +233,15 @@ EVENT INITSPRITE
 EVENT MAINLOOP1
 
 DEFINEPARTICLE
-PARTICLELEFT
-PARTICLELEFT
-PARTICLELEFT
-PARTICLELEFT
-PARTICLELEFT
-PARTICLELEFT
 
 EVENT MAINLOOP2
 
 EVENT INTROMENU
 CLS
+ AT 22,1
+ PRINT "#$%&#$%&#$%&#$%&#$%&#$%&#$%&#$"
+ AT 22,1
+ TICKER 30 "#$%&#$%&#$%&#$%&#$%&#$%&#$"
 
 EVENT GAMEINIT
 
