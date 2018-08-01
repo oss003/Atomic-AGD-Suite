@@ -6,6 +6,7 @@ AGD suite for converting, compiling and running AGD games on an Acorn Atom
 * (p = add code for Particles)
 * (s = add code for Scrollytext)
 * (i = invert game)
+* (d = digging)
 #
 # ZX-AGD-Suite
 AGD suite for converting, compiling and running AGD games on an ZX Spectrum
