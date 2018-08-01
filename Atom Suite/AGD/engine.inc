@@ -857,51 +857,35 @@ setpal:
 ;----------------------------------------------------------------------
 
 fdchk:
-	ldy #0
-	lda (z80_hl),y	 	; fetch cell.
 	cmp #FODDER 		; is it fodder?
 	beq :+
 	rts 			; no.
 :
-	lda #0
+	lda #0			; wipe fodder in MAP
 	ldy #0
-	sta (z80_hl),y 		; rewrite block type.
+	sta (bufaddr),y 	; rewrite block type.
 
-	lda z80_h		; store pointer to block.
+	lda dispx		; x=x/8
 	pha
-	lda z80_l
+	lsr a
+	lsr a
+	lsr a
+	sta dispx
+
+	lda dispy		; y=y/8
 	pha
-
-	sec			; set carry flag for subtraction.
-	lda z80_l 		; find simple displacement for block.
-	sbc #<MAP
-	sta z80_l
-	lda z80_h
-	sbc #>MAP
-	sta z80_h
-
-	lda z80_l		; low byte is y coordinate.
-	and #31 		; column position 0 - 31.
-	sta dispx		; set up x position.
-
-	asl z80_l		; multiply displacement by 8.
-	rol z80_h
-	asl z80_l
-	rol z80_h
-	asl z80_l
-	rol z80_h
-
-	lda z80_h		; x coordinate now in h.
-	sta dispy		; set the display coordinate.
+	lsr a
+	lsr a
+	lsr a
+	sta dispy
 
 	lda #0 			; block to write.
 	jsr pattr 		; write block.
 
-	pla 			; restore block pointer.
-	sta z80_l
 	pla
-	sta z80_h
-
+	sta dispy
+	pla
+	sta dispx
 	rts
 
 ;----------------------------------------------------
@@ -3735,6 +3719,8 @@ tstbl:
 	lsr a			; bufaddr = y/8
 	lsr a
 	lsr a
+	sta chary
+
 	sta bufaddr
 	lda #0
 	sta bufaddr+1
@@ -3754,6 +3740,7 @@ tstbl:
 	lsr a
 	lsr a
 	lsr a
+	sta charx
 
 	clc			; bufaddr = MAP + x/8 + y/8*32
 	adc bufaddr
@@ -5822,6 +5809,126 @@ iscrl0:
 	sta txtbit
 
 	jmp scrly4
+.endif
+
+;------------------------------------------------------------------
+; Dig routine, conditional assembly depending on dflag
+;------------------------------------------------------------------
+.if dflag
+dig:
+	and #3
+	beq digr		; dig right
+	cmp #1
+	beq digl		; dig left
+	cmp #2
+	beq digd		; dig down
+
+; Dig up.
+
+digu:				; dig up
+	ldy #8
+	lda (z80_ix),y
+	sec
+	sbc #2
+	sta dispy		; set y
+
+	iny
+	lda (z80_ix),y
+	sta dispx		; set x
+	jmp digv
+
+; Dig down.
+
+digd:
+	ldy #9
+	lda (z80_ix),y
+	sta dispx		; set y
+
+	dey
+	clc
+	lda (z80_ix),y
+	adc #16
+	sta dispy		; set y
+	jmp digv
+
+; Dig left.
+
+digl:
+	ldy #8
+	lda (z80_ix),y
+	sta dispy		; set y
+
+	iny
+	lda (z80_ix),y
+	sec
+	sbc #2			; x=x-2
+	sta dispx		; set x
+	jmp digh
+
+; Dig right.
+
+digr:
+	ldy #8
+	lda (z80_ix),y
+	sta dispy		; set y
+
+	iny
+	lda (z80_ix),y
+	clc
+	adc #16
+	sta dispx		; set x+16
+	jmp digh
+
+; Vertical digging
+
+digv:
+	jsr tstbl		; check blocktype in MAP
+	jsr fdchk		; test if FODDER
+
+	clc
+	lda dispx		; look 1 cell down
+	adc #8
+	sta dispx
+	jsr tstbl		; check blocktype in MAP
+	jsr fdchk
+	lda dispx
+	and #7
+	bne :+
+	rts
+:
+	clc
+	lda dispx		; look 1 cell down
+	adc #8
+	sta dispx
+	jsr tstbl		; check blocktype in MAP
+	jmp fdchk
+
+; Horizontal digging
+
+digh:
+	jsr tstbl		; check blocktype in MAP
+	jsr fdchk		; test if FODDER
+
+	clc
+	lda dispy		; look 1 cell down
+	adc #8
+	sta dispy
+	jsr tstbl		; check blocktype in MAP
+	jsr fdchk
+	lda dispy
+	and #7
+	bne :+
+	rts
+:
+	clc
+	lda dispy		; look 1 cell down
+	adc #8
+	sta dispy
+	jsr tstbl		; check blocktype in MAP
+	jmp fdchk
+
+digcnt:	.byte 0
+
 .endif
 
 ;------------------------------------------------------------------
