@@ -80,6 +80,7 @@
 	TxtInvert   = $00	; Invert byte for character printing
 	ScrFillByte = $00	; Screen fill byte for CLS
 .endif
+
 	ScrMode     = $f0	; Screen mode:
 				;  $d0 = CLEAR4a colour
 				;  $f0 = CLEAR4  mono
@@ -1910,7 +1911,6 @@ rpblc0:
 	jsr dspr 		; display sprites.
 mloop:
 	jsr vsync 		; synchronise with display.
-
 	lda #<sprtab 		; address of sprite table, even sprites.
 	sta z80_x
 	lda #>sprtab
@@ -4721,18 +4721,15 @@ sspric:
 	jsr exx  		; store addresses.
 	jsr gspran 		; get new sprite addresses.
 
-	lda #15
+	lda #16
 	sta ccnt
 lloop:
 	jsr dline 		; draw a line.
-	jsr exx  		; restore old addresses.
-	jsr dline 		; delete a line.
-	jsr exx  		; flip to new sprite addresses.
+	jsr ddline 		; delete a line.
 	dec ccnt
 	bne lloop
 
-	jsr dline		; draw a line.
-	jsr exx 		; restore old addresses.
+	rts
 
 ;-------------------------------------------------------------
 ; Drop through.
@@ -4787,6 +4784,61 @@ nline:
 	sta scraddr 		; new low byte of address.
 	bcc :+
 	inc scraddr+1 		; new high byte of address.
+:
+	rts
+
+;-------------------------------------------------------------
+; Line drawn, now work out next target address.
+;
+; Input:
+;  B  = right mask
+;  C  = left mask
+;  DE = spriteaddress
+;  scraddr = screen address
+;-------------------------------------------------------------
+
+ddline:
+	ldy #0
+	lda (z80_dep),y 	; graphic data.
+	and z80_cp 		; mask away what's not needed.
+	eor (z80_hlp),y 	; XOR with what's there.
+	sta (z80_hlp),y 	; bung it in.
+
+	inc z80_lp 		; next screen address.
+	inc z80_lp 		; next screen address.
+
+	lda (z80_dep),y 	; fetch data.
+	and z80_bp 		; mask away unwanted bits.
+	eor (z80_hlp),y 	; XOR with what's there.
+	sta (z80_hlp),y 	; bung it in.
+
+	inc z80_ep 		; next graphic.
+	bne :+
+	inc z80_dp
+:
+	dec z80_lp 		; one character cell to the left.
+
+	lda (z80_dep),y 	; second bit of data.
+	eor (z80_hlp),y 	; XOR with what's there.
+	sta (z80_hlp),y 	; bung it in.
+
+	inc z80_ep 		; point to next line of data.
+	bne :+
+	inc z80_dp
+:
+	dec z80_hlp 		; another char left.
+
+;----------------------------------------------------------------------
+; Line drawn, now work out next target address.
+;----------------------------------------------------------------------
+
+dnline:
+	clc
+	lda z80_lp 		; get low byte of address.
+	adc #$20
+	sta z80_lp 		; new low byte of address.
+	bcc :+
+	inc z80_hp 		; new high byte of address.
 :
 	rts
 
@@ -5119,7 +5171,8 @@ grav:
 	bne grav0			; no, continue.
 grav2:
 	dec z80_l			; go back to previous value.
-	bcc :+
+	cmp #$ff
+	bne :+
 	dec z80_h
 :
 	lda (z80_hl),y			; fetch that from table.
