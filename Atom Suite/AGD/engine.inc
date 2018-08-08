@@ -46,6 +46,7 @@
 	scr_l	= $90
 	scr_r	= $92
 	scr_txt	= $94
+	pbptr	= $96
 
 ; System constants
 
@@ -1856,6 +1857,14 @@ mapst:
 	sta roomtb		; set up position in table, if there is one.
 
 inipbl:
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.if aflag
+	lda #<eop		; reset blockpointer
+	sta pbptr
+	lda #>eop
+	sta pbptr+1
+.endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	jsr initsc 		; set up first screen.
 
 	lda #<ssprit 		; default to spare sprite in table.
@@ -1896,6 +1905,11 @@ rpblc0:
 .if pflag
 	jsr inishr 		; initialise particle engine.
 .endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.if aflag
+	jsr rbloc		; draw blocks for this screen
+.endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	jsr shwob		; draw objects.
 
 	lda #<sprtab 		; address of sprite table, even sprites.
@@ -1965,6 +1979,52 @@ bsortx:
 	inc frmno
 	inc clock
 	jmp mloop		; switched to a jmp mloop during test mode.
+
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+;----------------------------------------------------------
+; Read blocks from list and update screen accordingly.
+;----------------------------------------------------------
+
+.if aflag
+rbloc:
+	lda #<eop		; reset temp blockpointer
+	sta tmp
+	lda #>eop
+	sta tmp+1
+
+rbloc2:
+	lda tmp			; check for last block
+	cmp pbptr
+	bne rbloc1
+	lda tmp+1
+	cmp pbptr+1
+	bne rbloc1
+	rts
+rbloc1:
+	ldy #0
+	lda (tmp),y		; check if block for this scno
+	cmp scno
+	bne rbloc0		; if not, skip
+	iny
+	lda (tmp),y		; get y
+	sta dispy
+	iny
+	lda (tmp),y		; get x
+	sta dispx
+	iny
+	lda (tmp),y		; get blocknr
+	jsr pattr2		; draw block
+rbloc0:
+	clc			; point to next block
+	lda tmp
+	adc #4
+	sta tmp
+	bcc rbloc2zzz
+	inc tmp+1
+	jmp rbloc2
+.endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;----------------------------------------------------------
 ; New level
@@ -2920,6 +2980,15 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 colpatt:	.byte 0
 
 pattr:
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.if aflag
+	pha
+	jsr wbloc		; save blockinfo
+	pla
+.endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+pattr2:
 	sta z80_b		; store cell in b register for now.
 	tax
 	lda bprop,x 		; block properties.
@@ -2971,6 +3040,35 @@ panp0:
 	inc dispx 		; move along one.
 	inc charx
 	rts
+
+;----------------------------------------------
+; Write block
+;----------------------------------------------
+
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.if aflag
+wbloc:
+	ldy #3
+	sta (pbptr),y		; store block number
+	dey
+	lda dispx
+	sta (pbptr),y		; write x position of block.
+	dey
+	lda dispy
+	sta (pbptr),y		; write y position of block.
+	dey
+	lda scno
+	sta (pbptr),y		; write screen.
+	clc			; point to next free location
+	lda pbptr
+	adc #4
+	sta pbptr
+	bcc :+
+	inc pbptr+1
+:
+	rts
+.endif
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;----------------------------------------------
 ; Print character pixels, no more.
@@ -3131,7 +3229,7 @@ droom0:
 	sta rcol		; set column counter
 droom1:
 	jsr flbyt 		; decompress next byte on the fly.
-	jsr pattr 		; show attributes and block.
+	jsr pattr2 		; show attributes and block.
 	dec rcol		; one less column.
 	bne droom1 		; repeat for entire line.
 	inc dispy		; move down one line.
