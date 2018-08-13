@@ -2020,7 +2020,7 @@ rbloc0:
 	lda tmp
 	adc #4
 	sta tmp
-	bcc rbloc2zzz
+	bcc rbloc2
 	inc tmp+1
 	jmp rbloc2
 .endif
