@@ -28,7 +28,13 @@ name_end:
 
 exec:
 start_asm:
+.segment "ZEROPAGE"
 	.include "z80-zp.inc"
+	.include "engine-zp.inc"
+
+.segment "CODE"
 	.include "game.inc"
 	.include "z80.asm"
+
+eop:
 eind_asm:

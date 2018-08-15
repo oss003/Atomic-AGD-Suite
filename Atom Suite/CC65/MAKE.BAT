@@ -8,6 +8,7 @@ rem Set flags
  if "%5"=="m" set mf=1
  if "%6"=="m" set mf=1
  if "%7"=="m" set mf=1
+ if "%8"=="m" set mf=1
 
  set pf=0
  if "%2"=="p" set pf=1
@@ -16,6 +17,7 @@ rem Set flags
  if "%5"=="p" set pf=1
  if "%6"=="p" set pf=1
  if "%7"=="p" set pf=1
+ if "%8"=="p" set pf=1
 
  set sf=0
  if "%2"=="s" set sf=1
@@ -24,6 +26,7 @@ rem Set flags
  if "%5"=="s" set sf=1
  if "%6"=="s" set sf=1
  if "%7"=="s" set sf=1
+ if "%8"=="s" set sf=1
 
  set if=0
  if "%2"=="i" set if=1
@@ -32,6 +35,7 @@ rem Set flags
  if "%5"=="i" set if=1
  if "%6"=="i" set if=1
  if "%7"=="i" set if=1
+ if "%8"=="i" set if=1
 
  set df=0
  if "%2"=="d" set df=1
@@ -40,6 +44,7 @@ rem Set flags
  if "%5"=="d" set df=1
  if "%6"=="d" set df=1
  if "%7"=="d" set df=1
+ if "%8"=="d" set df=1
 
  set af=0
  if "%2"=="a" set af=1
@@ -48,6 +53,16 @@ rem Set flags
  if "%5"=="a" set af=1
  if "%6"=="a" set af=1
  if "%7"=="a" set af=1
+ if "%8"=="a" set af=1
+
+ set hf=0
+ if "%2"=="h" set hf=1
+ if "%3"=="h" set hf=1
+ if "%4"=="h" set hf=1
+ if "%5"=="h" set hf=1
+ if "%6"=="h" set hf=1
+ if "%7"=="h" set hf=1
+ if "%8"=="h" set hf=1
 
 rem Build asm file
  echo.
@@ -63,7 +78,9 @@ rem Conditional assemble game
  if %if%==1 echo - Invertmode activated ...
  if %df%==1 echo - Diggingmode activated ...
  if %af%==1 echo - Adventuremode activated ...
- ca65 -l -o %1.o game.asm -D mflag=%mf% -D pflag=%pf% -D sflag=%sf% -D iflag=%if% -D dflag=%df% -D aflag=%af%
+ if %hf%==1 echo - Hidden sprite mode activated ...
+
+ ca65 -l -o %1.o game.asm -D mflag=%mf% -D pflag=%pf% -D sflag=%sf% -D iflag=%if% -D dflag=%df% -D aflag=%af% -D hflag=%hf%
  if not "%errorlevel%" == "0" goto failed
 
 rem Linking
@@ -91,6 +108,7 @@ echo Error %errorlevel%
  echo i = Invertmode
  echo d = Diggingmode
  echo a = Adventuremode
+ echo h = Hidden sprite mode
  echo.
 
 

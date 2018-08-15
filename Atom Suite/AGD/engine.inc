@@ -37,16 +37,16 @@
 
 ; Local vars
 
-	scraddr	= $80
-	fntaddr	= $82
-	tileaddr= $84
-	bufaddr	= $86
-	tmp     = $88
+;	scraddr	= $80
+;	fntaddr	= $82
+;	tileaddr= $84
+;	bufaddr	= $86
+;	tmp     = $88
 
-	scr_l	= $90
-	scr_r	= $92
-	scr_txt	= $94
-	pbptr	= $96
+;	scr_l	= $90
+;	scr_r	= $92
+;	scr_txt	= $94
+	pbptr	= $96		; Needed for Adventuremode
 
 ; System constants
 
@@ -70,10 +70,14 @@
 ; Conditional compilation flags
 ; Flags are set in commandline assembly
 
-;	mflag = 0 		; MENU + INV
-;	pflag = 0		; Particle engine
-;	sflag = 0		; scrollytext
-;	fflag = 1		; Fontflag
+;	mflag  			; MENU + INV
+;	pflag 			; particle engine
+;	sflag 			; scrollytext
+;	iflag			; invert mode
+;	dflag 			; digging mode
+;	aflag			; adventure mode
+;	hflag			; hidden sprite mode
+
 .if iflag
 	TxtInvert   = $ff	; Invert byte for character printing
 	ScrFillByte = $ff	; Screen fill byte for CLS
@@ -105,9 +109,9 @@
 	lda #12			; Clear screen + exit to Basic
 	jmp $fff4
 	
-contrl:	.byte 0			; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
-joyval:	.byte 0			; joystick reading.
-frmno:	.byte 0			; selected frame.
+;contrl:	.byte 0			; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
+;joyval:	.byte 0			; joystick reading.
+;frmno:	.byte 0			; selected frame.
 
 ; Don't change the order of these four.  
 ; Menu routine relies on winlft following wintop.
@@ -126,48 +130,48 @@ wnlftx:	.byte (8 * WINDOWLFT)
 wnbotx:	.byte ((WINDOWTOP * 8) + (WINDOWHGT * 8) - 16)
 wnrgtx:	.byte ((WINDOWLFT * 8) + (WINDOWWID * 8) - 16)-2
 
-scno:	.byte 0			; present screen number.
-numlif:	.byte 3			; number of lives.
+;scno:	.byte 0			; present screen number.
+;numlif:	.byte 3			; number of lives.
 
-vara:	.byte 0			; general-purpose variable.
-varb:	.byte 0			; general-purpose variable.
-varc:	.byte 0			; general-purpose variable.
-vard:	.byte 0			; general-purpose variable.
-vare:	.byte 0			; general-purpose variable.
-varf:	.byte 0			; general-purpose variable.
-varg:	.byte 0			; general-purpose variable.
-varh:	.byte 0			; general-purpose variable.
-vari:	.byte 0			; general-purpose variable.
-varj:	.byte 0			; general-purpose variable.
-vark:	.byte 0			; general-purpose variable.
-varl:	.byte 0			; general-purpose variable.
-varm:	.byte 0			; general-purpose variable.
-varn:	.byte 0			; general-purpose variable.
-varo:	.byte 0			; general-purpose variable.
-varp:	.byte 0			; general-purpose variable.
-varq:	.byte 0			; general-purpose variable.
-varr:	.byte 0			; general-purpose variable.
-vars:	.byte 0			; general-purpose variable.
-vart:	.byte 0			; general-purpose variable.
-varu:	.byte 0			; general-purpose variable.
-varv:	.byte 0			; general-purpose variable.
-varw:	.byte 0			; general-purpose variable.
-varz:	.byte 0			; general-purpose variable.
+;vara:	.byte 0			; general-purpose variable.
+;varb:	.byte 0			; general-purpose variable.
+;varc:	.byte 0			; general-purpose variable.
+;vard:	.byte 0			; general-purpose variable.
+;vare:	.byte 0			; general-purpose variable.
+;varf:	.byte 0			; general-purpose variable.
+;varg:	.byte 0			; general-purpose variable.
+;varh:	.byte 0			; general-purpose variable.
+;vari:	.byte 0			; general-purpose variable.
+;varj:	.byte 0			; general-purpose variable.
+;vark:	.byte 0			; general-purpose variable.
+;varl:	.byte 0			; general-purpose variable.
+;varm:	.byte 0			; general-purpose variable.
+;varn:	.byte 0			; general-purpose variable.
+;varo:	.byte 0			; general-purpose variable.
+;varp:	.byte 0			; general-purpose variable.
+;varq:	.byte 0			; general-purpose variable.
+;varr:	.byte 0			; general-purpose variable.
+;vars:	.byte 0			; general-purpose variable.
+;vart:	.byte 0			; general-purpose variable.
+;varu:	.byte 0			; general-purpose variable.
+;varv:	.byte 0			; general-purpose variable.
+;varw:	.byte 0			; general-purpose variable.
+;varz:	.byte 0			; general-purpose variable.
 
-charx:	.byte 0			; cursor x position.
-chary:	.byte 0			; cursor y position.
+;charx:	.byte 0			; cursor x position.
+;chary:	.byte 0			; cursor y position.
 
-clock:	.byte 0			; last clock reading.
-varrnd:	.byte 255		; last random number.
-varobj:	.byte 254		; last object number.
-varopt:	.byte 255		; last option chosen from menu.
-varblk:	.byte 255		; block type.
-nexlev:	.byte 0			; next level flag.
-restfl:	.byte 0			; restart screen flag.
-deadf:	.byte 0			; dead flag.
-gamwon:	.byte 0			; game won flag.
-dispx:	.byte 0			; cursor x position.
-dispy:	.byte 0			; cursor y position.
+;clock:	.byte 0			; last clock reading.
+;varrnd:	.byte 255		; last random number.
+;varobj:	.byte 254		; last object number.
+;varopt:	.byte 255		; last option chosen from menu.
+;varblk:	.byte 255		; block type.
+;nexlev:	.byte 0			; next level flag.
+;restfl:	.byte 0			; restart screen flag.
+;deadf:	.byte 0			; dead flag.
+;gamwon:	.byte 0			; game won flag.
+;dispx:	.byte 0			; cursor x position.
+;dispy:	.byte 0			; cursor y position.
 
 ; Make sure pointers are arranged in the same order as the data itself.
 
@@ -603,10 +607,10 @@ fobj:
 :
 	jmp fobj		; yes, it's on the list.
 
-bwid:	.byte 0              ; box/menu width.
-blen:	.byte 0              ; box/menu height.
-btop:	.byte 0              ; box coordinates.
-blft:	.byte 0
+;bwid:	.byte 0              ; box/menu width.
+;blen:	.byte 0              ; box/menu height.
+;btop:	.byte 0              ; box coordinates.
+;blft:	.byte 0
 .endif
 
 ;----------------------------------------------------
@@ -739,6 +743,7 @@ vsync:
 	jsr joykey		; read joystick/keyboard.
 vsync1:
 	lda Timer2_High		; sync framerate with clock
+	cmp #$ff
 	bne vsync1
 	lda #>50000
 	sta Timer2_High
@@ -939,7 +944,7 @@ proshx:
 	rts
 
 .if pflag
-shrctr:	.byte 0
+;shrctr:	.byte 0
 
 ;----------------------------------------------------
 ; Proces shrapnel piece
@@ -1673,7 +1678,7 @@ expld1:
 	bne expld2 		; back to main explosion loop.
 	jmp expld3 		; restore sprite pointer and exit.
 
-explcnt:	.byte 0
+;explcnt:	.byte 0
 
 ;----------------------------------------------------
 ; Quick random
@@ -1685,7 +1690,7 @@ qrand:
 	sta seed3 		; new seed.
 	rts
 
-seed3:	.byte 0
+;seed3:	.byte 0
 
 ;----------------------------------------------------
 ; Display all shrapnel.
@@ -1933,6 +1938,7 @@ mloop:
 
 	jsr plsnd 		; play sounds.
 
+	jsr proshr
 	lda #<(sprtab+TABSIZ) 	; address of first odd sprite.
 	sta z80_x
 	lda #>(sprtab+TABSIZ)
@@ -2170,7 +2176,7 @@ num2td:
 	sta flag
 	jmp numdg3
 
-flag:	.byte 0
+;flag:	.byte 0
 
 ;---------------------------------------------------------
 ; Reset score to "000000"
@@ -2629,9 +2635,9 @@ evis1:
 
 	rts
 
-spcnt:	.byte 0
-spptr:	.word 0			; spawned sprite pointer.
-seed:	.byte 0			; seed for random numbers.
+;spcnt:	.byte 0
+;spptr:	.word 0			; spawned sprite pointer.
+;seed:	.byte 0			; seed for random numbers.
 score:	.byte "000000"		; player"s score.
 hiscor:	.byte "000000"		; high score.
 bonus:	.byte "000000"		; bonus.
@@ -3168,7 +3174,7 @@ spritetab:
 
 spr:	.byte 0,0,0
 
-xtmp:	.byte 0
+;xtmp:	.byte 0
 
 ;-----------------------------------------------------------
 ; Get room address.
@@ -3237,8 +3243,8 @@ droom1:
 	bne droom0 		; repeat for all rows.
 	rts
 
-rcol:	.byte 0
-rrow:	.byte 0
+;rcol:	.byte 0
+;rrow:	.byte 0
 
 ;----------------------------------------------
 ; Decompress bytes on-the-fly.
@@ -3275,8 +3281,8 @@ flbyt1:
 	lda combyt 		; byte to expand.
 	rts
 
-combyt:	.byte 0			; byte type compressed.
-comcnt:	.byte 0			; compression counter.
+;combyt:	.byte 0			; byte type compressed.
+;comcnt:	.byte 0			; compression counter.
 
 ;------------------------------------------
 ; Ladder down check.
@@ -4187,7 +4193,7 @@ dmsg4:
 	sta dispx
 	jmp dmsg2
 
-prtmod:	.byte 0            	; print mode, 0 = standard, 1 = double-height.
+;prtmod:	.byte 0            	; print mode, 0 = standard, 1 = double-height.
 
 ;----------------------------------------------------------
 ; Display message in big text.
@@ -4419,7 +4425,7 @@ bsort2:
 	bne bsort0		; repeat for remaining sprites.
 	rts
 
-qscnt:	.byte 0
+;qscnt:	.byte 0
 
 bsort1:
 	ldy #TABSIZ
@@ -4506,7 +4512,7 @@ pspr1:
 	bne pspr1
 	rts
 
-sprptr:	.byte 0
+;sprptr:	.byte 0
 
 pspr2:
 	lda z80_x 		; store original sprite pointer.
@@ -4559,7 +4565,7 @@ pspr4:
 	
 	jmp (z80_hl) 		; go there.
 
-ogptr:	.word 0			; original sprite pointer.
+;ogptr:	.word 0			; original sprite pointer.
 
 ; Address of each sprite type's routine.
 
@@ -4667,7 +4673,7 @@ dspr3:
 	jsr ssprib 		; show single sprite.
 	jmp dspr2
 
-sprcnt:	.byte 0
+;sprcnt:	.byte 0
 
 ;-----------------------------------------
 ; Get sprite address calculations.
@@ -4812,7 +4818,7 @@ ssprib:
 
 ;-----------------------------------------------------------------
 
-ccnt = $7c
+;ccnt = $7c
 
 sspric:
 	jsr gsprad 		; get old sprite address.
@@ -4841,30 +4847,56 @@ lloop:
 ;-------------------------------------------------------------
 
 dline:
+.if hflag
+	lda scraddr
+	and #31
+	sta dispx
+	lda scraddr+1
+	and #31
+	sta dispy
+	jsr pradd
+	ldy #0
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq sline
+.endif
 	ldy #0
 	lda (z80_de),y 		; graphic data.
 	and z80_c 		; mask away what's not needed.
 	eor (scraddr),y 	; XOR with what's there.
 	sta (scraddr),y 	; bung it in.
-
+sline:
 	inc scraddr 		; next screen address.
 	inc scraddr 		; next screen address.
-
+.if hflag
+	ldy #2
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq sline2
+.endif	
+	ldy #0
 	lda (z80_de),y 		; fetch data.
 	and z80_b 		; mask away unwanted bits.
 	eor (scraddr),y 	; XOR with what's there.
 	sta (scraddr),y 	; bung it in.
-
+sline2:
 	inc z80_e 		; next graphic.
 	bne :+
 	inc z80_d
 :
 	dec scraddr 		; one character cell to the left.
-
+.if hflag
+	ldy #1
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq sline3
+.endif
+	ldy #0
 	lda (z80_de),y 		; second bit of data.
 	eor (scraddr),y 	; XOR with what's there.
 	sta (scraddr),y 	; bung it in.
 
+sline3:
 	inc z80_e 		; point to next line of data.
 	bne :+
 	inc z80_d
@@ -4889,37 +4921,62 @@ nline:
 ; Line drawn, now work out next target address.
 ;
 ; Input:
-;  B  = right mask
-;  C  = left mask
-;  DE = spriteaddress
-;  scraddr = screen address
+;  BP  = right mask
+;  CP  = left mask
+;  DEP = spriteaddress
+;  z80_hlp = screen address
 ;-------------------------------------------------------------
 
 ddline:
+.if hflag
+	lda z80_hlp
+	and #31
+	sta dispx
+	lda z80_hlp+1
+	and #31
+	sta dispy
+	jsr pradd
+	ldy #0
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq dsline
+.endif
 	ldy #0
 	lda (z80_dep),y 	; graphic data.
 	and z80_cp 		; mask away what's not needed.
 	eor (z80_hlp),y 	; XOR with what's there.
 	sta (z80_hlp),y 	; bung it in.
-
+dsline:
 	inc z80_lp 		; next screen address.
 	inc z80_lp 		; next screen address.
-
+.if hflag
+	ldy #2
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq dsline2
+.endif
+	ldy #0
 	lda (z80_dep),y 	; fetch data.
 	and z80_bp 		; mask away unwanted bits.
 	eor (z80_hlp),y 	; XOR with what's there.
 	sta (z80_hlp),y 	; bung it in.
-
+dsline2:
 	inc z80_ep 		; next graphic.
 	bne :+
 	inc z80_dp
 :
 	dec z80_lp 		; one character cell to the left.
-
+.if hflag
+	ldy #1
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq dsline3
+.endif
+	ldy #0
 	lda (z80_dep),y 	; second bit of data.
 	eor (z80_hlp),y 	; XOR with what's there.
 	sta (z80_hlp),y 	; bung it in.
-
+dsline3:
 	inc z80_ep 		; point to next line of data.
 	bne :+
 	inc z80_dp
@@ -5058,8 +5115,8 @@ sktyp1:
 	clc					; don't return with zero flag set.
 	rts 					; didn't find one.
 
-skptr:	.word 0					; search pointer.
-sktptr:	.byte 0
+;skptr:	.word 0					; search pointer.
+;sktptr:	.byte 0
 
 coltyp:
 	ldy #0
@@ -5190,7 +5247,7 @@ tstsc:
 	lda mapdat-MAPWID,x 		; find room number there.
 	rts
 
-tmproom:	.byte 0
+;tmproom:	.byte 0
 
 ;--------------------------
 ; Screen left.
@@ -6128,11 +6185,11 @@ SCADTB_lb 	= MAP+3*256		; screen address table lo-byte (256 bytes)
 SCADTB_hb 	= SCADTB_lb+256		; screen address table hi-byte (256 bytes)
 SHRAPN 		= SCADTB_hb+256		; shrapnel table (55x6 bytes)
 
-FontPtr:	.byte 0,0
+;FontPtr:	.byte 0,0
 TmpAddr:	.byte 0,0
 
-loopa:		.byte 0
-loopb:		.byte 0
-loopc:		.byte 0
+;loopa:		.byte 0
+;loopb:		.byte 0
+;loopc:		.byte 0
 
 ; Everything below here will be generated by the editors.
