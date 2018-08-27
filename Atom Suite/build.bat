@@ -6,13 +6,14 @@ rem Compile AGD file
  cd AGD
  AGD %1
  copy %1.inc ..\cc65\
+ copy game.cfg ..\cc65\
  del %1.*
 
 rem Assemble file
  cd ..\cc65
- call make %1 %2 %3 %4 %5 %6
+ call make %1 %2 %3 %4 %5 %6 %7 %8 %9
  copy %1.atm ..\atomulator\mmc\menu
-rem del %1.*
+ del %1.*
 
 rem Start emulator
  cd ..\atomulator

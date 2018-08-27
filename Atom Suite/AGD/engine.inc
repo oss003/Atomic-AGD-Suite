@@ -70,13 +70,50 @@
 ; Conditional compilation flags
 ; Flags are set in commandline assembly
 
+; Flags set by AGD compiler
 ;	mflag  			; MENU + INV
 ;	pflag 			; particle engine
 ;	sflag 			; scrollytext
-;	iflag			; invert mode
 ;	dflag 			; digging mode
+;	cflag			; collectable blocks
+;	oflag			; objects
+;	lflag			; ladders
+;
+; Flags set manually
+;	iflag			; invert mode
 ;	aflag			; adventure mode
 ;	hflag			; hidden sprite mode
+
+.if mflag 
+ .out "- MEN/INV enabled"  
+.endif
+.if pflag 
+ .out "- Particles enabled" 
+.endif
+.if sflag 
+ .out "- Scrolling enabled" 
+.endif
+.if dflag
+ .out "- Digging enabled" 
+.endif
+.if cflag
+ .out "- Collectable blocks enabled" 
+.endif
+.if oflag
+ .out "- Objects enabled" 
+.endif
+.if lflag
+ .out "- Ladders enabled" 
+.endif
+.if iflag
+ .out "- Invert mode enabled" 
+.endif
+.if aflag
+ .out "- Adventure mode enabled" 
+.endif
+.if hflag
+ .out "- Hidden sprites/foregroundblocks enabled" 
+.endif
 
 .if iflag
 	TxtInvert   = $ff	; Invert byte for character printing
@@ -100,10 +137,10 @@
 ; If a font is required...
 ;--------------------------------------------------------------
 
-	lda #<(FONT-256)	; address of font.
-	sta FontPtr
-	lda #>(FONT-256)
-	sta FontPtr+1
+;	lda #<(FONT-256)	; address of font.
+;	sta #<(FONT-256)r
+;	lda #>(FONT-256)
+;	sta #>(FONT-256)
 
 	jsr game	 	; start the game.
 	lda #12			; Clear screen + exit to Basic
@@ -323,9 +360,9 @@ dbox8:
 	adc winlft		; add left edge of window.
 	sta blft		; box left.
 
-	lda FontPtr		; font.
+	lda #<(FONT-256)		; font.
 	sta grbase		; set up for text display.
-	lda FontPtr+1
+	lda #>(FONT-256)
 	sta grbase+1
 
 	lda TmpAddr+1		; restore message pointer.
@@ -351,13 +388,18 @@ mod0:
 	lda bwid		; box width.
 	sta z80_b		; store width.
 dbox0:
-	ldy #0			; get character.
-	lda (z80_hl),y
+	ldy #0
+	lda (z80_hl),y		; get character.
 	cmp #','		; end of line?
 	beq dbox1		; yes, next one.
 	cmp #13			; end of line?
 	beq dbox1		; yes, next one.
 
+	cmp #141			; end of line?
+	bne :+
+	dec bwid
+	jmp dbox7		; yes, next one.
+:
 	dec z80_b		; one less to display.
 	and #127		; remove terminator.
 
@@ -537,9 +579,7 @@ dbar0:
 
 	inc scraddr		; one char right.
 	dec z80_c		; decrement character counter.
-	beq :+
-	jmp dbar1		; repeat for whole line.
-:
+	bne dbar1		; repeat for whole line.
 	rts
 
 ;------------------------------------------------------
@@ -690,6 +730,7 @@ xspr0:
 ; Reset current room,y,x to start room,y,x for all objects
 ;-------------------------------------------------------------
 
+.if oflag
 iniob:
 	lda #<objdta 		; objects table.
 	sta z80_x
@@ -724,6 +765,7 @@ iniob0:
 	bne iniob0
 
 	rts
+.endif
 
 ;-------------------------------------------------------------
 ; Screen synchronisation.
@@ -790,7 +832,9 @@ redraw:
 	pha
 
 	jsr droom		; show screen layout.
+.if oflag
 	jsr shwob		; draw objects.
+.endif
 numsp0:
 	lda #NUMSPR		; sprites to draw.
 	sta tmp
@@ -824,6 +868,9 @@ redrw1:
 rpblc1:
 ;	jsr dshrp		; redraw shrapnel.
 
+.if aflag
+	jsr rbloc		; draw blocks for this screen
+.endif
 	pla			; retrieve sprite pointer.
 	sta z80_x
 	pla
@@ -863,6 +910,7 @@ setpal:
 ; FODDER check
 ;----------------------------------------------------------------------
 
+.if pflag .or dflag
 fdchk:
 	cmp #FODDER 		; is it fodder?
 	beq :+
@@ -894,6 +942,7 @@ fdchk:
 	pla
 	sta dispx
 	rts
+.endif
 
 ;----------------------------------------------------
 ; Scrolly text and puzzle variables.
@@ -1313,11 +1362,13 @@ laserm:
 	bne :+
 	jmp trailk		; yes, it cannot pass.
 :
+.if pflag .or dflag
         cmp #FODDER             ; is it fodder?
         bne :+
         jsr fdchk               ; remove fodder block.
         jmp trailk              ; destroy laser.
 :
+.endif
         rts                     ; no, ignore it.
 
 ;----------------------------------------------------
@@ -1850,9 +1901,9 @@ clrmap:
 	sta MAP+512,x
 	inx			; next byte.
 	bne clrmap
-
+.if oflag
 	jsr iniob 		; initialise objects.
-
+.endif
 	lda #0			; put zero in accumulator.
 	sta gamwon		; reset game won flag.
 
@@ -1862,14 +1913,12 @@ mapst:
 	sta roomtb		; set up position in table, if there is one.
 
 inipbl:
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .if aflag
 	lda #<eop		; reset blockpointer
 	sta pbptr
 	lda #>eop
 	sta pbptr+1
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	jsr initsc 		; set up first screen.
 
 	lda #<ssprit 		; default to spare sprite in table.
@@ -1910,12 +1959,12 @@ rpblc0:
 .if pflag
 	jsr inishr 		; initialise particle engine.
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .if aflag
 	jsr rbloc		; draw blocks for this screen
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.if oflag
 	jsr shwob		; draw objects.
+.endif
 
 	lda #<sprtab 		; address of sprite table, even sprites.
 	sta z80_x
@@ -1986,8 +2035,6 @@ bsortx:
 	inc clock
 	jmp mloop		; switched to a jmp mloop during test mode.
 
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 ;----------------------------------------------------------
 ; Read blocks from list and update screen accordingly.
 ;----------------------------------------------------------
@@ -2030,7 +2077,6 @@ rbloc0:
 	inc tmp+1
 	jmp rbloc2
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;----------------------------------------------------------
 ; New level
@@ -2284,6 +2330,7 @@ plsnd:
 ; Show items present.
 ;---------------------------------------------------
 
+.if oflag
 shwob:
 	lda #<objdta 			; objects table.
 	sta z80_l
@@ -2386,6 +2433,7 @@ getob0:
 	lda #255
 	sta (z80_hl),y 		; pick it up.
 	rts
+.endif
 
 ;-----------------------------------------------------------------
 ; Got object check.
@@ -2394,7 +2442,7 @@ getob0:
 ; Input:
 ;  A = object number
 ;-----------------------------------------------------------------
-
+.if oflag .or mflag
 gotob:
 	cmp numob 		; number of objects in game.
 	bcc :+ 			; are we checking past the end?
@@ -2431,6 +2479,7 @@ fndob1:
 	ldy #32			; distance to room it's in.
 	lda (z80_hl),y		; fetch status.
 	rts
+.endif
 
 ;---------------------------------------------
 ; Drop object number at (dispx, dispy).
@@ -2439,6 +2488,7 @@ fndob1:
 ;  A = object number
 ;---------------------------------------------
 
+.if oflag
 drpob:
 	cmp numob 		; are we checking past the end?
 	bcc :+
@@ -2526,7 +2576,7 @@ skobj1:
 	sbc z80_b		; subtract loop counter.
 skobj2:
 	rts			; accumulator now points to object.
-
+.endif
 
 ;---------------------------------------------------------------------
 ; Spawn a new sprite.
@@ -2950,10 +3000,10 @@ pchar:
 
 	lda fntaddr
 	clc
-	adc FontPtr
+	adc #<(FONT-256)
 	sta fntaddr		; that's the low byte.
 	lda fntaddr+1
-	adc FontPtr+1
+	adc #>(FONT-256)
 	sta fntaddr+1		; add displacement.
 pchark:
 	jsr gprad		; get screen address.
@@ -2986,13 +3036,11 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 colpatt:	.byte 0
 
 pattr:
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .if aflag
 	pha
 	jsr wbloc		; save blockinfo
 	pla
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pattr2:
 	sta z80_b		; store cell in b register for now.
@@ -3051,7 +3099,6 @@ panp0:
 ; Write block
 ;----------------------------------------------
 
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .if aflag
 wbloc:
 	ldy #3
@@ -3074,7 +3121,6 @@ wbloc:
 :
 	rts
 .endif
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;----------------------------------------------
 ; Print character pixels, no more.
@@ -3092,6 +3138,7 @@ pchr:
 ; Shifter sprite routine for objects.
 ;----------------------------------------------------
 
+.if oflag
 sprit7:
 	lda z80_b
 	beq sprit0
@@ -3175,6 +3222,7 @@ spritetab:
 spr:	.byte 0,0,0
 
 ;xtmp:	.byte 0
+.endif
 
 ;-----------------------------------------------------------
 ; Get room address.
@@ -3291,6 +3339,7 @@ flbyt1:
 ;  IX = sprite pointer
 ;------------------------------------------
 
+.if lflag
 laddd:
 	ldy #9
 	lda (z80_ix),y		; x coordinate.
@@ -3354,6 +3403,7 @@ laddv:
 :
 	jsr ldchk 		; do the check.
 	rts  			; return with zero flag set accordingly.
+.endif
 
 ;---------------------------------------------------------
 ; Can go up check.
@@ -3562,15 +3612,16 @@ plchk:
 	lda (bufaddr),y 	; fetch map cell.
 	cmp #WALL 		; is it passable?
 	beq lrchkx		; no.
-
+.if pflag .or dflag
 	cmp #FODDER		; fodder has to be dug.
 	beq lrchkx		; not passable.
-
+.endif
 	cmp #PLATFM		; platform is solid.
 	beq plchkx		; not passable.
-
+.if lflag
 	cmp #LADDER		; is it a ladder?
 	beq lrchkx		; on ladder, deny movement.
+.endif
 plchk0:
 	lda #0			; report as ok
 	rts
@@ -3590,6 +3641,7 @@ plchkx:
 ;  A  = 0 is ok, A <>0 is not ok
 ;--------------------------------------------------------------
 
+.if lflag
 ldchk:
 	ldy #0
 	lda (bufaddr),y 	; fetch cell.
@@ -3600,11 +3652,13 @@ ldchk:
 :
 	lda #0
 	rts
+.endif
 
 ;--------------------------------------------------------------
 ; Get collectables.
 ;--------------------------------------------------------------
 
+.if cflag
 getcol:
         lda #COLECT             ; collectable blocks.
         sta z80_b
@@ -3675,6 +3729,7 @@ gtblk0:
 	dex	 		; repeat for 8 pixel rows.
 	bpl gtblk0
 	rts
+.endif
 
 ;--------------------------------------------------------------
 ; Touched deadly block check.
@@ -4220,7 +4275,6 @@ bmsg3:
 	pla
 	asl a  			; was terminator flag set?
 	bcc bmsg1		; no, keep going.
-:
 	rts
 bmsg2:
 	lda #0
@@ -4253,12 +4307,12 @@ bchar:
 	asl z80_e
 	rol z80_d		; de = a*8
 
-	clc			; de = FontPtr + a*8
+	clc			; de = Fontpointer + a*8
 	lda z80_e
-	adc FontPtr 		; address of font.
+	adc #<(FONT-256) 		; address of font.
 	sta z80_e
 	lda z80_d
-	adc FontPtr+1
+	adc #>(FONT-256)
 	sta z80_d
 
 	jsr gprad 		; get screen address.
@@ -4346,9 +4400,9 @@ nexlin:
 ;--------------------------------------------------------
 
 preprt:
-	lda FontPtr		; font pointer.
+	lda #<(FONT-256)		; font pointer.
 	sta grbase		; set up graphics base.
-	lda FontPtr+1
+	lda #>(FONT-256)
 	sta grbase+1
 prescr:
 	lda charx 		; display coordinates.
@@ -5094,7 +5148,6 @@ sktyp0:
 	lda (z80_hl),y 				; get sprite type.
 	cmp z80_b				; is it the type we seek?
 	beq coltyp				; yes, we can use this one.
-:
 sktyp1:
 	clc
 	lda skptr				; retrieve sprite pointer.
@@ -5105,7 +5158,6 @@ sktyp1:
 	sta z80_h
 	dec sktptr					; one less iteration.
 	bne sktyp0				; keep going until we find a slot.
-:
 	lda #0					; default to ROM address - no sprite.
 	sta z80_l
 	sta z80_h
@@ -5919,10 +5971,10 @@ scrly5:
 	rol fntaddr+1
 	lda fntaddr
 	clc
-	adc FontPtr
+	adc #<(FONT-256)
 	sta scrly3+1		; that's the low byte.
 	lda fntaddr+1
-	adc FontPtr+1
+	adc #>(FONT-256)
 	sta scrly3+2		; add displacement.
 
 	ldx #0
@@ -6185,8 +6237,8 @@ SCADTB_lb 	= MAP+3*256		; screen address table lo-byte (256 bytes)
 SCADTB_hb 	= SCADTB_lb+256		; screen address table hi-byte (256 bytes)
 SHRAPN 		= SCADTB_hb+256		; shrapnel table (55x6 bytes)
 
-;FontPtr:	.byte 0,0
-TmpAddr:	.byte 0,0
+;Fontpointer:	.byte 0,0
+;TmpAddr:	.byte 0,0
 
 ;loopa:		.byte 0
 ;loopb:		.byte 0

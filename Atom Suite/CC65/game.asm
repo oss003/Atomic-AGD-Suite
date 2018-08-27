@@ -6,12 +6,19 @@
 	.DEFINE header   1		; Header Wouter Ras emulator
 	.DEFINE filenaam "AGD"
 
-.org asm_code-22*header
+	.include "game.cfg" 
 
-.IF header
+.segment "ZEROPAGE"
+	.include "z80-zp.inc"
+	.include "engine-zp.inc"
+
+.segment "CODE"
+
+.if header
 ;********************************************************************
 ; ATM Header for Atom emulator Wouter Ras
 
+.org asm_code-22*header
 name_start:
 	.byte filenaam			; Filename
 name_end:
@@ -24,17 +31,13 @@ name_end:
 	.word eind_asm-start_asm	; 2 bytes filelength
 
 ;********************************************************************
-.ENDIF
+.else
+.org asm_code
+.endif
 
 exec:
 start_asm:
-.segment "ZEROPAGE"
-	.include "z80-zp.inc"
-	.include "engine-zp.inc"
-
-.segment "CODE"
 	.include "game.inc"
 	.include "z80.asm"
-
-eop:
 eind_asm:
+eop:					; End Of Program

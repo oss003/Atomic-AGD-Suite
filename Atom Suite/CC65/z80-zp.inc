@@ -1,4 +1,4 @@
-.segment "ZEROPAGE"
+;.segment "ZEROPAGE"
 
 ws	 = $60
 
