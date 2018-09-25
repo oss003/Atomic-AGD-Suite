@@ -2,7 +2,7 @@
 
 ; Arcade Game Designer.
 ; (C) 2008 - 2018 Jonathan Cauldwell.
-; Amstrad CPC Engine v0.7.
+; Amstrad CPC Engine v0.6.
 
 ; Global definitions ------------------------------------------------------------
 
@@ -19,9 +19,7 @@ LADDER equ WALL + 1        ; ladder.
 FODDER equ LADDER + 1      ; fodder block.
 DEADLY equ FODDER + 1      ; deadly block.
 CUSTOM equ DEADLY + 1      ; custom block.
-WATER  equ CUSTOM + 1      ; water block.
-COLECT equ WATER + 1       ; collectable block.
-NUMTYP equ COLECT + 1      ; number of types.
+NUMTYP equ CUSTOM + 1      ; number of types.
 
 ; Sprites.
 
@@ -101,7 +99,7 @@ varu   defb 0              ; general-purpose variable.
 varv   defb 0              ; general-purpose variable.
 varw   defb 0              ; general-purpose variable.
 varz   defb 0              ; general-purpose variable.
-contrl defb 0              ; control, 0 = keyboard, 1 = Joystick 1, 2 = Joystick 2.
+contrl defb 0              ; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
 charx  defb 0              ; cursor x position.
 chary  defb 0              ; cursor y position.
 clock  defb 0              ; last clock reading.
@@ -167,8 +165,6 @@ dbox6  ld a,(hl)           ; get character.
        inc hl              ; next character.
        cp ','              ; reached end of line?
        jr z,dbox3          ; yes.
-       cp 13               ; reached end of line?
-       jr z,dbox3          ; yes.
        inc b               ; add to this line's width.
        and a               ; end of message?
        jp m,dbox4          ; yes, end count.
@@ -219,8 +215,6 @@ mod0   call always         ; check inventory for display.
 dbox0  ld a,(hl)           ; get character.
        cp ','              ; end of line?
        jr z,dbox1          ; yes, next one.
-       cp 13               ; end of option?
-       jr z,dbox1          ; yes, on to next.
        dec b               ; one less to display.
        and 127             ; remove terminator.
        push bc             ; store characters remaining.
@@ -242,8 +236,6 @@ dbox9  ld a,(hl)           ; get character.
        inc hl              ; next one.
        cp ','              ; another line?
        jr z,dbox10         ; yes, do next line.
-       cp 13               ; another line?
-       jr z,dbox10         ; yes, on to next.
        cp 128              ; end of message?
        jr nc,dbox11        ; yes, finish message.
        jr dbox9
@@ -278,9 +270,9 @@ dbox14 call joykey         ; get controls.
        jr nz,dbox14        ; yes, debounce it.
        call dbar           ; draw bar.
 dbox12 call joykey         ; get controls.
-       and 19              ; anything pressed?
+       and 35              ; anything pressed?
        jr z,dbox12         ; no, nothing.
-       and 16              ; fire button pressed?
+       and 32              ; fire button pressed?
 mod1   jp nz,fstd          ; yes, job done.
        call dbar           ; delete bar.
        ld a,(joyval)       ; joystick reading.
@@ -315,8 +307,6 @@ dbox13 ld a,(hl)           ; get character.
        inc hl              ; next one.
        cp ','              ; another line?
        jp z,dbox2          ; yes, do next line.
-       cp 13               ; another line?
-       jp z,dbox2          ; yes, on to next line.
        and a               ; end of message?
        jp m,dbox11         ; yes, finish message.
        jr dbox13
@@ -410,7 +400,7 @@ debkey call vsync          ; update scrolling, sounds etc.
 
 delay  push bc             ; store loop counter.
        call vsync          ; pause for a frame.
-;       call plsnd          ; time to play sound.
+       call plsnd          ; time to play sound.
        pop bc              ; restore counter.
        dec b               ; one less iteration.
        ret z               ; done.
@@ -467,8 +457,8 @@ vsync0 call 48397          ; get current clock.
        ld a,l              ; clock reading in accumulator.
        ld (bc),a           ; set new clock reading.
        ret
-;vsync5 call plsnd          ; play sound.
-vsync5 jp proshr           ; shrapnel and stuff.
+vsync5 call plsnd          ; play sound.
+       jp proshr           ; shrapnel and stuff.
 
 sndtyp defb 0
 framec defb 0              ; frame counter.
@@ -1061,7 +1051,7 @@ mloop  call vsync          ; synchronise with display.
        ld ix,sprtab        ; address of sprite table, even sprites.
        call dspr           ; display even sprites.
 
-;       call plsnd          ; play sounds.
+       call plsnd          ; play sounds.
        call vsync          ; synchronise with display.
        ld ix,sprtab+TABSIZ ; address of first odd sprite.
        call dspr           ; display odd sprites.
@@ -1094,8 +1084,11 @@ bsortx call bsort          ; sort sprites.
        ld hl,frmno         ; game frame.
        inc (hl)            ; advance the frame.
 
-; Back to start of main loop.
+; back to start of main loop.
 
+       ld bc,49150         ; keyboard row H - ENTER.
+       in a,(c)            ; read it.
+       rra                 ; rotate bit for ENTER into carry.
 qoff   jp mloop            ; switched to a jp nz,mloop during test mode.
        ret
 newlev ld a,(scno)         ; current screen.
@@ -1149,9 +1142,9 @@ evrs   jp evnt14           ; call restart event.
 num2ch ld l,a              ; put accumulator in l.
        ld h,0              ; blank high byte of hl.
        ld a,32             ; leading spaces.
-numdg3 ld de,100           ; hundreds column.
+       ld de,100           ; hundreds column.
        call numdg          ; show digit.
-numdg2 ld de,10            ; tens column.
+       ld de,10            ; tens column.
        call numdg          ; show digit.
        or 16               ; last digit is always shown.
        ld de,1             ; units column.
@@ -1167,18 +1160,6 @@ numdg0 add hl,de           ; restore total.
        ld (bc),a           ; write digit to buffer.
        inc bc              ; next buffer position.
        ret
-num2dd ld l,a              ; put accumulator in l.
-       ld h,0              ; blank high byte of hl.
-       ld a,32             ; leading spaces.
-       ld de,100           ; hundreds column.
-       call numdg          ; show digit.
-       or 16               ; second digit is always shown.
-       jr numdg2
-num2td ld l,a              ; put accumulator in l.
-       ld h,0              ; blank high byte of hl.
-       ld a,48             ; leading spaces.
-       jr numdg3
-
 
 inisc  ld b,6              ; digits to initialise.
 inisc0 ld (hl),'0'         ; write zero digit.
@@ -1621,10 +1602,17 @@ checkx ld a,e              ; x position.
        pop hl              ; remove return address from stack.
        ret
 
+; Displays the current high score.
+
+dhisc  ld hl,hiscor        ; high score text.
+       jr dscor1           ; check in printable range then show 6 digits.
+
 ; Displays the current score.
 
-dscor  call preprt         ; set up font and print position.
+dscor  ld hl,score         ; score text.
+dscor1 call preprt         ; set up font and print position.
        call checkx         ; make sure we're in a printable range.
+       ld b,6              ; digits to display.
        ld a,(prtmod)       ; get print mode.
        and a               ; standard size text?
        jp nz,bscor0        ; no, show double-height.
@@ -2004,7 +1992,7 @@ bchr3  inc (hl)            ; newline.
 bchr2  jp dscor2           ; tidy up line and column variables.
 
 
-; Print text at odd cell.
+; Print text at even cell.
 
 ptxto  rla                 ; test bit.
        ld d,a              ; store font data.
@@ -2351,34 +2339,6 @@ ldchk  ld a,(hl)           ; fetch cell.
        cp LADDER           ; is it a ladder?
        ret                 ; return with zero flag set accordingly.
 
-; Get collectables.
-
-getcol ld b,COLECT         ; collectable blocks.
-       call tded           ; test for collectable blocks.
-       cp b                ; did we find one?
-       ret nz              ; none were found, job done.
-       call gtblk          ; get block.
-       call evnt20         ; collected block event.
-       jr getcol           ; repeat until none left.
-
-; Get collectable block.
-
-gtblk  ld (hl),0           ; make it empty now.
-       ld de,MAP           ; map address.
-       and a               ; clear carry.
-       sbc hl,de           ; find cell number.
-       ld a,l              ; get low byte of cell number.
-       and 31              ; 0 - 31 is column.
-       ld d,a              ; store y in d register.
-       add hl,hl           ; multiply by 8.
-       add hl,hl
-       add hl,hl           ; x is now in h.
-       ld e,h              ; put x in e.
-       ld (dispx),de       ; set display coordinates.
-       xor a               ; block zero.
-       call pchr           ; display block on screen.
-       ret
-
 ; Touched deadly block check.
 ; Returns with DEADLY (must be non-zero) in accumulator if true.
 
@@ -2555,47 +2515,29 @@ hop    ld a,(ix+13)        ; jumping flag.
 ; Steps a pointer through the code (held in seed), returning the contents
 ; of the byte at that location.
 
-random ld hl,seed          ; set up seed pointer.
-       ld a,(hl)           ; get last random number.
-       ld b,a              ; copy to b register.
-       rrca                ; multiply by 32.
-       rrca
-       rrca
-       xor 31
-       add a,b
-       sbc a,255
-       ld (hl),a           ; store new seed.
-       ld (varrnd),a       ; return number in variable.
-       ret
-
-;random	ld	a,(seed)		; Seed is usually 0
-;	ld	b,a
-;	add	a,a
-;	add	a,a
-;	add	a,b
-;	inc	a		; another possibility is ADD A,7
-;	ld	(seed),a
-;	ret
-
-;ranini ld hl,start         ; start of code should be random enough.
-;       jr rand0
-;random ld hl,(seed)        ; pointer to ROM.
-;       inc hl              ; increment pointer.
-;rand0  ld de,lstrnd        ; last random area address.
-;       ld (seed),hl        ; new position.
-;       sbc hl,de           ; do comparison.
-;       jr nc,ranini        ; reinitialise random number.
-;       ld a,(seed2)        ; previous seed.
-;       add a,(hl)          ; combine with number from location.
-;       ld (seed2),a        ; second seed.
-;       xor l               ; more randomness.
-;       and b               ; use mask.
-;       cp c                ; is it less than parameter?
-;       ld (varrnd),a       ; set random number.
-;       ret c               ; yes, number is good.
-;       jp random           ; go round again.
+ranini ld hl,start         ; start of code should be random enough.
+       jr rand0
+random ld hl,(seed)        ; pointer to ROM.
+       inc hl              ; increment pointer.
+rand0  ld de,lstrnd        ; last random area address.
+       ld (seed),hl        ; new position.
+       sbc hl,de           ; do comparison.
+       jr nc,ranini        ; reinitialise random number.
+       ld a,(seed2)        ; previous seed.
+       add a,(hl)          ; combine with number from location.
+       ld (seed2),a        ; second seed.
+       xor l               ; more randomness.
+       and b               ; use mask.
+       cp c                ; is it less than parameter?
+       ld (varrnd),a       ; set random number.
+       ret c               ; yes, number is good.
+       jp random           ; go round again.
 
 ; Joystick and keyboard reading routines.
+
+keys   defb 59,65,32,33,38,71,44   ; game keys.
+       defb 64,65,57,56            ; menu options 1 - 4.
+
 ; General keyboard test routine used by compiler.
 
 ktest  call 47902          ; check if keycode is pressed.
@@ -2610,8 +2552,8 @@ ktest0 and a               ; clear carry flag.
 ; 2 - down.
 ; 4 - left.
 ; 8 - right.
-; 16 - fire 1.
-; 32 - fire 2.
+; 16 - fire 2.
+; 32 - fire 1.
 
 joykey call 47908          ; get joystick states in hl.
        ld a,(contrl)       ; controls.
@@ -2620,29 +2562,14 @@ joykey call 47908          ; get joystick states in hl.
        dec a               ; joystick zero?
        jr z,joy0           ; just want joystick 0.
        ld h,l              ; copy joystick 1 to joystick 0.
-joy0   ld c,0              ; clear c register.
-       ld a,h              ; joystick reading.
-       and 5               ; get relevant bits.
-       sla a               ; shift into correct positions.
-       ld c,a              ; copy to c.
-       ld a,h              ; get joystick reading again.
-       and 10              ; git bits we want.
-       sra a               ; shift these the other way.
-       or c                ; merge with previous shifted bits.
-       ld c,a              ; store in c.
-       ld a,h              ; get joystick again.
-       and 240             ; all remaining bits.
-       or c                ; merge in shifted bits.
-       ld (joyval),a       ; set joystick reading.
+joy0   ld a,h              ; value of joystick 0.
+       ld (joyval),a       ; remember value.
        ret
-;joy0   ld a,h              ; value of joystick 0.
-;       ld (joyval),a       ; remember value.
-;       ret
 keyb   ld b,0              ; default value.
-       ld a,(keys+5)       ; fire 2.
+       ld a,(keys+4)       ; fire 1.
        call keybck         ; check if pressed.
        sla b               ; shift result byte.
-       ld a,(keys+4)       ; fire 1.
+       ld a,(keys+5)       ; fire 2.
        call keybck         ; check if pressed.
        sla b               ; shift result byte.
        ld a,(keys+3)       ; right.
@@ -3206,7 +3133,7 @@ colty1 push ix             ; base sprite address onto stack.
 
 disply ld bc,displ0        ; display workspace.
        call num2ch         ; convert accumulator to string.
-displ1 dec bc              ; back one character.
+       dec bc              ; back one character.
        ld a,(bc)           ; fetch digit.
        or 128              ; insert end marker.
        ld (bc),a           ; new value.

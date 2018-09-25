@@ -1,0 +1,151 @@
+; Spectrum Next AGD Game Compiler skeleton program
+; Jonathan Cauldwell, February 2018
+
+; Define the play area in character/block cells
+; Screen is divided into 32 columns and 24 rows (Spectrum and Next/Timex) or 25 rows (CPC)
+; The 4 parameters for DEFINEWINDOW are top edge, left edge, height and width respectively
+
+DEFINEWINDOW    1 1 22 22
+
+; Background blocks to be used in the game
+; First we define the type - eg EMPTYBLOCK, PLATFORMBLOCK or DEADLYBLOCK
+; Next 16 numbers are alternating graphic and attribute bytes from top to bottom
+
+; Block 0
+
+DEFINEBLOCK     EMPTYBLOCK      ; property
+;                0 0 0 0 0 0 0 0 71                                      ; Spectrum.
+;                0 71 0 71 0 71 0 71 0 71 0 71 0 71 0 71                 ; Timex/Next.
+                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0         ; CPC.
+
+; Sprites
+; First argument defines the number of frames
+; Then 32 bytes for each sprite frame (Spectrum and Timex) or 80 bytes (CPC).
+
+DEFINESPRITE    1		; number of frames
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0         ; Spectrum and Timex.
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0         ; CPC.
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+
+; Screen layouts are best arranged in monospaced rows and columns
+; DEFINESCREEN is followed by the block numbers that make up the screen
+; Our play area is 22x22, so we need 22 rows of 22 columns
+; The compiler will automatically compress screens
+
+DEFINESCREEN
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+
+; Next we define the sprites that appear on the screen
+; SPRITEPOSITION requires 4 numbers for image, type, Y coordinate and X coordinate in that order
+; Coordinates are based on Spectrum screen, even for CPC so need to change for conversions
+
+SPRITEPOSITION 0,0,88,128
+
+
+; Define objects
+; Spectrum: First number is attribute, then the starting room, next 2 are for Y and X coordinates then 32 for image.
+; Timex: First number is the starting room, next 2 are for Y and X coordinates then 32 for image.
+; CPC: First number is the starting room, next 2 are for Y and X coordinates then 80 for image.
+; Coordinates are based on Spectrum screen, even for CPC so need to change for conversions
+
+; Next/Timex:
+;DEFINEOBJECT    0,160,32        ; room, Y, X
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+; Spectrum:
+;DEFINEOBJECT    66,0,160,32     ; attribute, room, Y, X
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+; CPC:
+DEFINEOBJECT    0,160,32        ; room, Y, X
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+; Map.
+; First argument is WIDTH, second is the startscreen
+; We then arrange the map as a grid with correct width, monospaced here for readability
+; where no room is present we put 255
+
+MAP		WIDTH 3
+		STARTSCREEN 0
+
+		255 000 255
+
+ENDMAP
+
+; Sprite events
+
+; Player controls
+EVENT PLAYER
+
+EVENT SPRITETYPE1
+
+EVENT SPRITETYPE2
+
+EVENT SPRITETYPE3
+
+EVENT SPRITETYPE4
+
+EVENT SPRITETYPE5
+
+EVENT SPRITETYPE6
+
+EVENT SPRITETYPE7
+
+EVENT SPRITETYPE8
+
+EVENT INITSPRITE
+
+EVENT MAINLOOP1
+
+EVENT MAINLOOP2
+
+EVENT INTROMENU
+
+EVENT GAMEINIT
+LET LIVES = 3
+
+EVENT RESTARTSCREEN
+
+EVENT FELLTOOFAR
+
+EVENT KILLPLAYER
+SUBTRACT 1 FROM LIVES
+
+EVENT LOSTGAME
+
+EVENT COMPLETEDGAME
+
+EVENT NEWHIGHSCORE

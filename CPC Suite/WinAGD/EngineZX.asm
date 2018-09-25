@@ -2,14 +2,17 @@
 
 ; Arcade Game Designer.
 ; (C) 2008 - 2018 Jonathan Cauldwell.
-; Amstrad CPC Engine v0.7.
+; ZX Spectrum Engine v0.6.
 
-; Global definitions ------------------------------------------------------------
+; Global definitions.
 
-SHRAPN equ 40630           ; shrapnel table, just below map.
-MAP    equ 40960           ; properties map buffer.
-MAPHI  equ 160             ; high byte of MAP.
-
+SIMASK equ 248             ; SPRITEINK mask - allows users to set BRIGHT/FLASH/CLUT as well.
+SHRAPN equ 63926           ; shrapnel table, just below screen address table.
+SCADTB equ 64256           ; screen address table, just below map.
+MAP    equ 64768           ; properties map buffer.
+loopa  equ 23681           ; loop counter system variable.
+loopb  equ 23728           ; loop counter system variable.
+loopc  equ 23729           ; loop counter system variable.
 
 ; Block characteristics.
 
@@ -19,9 +22,7 @@ LADDER equ WALL + 1        ; ladder.
 FODDER equ LADDER + 1      ; fodder block.
 DEADLY equ FODDER + 1      ; deadly block.
 CUSTOM equ DEADLY + 1      ; custom block.
-WATER  equ CUSTOM + 1      ; water block.
-COLECT equ WATER + 1       ; collectable block.
-NUMTYP equ COLECT + 1      ; number of types.
+NUMTYP equ CUSTOM + 1      ; number of types.
 
 ; Sprites.
 
@@ -39,18 +40,16 @@ NUMSHR equ 55              ; pieces of shrapnel.
 SHRSIZ equ 6               ; bytes per particle.
 
 
-; Game starts here.
+; Game starts here.  No reason why screen data couldn't go between start and contrl to put them in
+; contended RAM, leaving the code and rest of the game in uncontended memory at 32768 and beyond.
 
-       org 2000
-
+       org 32000
 start  equ $
 
-       ld hl,(57)          ; fetch interrupt address.
-       ld (firmad),hl      ; store firmware address.
-       call 48127          ; initialise screen to default settings.
-       call 48148          ; clear the screen.
-       xor a               ; mode 0, 16 colours.
-       call 48142          ; set screen mode.
+; Set up the font.
+
+       ld hl,font-256      ; address of font.
+       ld (23606),hl       ; set up game font.
 
        jp game             ; start the game.
 
@@ -63,18 +62,16 @@ wintop defb WINDOWTOP      ; top of window.
 winlft defb WINDOWLFT      ; left edge.
 winhgt defb WINDOWHGT      ; window height.
 winwid defb WINDOWWID      ; window width.
-WINH   equ WINDOWHGT * 8
-WINW   equ WINDOWWID * 5
 
 numob  defb NUMOBJ         ; number of objects in game.
 
 ; Variables start here.
 ; Pixel versions of wintop, winlft, winhgt, winwid.
 
-wntopx defb 8 * WINDOWTOP
-wnlftx defb 5 * WINDOWLFT
-wnbotx defb WINDOWTOP * 8 + WINH - 16
-wnrgtx defb WINDOWLFT * 5 + WINW - 10
+wntopx defb (8 * WINDOWTOP)
+wnlftx defb (8 * WINDOWLFT)
+wnbotx defb ((WINDOWTOP * 8) + (WINDOWHGT * 8) - 16)
+wnrgtx defb ((WINDOWLFT * 8) + (WINDOWWID * 8) - 16)
 scno   defb 0              ; present screen number.
 numlif defb 3              ; number of lives.
 vara   defb 0              ; general-purpose variable.
@@ -101,7 +98,7 @@ varu   defb 0              ; general-purpose variable.
 varv   defb 0              ; general-purpose variable.
 varw   defb 0              ; general-purpose variable.
 varz   defb 0              ; general-purpose variable.
-contrl defb 0              ; control, 0 = keyboard, 1 = Joystick 1, 2 = Joystick 2.
+contrl defb 0              ; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
 charx  defb 0              ; cursor x position.
 chary  defb 0              ; cursor y position.
 clock  defb 0              ; last clock reading.
@@ -115,13 +112,12 @@ deadf  defb 0              ; dead flag.
 gamwon defb 0              ; game won flag.
 dispx  defb 0              ; cursor x position.
 dispy  defb 0              ; cursor y position.
-loopa  defb 0              ; loop counter system variable.
-loopb  defb 0              ; loop counter system variable.
-loopc  defb 0              ; loop counter system variable.
 
 ; Make sure pointers are arranged in the same order as the data itself.
 
 frmptr defw frmlst         ; sprite frames.
+blkptr defw chgfx          ; block graphics.
+colptr defw bcol           ; address of char colours.
 proptr defw bprop          ; address of char properties.
 scrptr defw scdat          ; address of screens.
 nmeptr defw nmedat         ; enemy start positions.
@@ -167,8 +163,6 @@ dbox6  ld a,(hl)           ; get character.
        inc hl              ; next character.
        cp ','              ; reached end of line?
        jr z,dbox3          ; yes.
-       cp 13               ; reached end of line?
-       jr z,dbox3          ; yes.
        inc b               ; add to this line's width.
        and a               ; end of message?
        jp m,dbox4          ; yes, end count.
@@ -203,6 +197,8 @@ dbox8  dec d               ; decrement items found.
        inc hl              ; left edge of window.
        add a,(hl)          ; add displacement.
        ld (blft),a         ; box left.
+       ld hl,(23606)       ; font.
+       ld (grbase),hl      ; set up for text display.
        pop hl              ; restore message pointer.
        ld a,(btop)         ; box top.
        ld (dispx),a        ; set display coordinate.
@@ -219,13 +215,16 @@ mod0   call always         ; check inventory for display.
 dbox0  ld a,(hl)           ; get character.
        cp ','              ; end of line?
        jr z,dbox1          ; yes, next one.
-       cp 13               ; end of option?
-       jr z,dbox1          ; yes, on to next.
        dec b               ; one less to display.
        and 127             ; remove terminator.
        push bc             ; store characters remaining.
        push hl             ; store address on stack.
-       call ptxta          ; display on screen and advance.
+       push af             ; store character.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current colour.
+       ld (hl),a           ; set attribute.
+       pop af              ; restore character.
+       call pchr           ; display on screen.
        pop hl              ; retrieve address of next character.
        pop bc              ; chars left for this line.
        ld a,(hl)           ; get character.
@@ -242,8 +241,6 @@ dbox9  ld a,(hl)           ; get character.
        inc hl              ; next one.
        cp ','              ; another line?
        jr z,dbox10         ; yes, do next line.
-       cp 13               ; another line?
-       jr z,dbox10         ; yes, on to next.
        cp 128              ; end of message?
        jr nc,dbox11        ; yes, finish message.
        jr dbox9
@@ -252,8 +249,11 @@ dbox9  ld a,(hl)           ; get character.
 
 dboxf  push hl             ; store address on stack.
        push bc             ; store characters remaining.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current colour.
+       ld (hl),a           ; set attribute.
        ld a,32             ; space character.
-       call ptxta          ; display character and advance.
+       call pchr           ; display character.
        pop bc              ; retrieve character count.
        pop hl              ; retrieve address of next character.
        djnz dboxf          ; repeat for remaining chars on line.
@@ -274,17 +274,17 @@ dbox7  ld a,b              ; chars remaining.
 dbox11 ld a,(btop)         ; box top.
        ld (dispx),a        ; set bar position.
 dbox14 call joykey         ; get controls.
-       and 63              ; anything pressed?
+       and 31              ; anything pressed?
        jr nz,dbox14        ; yes, debounce it.
        call dbar           ; draw bar.
 dbox12 call joykey         ; get controls.
-       and 19              ; anything pressed?
+       and 28              ; anything pressed?
        jr z,dbox12         ; no, nothing.
        and 16              ; fire button pressed?
 mod1   jp nz,fstd          ; yes, job done.
        call dbar           ; delete bar.
        ld a,(joyval)       ; joystick reading.
-       and 1               ; going up?
+       and 8               ; going up?
        jr nz,dboxu         ; yes, go up.
        ld a,(dispx)        ; vertical position of bar.
        inc a               ; look down.
@@ -315,8 +315,6 @@ dbox13 ld a,(hl)           ; get character.
        inc hl              ; next one.
        cp ','              ; another line?
        jp z,dbox2          ; yes, do next line.
-       cp 13               ; another line?
-       jp z,dbox2          ; yes, on to next line.
        and a               ; end of message?
        jp m,dbox11         ; yes, finish message.
        jr dbox13
@@ -327,26 +325,19 @@ dbar   ld a,(blft)         ; box left.
        ld (dispy),a        ; set display coordinate.
        call gprad          ; get printing address.
        ex de,hl            ; flip into hl register pair.
-
-       ld b,8              ; 8 pixel rows to invert.
-dbar1  push bc             ; store pixel count on stack.
-       push hl             ; store address.
        ld a,(bwid)         ; box width.
-       ld e,a              ; copy to e register.
-       rlca                ; multiple of 2.
-       rlca                ; multiple of 4.
-       add a,e             ; multiple of 5.
-       srl a               ; divide by 2.
-       ld b,a              ; loop counter in b.
+       ld c,a              ; loop counter in c.
+       ld d,h              ; store screen address high byte.
+dbar1  ld b,8              ; pixel height in b.
 dbar0  ld a,(hl)           ; get screen byte.
        cpl                 ; reverse all bits.
        ld (hl),a           ; write back to screen.
-       inc hl              ; next bar.
-       djnz dbar0          ; repeat for whole line.
-       pop hl              ; restore screen address.
-       call nline2         ; look down one line.
-       pop bc              ; restore row count.
-       djnz dbar1          ; repeat for 8 pixel rows.
+       inc h               ; next line down.
+       djnz dbar0          ; draw rest of character.
+       ld h,d              ; rsetore screen address.
+       inc l               ; one char right.
+       dec c               ; decrement character counter.
+       jr nz,dbar1         ; repeat for whole line.
        ret
 
 invdis push hl             ; store message text pointer.
@@ -396,26 +387,22 @@ blft   defb 0
 
 prskey call debkey         ; debounce key.
 prsky0 call vsync          ; vertical synch.
-       call 47881          ; keyboard state.
-       jr nc,prsky0        ; repeat until key pressed.
+       call 654            ; return keyboard state in e.
+       inc e               ; is it 255?
+       jr z,prsky0         ; yes, repeat until key pressed.
 
 ; Debounce keypress.
 
 debkey call vsync          ; update scrolling, sounds etc.
-       call 47881          ; read keyboard.
-       jr c,debkey         ; key pressed - loop until key is released.
+       call 654            ; d=shift, e=key.
+       inc e               ; is it 255?
+       jr nz,debkey        ; no - loop until key is released.
        ret
 
 ; Delay routine.
 
 delay  push bc             ; store loop counter.
-       call vsync          ; pause for a frame.
-;       call plsnd          ; time to play sound.
-       pop bc              ; restore counter.
-       dec b               ; one less iteration.
-       ret z               ; done.
-       push bc             ; store loop counter again.
-       call vsync          ; pause for a frame.
+       call vsync          ; wait for interrupt.
        pop bc              ; restore counter.
        djnz delay          ; repeat.
        ret
@@ -439,13 +426,13 @@ silenc call silen1         ; silence channel 1.
 iniob  ld ix,objdta        ; objects table.
        ld a,(numob)        ; number of objects in the game.
        ld b,a              ; loop counter.
-       ld de,70            ; distance between objects.
-iniob0 ld a,(ix+67)        ; start screen.
-       ld (ix+64),a        ; set start screen.
-       ld a,(ix+68)        ; find start x.
-       ld (ix+65),a        ; set start x.
-       ld a,(ix+69)        ; get initial y.
-       ld (ix+66),a        ; set y coord.
+       ld de,39            ; distance between objects.
+iniob0 ld a,(ix+36)        ; start screen.
+       ld (ix+33),a        ; set start screen.
+       ld a,(ix+37)        ; find start x.
+       ld (ix+34),a        ; set start x.
+       ld a,(ix+38)        ; get initial y.
+       ld (ix+35),a        ; set y coord.
        add ix,de           ; point to next object.
        djnz iniob0         ; repeat.
        ret
@@ -453,26 +440,67 @@ iniob0 ld a,(ix+67)        ; start screen.
 ; Screen synchronisation.
 
 vsync  call joykey         ; read joystick/keyboard.
-       ld hl,framec        ; frame counter.
-       ld a,(hl)           ; clock reading.
-       inc (hl)            ; post-increment frame.
+       ld a,(sndtyp)       ; sound to play.
+       and a               ; any sound?
+       jp z,vsync1         ; no.
+       ld b,a              ; outer loop.
+       ld a,(23624)        ; border colour.
+       rra                 ; put border bits into d0, d1 and d2.
+       rra
+       rra
+       ld c,a              ; first value to write to speaker.
+       ld a,b              ; sound.
+       and a               ; test it.
+       jp m,vsync6         ; play white noise.
+vsync2 ld a,c              ; get speaker value.
+       out (254),a         ; write to speaker.
+       xor 248             ; toggle all except the border bits.
+       ld c,a              ; store value for next time.
+       ld d,b              ; store loop counter.
+vsync3 ld hl,clock         ; previous clock setting.
+       ld a,(23672)        ; current clock setting.
+       cp (hl)             ; subtract last reading.
+       jp nz,vsync4        ; yes, no more processing please.
+       djnz vsync3         ; loop.
+       ld b,d              ; restore loop counter.
+       djnz vsync2         ; continue noise.
+vsync4 ld a,d              ; where we got to.
+vsynca ld (sndtyp),a       ; remember for next time.
+vsync1 ld a,(23672)        ; clock low.
        rra                 ; rotate bit into carry.
        call c,vsync5       ; time to play sound and do shrapnel/ticker stuff.
-       ld bc,clock         ; last clock reading.
-vsync0 call 48397          ; get current clock.
-       ld a,(bc)           ; previous clock.
-       sub l               ; new reading.
-       cp 251              ; difference of 6?
-       jr nc,vsync0        ; no, wait until clock changes.
-       ld a,l              ; clock reading in accumulator.
-       ld (bc),a           ; set new clock reading.
+       ld hl,clock         ; last clock reading.
+vsync0 ld a,(23672)        ; current clock reading.
+       cp (hl)             ; are they the same?
+       jr z,vsync0         ; yes, wait until clock changes.
+       ld (hl),a           ; set new clock reading.
        ret
-;vsync5 call plsnd          ; play sound.
-vsync5 jp proshr           ; shrapnel and stuff.
+vsync5 call plsnd          ; play sound.
+       jp proshr           ; shrapnel and stuff.
 
+; Play white noise.
+
+vsync6 ld a,b              ; 128 - 255.
+       sub 127
+       ld b,a
+       ld hl,clock         ; previous clock setting.
+vsync7 ld a,r              ; get random speaker value.
+       and 248             ; only retain the speaker/earphone bits.
+       or c                ; merge with border colour.
+       out (254),a         ; write to speaker.
+       ld a,(23672)        ; current clock setting.
+       cp (hl)             ; subtract last reading.
+       jp nz,vsync8        ; yes, no more processing please.
+       ld a,b
+       and 127
+       inc a
+vsync9 dec a
+       jr nz,vsync9        ; loop.
+       djnz vsync7         ; continue noise.
+vsync8 xor a
+       jr vsynca
 sndtyp defb 0
-framec defb 0              ; frame counter.
-firmad defw 0
+;clock  defb 0              ; last clock reading.
 
 ; Redraw the screen.
 
@@ -487,7 +515,7 @@ redrw0 ld a,(ix+0)         ; old sprite type.
        inc a               ; is it enabled?
        jr z,redrw1         ; no, find next one.
        ld a,(ix+3)         ; sprite x.
-       cp 185              ; beyond maximum?
+       cp 177              ; beyond maximum?
        jr nc,redrw1        ; yes, nothing to draw.
        push bc             ; store sprite counter.
        call sspria         ; show single sprite.
@@ -501,51 +529,59 @@ rpblc1 call dshrp          ; redraw shrapnel.
 
 ; Clear screen routine.
 
-cls    jp 48148            ; clear screen.
+cls    ld hl,16384         ; screen address.
+       ld (hl),l           ; blank first byte.
+       ld de,16385         ; second byte.
+       ld bc,6144          ; bytes to copy.
+       ldir                ; blank them all.
+       ld a,(23693)        ; fetch attributes.
+       ld (hl),a           ; set first attribute cell.
+       ld bc,767           ; number of attributes.
+       ldir                ; set all attributes.
+       ld hl,0             ; set hl to origin (0, 0).
+       ld (charx),hl       ; reset coordinates.
+       ret
 
 ; Set palette routine and data.
 ; Palette.
-; 0  Black
-; 1  Blue
-; 2  Bright blue
-; 3  Red
-; 4  Magenta
-; 5  Mauve
-; 6  Bright red
-; 7  Purple
-; 8  Bright magenta
-; 9  Green
-; 10 Cyan
-; 11 Sky blue
-; 12 Yellow
-; 13 White
-; 14 Pastel blue
-; 15 Orange
-; 16 Pink
-; 17 Pastel magenta
-; 18 Bright green
-; 19 Sea green
-; 20 Bright cyan
-; 21 Lime
-; 22 Pastel green
-; 23 Pastel cyan
-; 24 Bright yellow
-; 25 Pastel yellow
-; 26 Bright white
+; 48955 = register select port.
+; 65339 = data read/write port.
 
-setpal ld a,16             ; colours to set.
-       ld hl,palett+15     ; palette.
-setpa0 ld c,(hl)           ; get colour.
-       dec hl              ; next in list.
-       ld b,c              ; make sure it's in b and c.
-       dec a
-       push af             ; store pen number.
-       push hl             ; store palette pointer.
-       call 48178          ; set palette colour.
-       pop hl              ; restore palette pointer.
-       pop af              ; restore pen.
-       jr nz,setpa0        ; repeat until all colours are set.
+; 48955 = write to register:
+; d0-d5 : select register sub-group.
+; d6-d7 : select register group.
+;         00 = sub-group determines entry in palette table.
+;         64 = mode select, write d0 to 65339 to toggle mode on/off.
+
+; 65339 = data read/write:
+; d0-d1 : blue intensity (last bit duplicated so Bb is Bbb)
+; d2-d4 : red intensity
+; d5-d7 : green intensity
+
+setpal ld bc,48955         ; register select.
+       ld a,64             ; mode select.
+       out (c),a           ; set ULAplus mode.
+       ld b,255            ; data write.
+       ld a,1              ; mode on.
+       out (c),a           ; switch on ULAplus.
+
+       ld b,64             ; number of palette table entries to write.
+setpa1 ld hl,palett        ; palette we want.
+       ld e,0              ; register number.
+setpa0 push bc             ; store counter.
+       ld b,191            ; register select.
+       ld a,e              ; register number to write.
+       out (c),a           ; write to port.
+       ld b,255            ; data select.
+       ld a,(hl)           ; get colour data from table.
+       out (c),a           ; write to port.
+       inc e               ; next clut entry.
+       inc hl              ; next table entry.
+       pop bc              ; restore counter from stack.
+       djnz setpa0         ; set rest of palette.
        ret
+
+endpal equ $
 
 fdchk  ld a,(hl)           ; fetch cell.
        cp FODDER           ; is it fodder?
@@ -568,9 +604,54 @@ fdchk  ld a,(hl)           ; fetch cell.
        pop hl              ; restore block pointer.
        ret
 
-; Routine to colour a sprite is redundant on CPC.
+; Colour a sprite.
 
-cspr   ret
+cspr   ld a,(ix+8)         ; look at the vertical first.
+       cp 177              ; is it out-of-range?
+       ret nc              ; yes, can't colour it.
+       rlca                ; divide by 64.
+       rlca                ; quicker than 6 rrca operations.
+       ld l,a              ; store in e register for now.
+       and 3               ; mask to find segment.
+       add a,88            ; attributes start at 88*256=22528.
+       ld h,a              ; that's our high byte sorted.
+       ld a,l              ; vertical/64 - same as vertical*4.
+       and 224             ; want a multiple of 32.
+       ld l,a              ; vertical element calculated.
+       ld a,(ix+9)         ; get horizontal position.
+       rra                 ; divide by 8.
+       rra
+       rra
+       and 31              ; want result in range 0-31.
+       add a,l             ; add to existing low byte.
+       ld l,a              ; that's the low byte done.
+
+       ld de,30            ; distance to next line down.
+       ld a,(ix+8)         ; x coordinate.
+cspr2  ld b,3              ; default rows to write.
+       and 7               ; does x straddle cells?
+       jr nz,cspr0         ; yes, loop counter is good.
+       dec b               ; one less row to write.
+cspr0  ld a,(hl)           ; get attributes.
+cspr3  and SIMASK          ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+       inc l               ; next cell.
+       ld a,(hl)           ; get attributes.
+cspr4  and SIMASK          ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+       inc l               ; next cell.
+       ld a,(ix+9)         ; y coordinate.
+       and 7               ; straddling cells?
+       jr z,cspr1          ; no, only 2 wide.
+       ld a,(hl)           ; get attributes.
+cspr5  and SIMASK          ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+cspr1  add hl,de           ; next row.
+       djnz cspr0
+       ret
 
 ; Scrolly text and puzzle variables.
 
@@ -672,7 +753,7 @@ chkxy  ld hl,wntopx        ; window top.
        jr c,kilshr         ; off screen, kill shrapnel.
        inc hl              ; point to right edge.
        ld a,(hl)           ; fetch shrapnel y coordinate.
-       add a,9             ; add width of sprite.
+       add a,15            ; add width of sprite.
        cp (ix+5)           ; compare with window limit.
        jr c,kilshr         ; off screen, kill shrapnel.
 
@@ -684,46 +765,23 @@ plot   ld l,(ix+3)         ; x integer.
        ld (dispx),hl       ; workspace coordinates.
        ld a,(ix+0)         ; type.
        and a               ; is it a laser?
-       jr z,plot2          ; yes, draw laser instead.
+       jr z,plot1          ; yes, draw laser instead.
 plot0  ld a,h              ; which pixel within byte do we
-       rra                 ; want to set first?
-       ld e,170            ; default to left pixel.
-       jr nc,plot1         ; jump to set pixel code.
-       ld e,85             ; draw right pixel instead.
-plot1  call scadd          ; screen address.
+       and 7               ; want to set first?
+       ld d,0              ; no high byte.
+       ld e,a              ; copy to de.
+       ld hl,dots          ; table of small pixel positions.
+       add hl,de           ; hl points to values we want to POKE to screen.
+       ld e,(hl)           ; get value.
+       call scadd          ; screen address.
        ld a,(hl)           ; see what's already there.
        xor e               ; merge with pixels.
        ld (hl),a           ; put back on screen.
        ret
-plot2  ld a,h              ; get horizontal position.
-       rra                 ; start at left or right pixel?
-       push af             ; preserve carry.
-       call scadd          ; screen address.
-       pop af              ; restore carry.
-       jr c,plot3          ; start at right pixel.
+plot1  call scadd          ; screen address.
        ld a,(hl)           ; fetch byte there.
-       cpl                 ; toggle 2 pixels.
+       cpl                 ; toggle all bits.
        ld (hl),a           ; new byte.
-       inc hl              ; next byte.
-       ld a,(hl)           ; fetch byte there.
-       cpl                 ; toggle 2 pixels.
-       ld (hl),a           ; write the new byte.
-       inc hl              ; next byte.
-       ld a,(hl)           ; fetch byte there.
-       xor 170             ; merge pixel.
-       ld (hl),a           ; set new screen byte value.
-       ret
-plot3  ld a,(hl)           ; fetch byte there.
-       xor 85              ; merge pixel.
-       ld (hl),a           ; write new byte.
-       inc hl              ; next byte.
-       ld a,(hl)           ; fetch byte there.
-       cpl                 ; toggle 2 pixels.
-       ld (hl),a           ; write the new byte.
-       inc hl              ; next byte.
-       ld a,(hl)           ; fetch byte there.
-       cpl                 ; toggle 2 pixels.
-       ld (hl),a           ; write the new byte.
        ret
 
 kilshr ld (ix+0),128       ; switch off shrapnel.
@@ -759,9 +817,9 @@ trailk ld (ix+3),200       ; set off-screen to kill vapour trail.
 laser  ld a,(ix+1)         ; direction.
        rra                 ; left or right?
        jr nc,laserl        ; move left.
-       ld b,5              ; distance to travel.
+       ld b,8              ; distance to travel.
        jr laserm           ; move laser.
-laserl ld b,251            ; distance to travel.
+laserl ld b,248            ; distance to travel.
 laserm ld a,(ix+5)         ; y position.
        add a,b             ; add distance.
        ld (ix+5),a         ; set new y coordinate.
@@ -779,6 +837,8 @@ laserm ld a,(ix+5)         ; y position.
        call fdchk          ; remove fodder block.
        jr trailk           ; destroy laser.
 
+dots   defb 128,64,32,16,8,4,2,1
+
 ; Plot, preserving de.
 
 plotde push de             ; put de on stack.
@@ -791,7 +851,7 @@ plotde push de             ; put de on stack.
 shoot  ld c,a              ; store direction in c register.
        ld a,(ix+8)         ; x coordinate.
 shoot1 add a,7             ; down 7 pixels.
-       ld l,a              ; put x coordinate in l.
+       ld l,a              ; puty x coordinate in l.
        ld h,(ix+9)         ; y coordinate in h.
        push ix             ; store pointer to sprite.
        call fpslot         ; find particle slot.
@@ -807,7 +867,7 @@ shoot0 and 248             ; align on character boundary.
        ld (ix+5),a         ; set y coordinate.
        jr vapou0           ; draw first image.
 shootr ld a,h              ; y position.
-       add a,9             ; look right.
+       add a,15            ; look right.
        jr shoot0           ; align and continue.
 
 ; Create a bit of vapour trail.
@@ -815,7 +875,7 @@ shootr ld a,h              ; y position.
 vapour push ix             ; store pointer to sprite.
        ld l,(ix+8)         ; x coordinate.
        ld h,(ix+9)         ; y coordinate.
-vapou3 ld de,5*256+7       ; mid-point of sprite.
+vapou3 ld de,7*256+7       ; mid-point of sprite.
        add hl,de           ; point to centre of sprite.
        call fpslot         ; find particle slot.
        jr c,vapou1         ; no, we can use it.
@@ -834,18 +894,18 @@ vapou0 call chkxy          ; plot first position.
 
 ; Create a user particle.
 
-ptusr  ld c,a              ; store timer.
+ptusr  ex af,af'           ; store timer.
        ld l,(ix+8)         ; x coordinate.
        ld h,(ix+9)         ; y coordinate.
-       ld de,5*256+7       ; mid-point of sprite.
+       ld de,7*256+7       ; mid-point of sprite.
        add hl,de           ; point to centre of sprite.
        call fpslot         ; find particle slot.
-       jr c,ptusr1         ; free slot.
+       jr c,ptusr1         ; no, we can use it.
        ret                 ; out of slots, can't generate anything.
 
 ptusr1 ld (ix+3),l         ; set up x.
        ld (ix+5),h         ; set up y coordinate.
-       ld a,c              ; restore timer.
+       ex af,af'           ; restore timer.
        ld (ix+1),a         ; set time on screen.
        ld (ix+0),7         ; define particle as user particle.
        jp chkxy            ; plot first position.
@@ -881,7 +941,7 @@ star9  ld (ix+5),a         ; set y position.
 star1  call qrand          ; get quick random number.
        ld (ix+3),a         ; set x coord.
        ld a,(wnrgtx)       ; get edge of screen.
-       add a,8             ; add width of sprite minus 1.
+       add a,15            ; add width of sprite minus 1.
        jp star9
 star2  call qrand          ; get quick random number.
        ld (ix+3),a         ; set x coord.
@@ -926,19 +986,17 @@ expld1 ld a,c              ; shrapnel counter.
        add a,l             ; add to x.
        ld (ix+3),a         ; x coord.
        ld a,(seed3)        ; crap random number.
-       and 7               ; 0 to 7.
-       inc a               ; 1 to 8.
+       and 15              ; 0 to 15.
        add a,h             ; add to y.
        ld (ix+5),a         ; y coord.
        ld (ix+0),2         ; switch it on.
-       push hl             ; store coordinates.
+       exx                 ; store coordinates.
        call chkxy          ; plot first position.
        call qrand          ; quick random angle.
        and 60              ; keep within range.
        ld (ix+1),a         ; angle.
-       pop hl              ; restore coordinates.
-       ld de,SHRSIZ        ; restore size of each particle.
-       dec c               ; one piece of shrapnel fewer to generate.
+       exx                 ; restore coordinates.
+       dec c               ; one less piece of shrapnel to generate.
        jr nz,expld2        ; back to main explosion loop.
        jr expld3           ; restore sprite pointer and exit.
 qrand  ld a,(seed3)        ; random seed.
@@ -991,9 +1049,8 @@ lcolh  cp 16               ; within range?
        inc hl              ; not used.
        inc hl              ; y position.
        ld a,(hl)           ; get y.
-       add a,4             ; add width of laser.
        sub (ix+Y)          ; subtract sprite y.
-       cp 14               ; within range?
+       cp 16               ; within range?
        jr c,lcol4          ; yes, collision occurred.
 lcol2  pop hl              ; restore laser pointer from stack.
        jr lcol3
@@ -1004,13 +1061,28 @@ lcol4  pop hl              ; restore laser pointer.
 
 game   equ $
 
-       call setpal         ; set up palette.
+; Set up screen address table.
+
+setsat ld hl,16384         ; start of screen.
+       ld de,SCADTB        ; screen address table.
+       ld b,0              ; vertical lines on screen.
+setsa0 ex de,hl            ; flip table and screen address.
+       ld (hl),d           ; write high byte.
+       inc h               ; second table.
+       ld (hl),e           ; write low byte.
+       dec h               ; back to first table.
+       inc l               ; next position in table.
+       ex de,hl            ; flip table and screen address back again.
+       call nline          ; next line down.
+       djnz setsa0         ; repeat for all lines.
+
+       call setpal         ; set up ULAplus palette.
 rpblc2 call inishr         ; initialise particle engine.
 evintr call evnt12         ; call intro/menu event.
 
        ld hl,MAP           ; block properties.
        ld de,MAP+1         ; next byte.
-       ld bc,799           ; size of properties map = 32 x 25.
+       ld bc,767           ; size of property map.
        ld (hl),WALL        ; write default property.
        ldir
        call iniob          ; initialise objects.
@@ -1061,7 +1133,7 @@ mloop  call vsync          ; synchronise with display.
        ld ix,sprtab        ; address of sprite table, even sprites.
        call dspr           ; display even sprites.
 
-;       call plsnd          ; play sounds.
+       call plsnd          ; play sounds.
        call vsync          ; synchronise with display.
        ld ix,sprtab+TABSIZ ; address of first odd sprite.
        call dspr           ; display odd sprites.
@@ -1094,8 +1166,11 @@ bsortx call bsort          ; sort sprites.
        ld hl,frmno         ; game frame.
        inc (hl)            ; advance the frame.
 
-; Back to start of main loop.
+; back to start of main loop.
 
+       ld bc,49150         ; keyboard row H - ENTER.
+       in a,(c)            ; read it.
+       rra                 ; rotate bit for ENTER into carry.
 qoff   jp mloop            ; switched to a jp nz,mloop during test mode.
        ret
 newlev ld a,(scno)         ; current screen.
@@ -1127,10 +1202,9 @@ tidyu2 ld a,(de)           ; get score digit.
        inc hl              ; next digit of high score.
        inc de              ; next digit of score.
        djnz tidyu2         ; repeat for all digits.
-tidyu0 call 47875          ; reset key manager, empty buffer.
-       ld hl,(firmad)      ; firmware interrupt address.
-       ld (57),hl          ; restore interrupts.
-       ld hl,score         ; return pointing to score so programmer can store high-score.
+tidyu0 ld hl,10072         ; BASIC likes this in alternate hl.
+       exx                 ; flip hl into alternate registers.
+       ld bc,score         ; return pointing to score.
        ret
 tidyu1 ld hl,score         ; score.
        ld de,hiscor        ; high score.
@@ -1149,9 +1223,9 @@ evrs   jp evnt14           ; call restart event.
 num2ch ld l,a              ; put accumulator in l.
        ld h,0              ; blank high byte of hl.
        ld a,32             ; leading spaces.
-numdg3 ld de,100           ; hundreds column.
+       ld de,100           ; hundreds column.
        call numdg          ; show digit.
-numdg2 ld de,10            ; tens column.
+       ld de,10            ; tens column.
        call numdg          ; show digit.
        or 16               ; last digit is always shown.
        ld de,1             ; units column.
@@ -1167,18 +1241,6 @@ numdg0 add hl,de           ; restore total.
        ld (bc),a           ; write digit to buffer.
        inc bc              ; next buffer position.
        ret
-num2dd ld l,a              ; put accumulator in l.
-       ld h,0              ; blank high byte of hl.
-       ld a,32             ; leading spaces.
-       ld de,100           ; hundreds column.
-       call numdg          ; show digit.
-       or 16               ; second digit is always shown.
-       jr numdg2
-num2td ld l,a              ; put accumulator in l.
-       ld h,0              ; blank high byte of hl.
-       ld a,48             ; leading spaces.
-       jr numdg3
-
 
 inisc  ld b,6              ; digits to initialise.
 inisc0 ld (hl),'0'         ; write zero digit.
@@ -1239,9 +1301,9 @@ isnd3  ld (ch3ptr),hl      ; set up the sound.
        ret
 
 
-ch1ptr defw nosnd
-ch2ptr defw nosnd
-ch3ptr defw nosnd
+ch1ptr defw spmask
+ch2ptr defw spmask
+ch3ptr defw spmask
 
 plsnd  call plsnd1         ; first channel.
        call plsnd2         ; second one.
@@ -1253,22 +1315,10 @@ w8912  ld hl,snddat        ; start of AY-3-8912 register data.
        ld de,14*256        ; start with register 0, 14 to write.
        ld c,253            ; low byte of port to write.
 w8912a ld b,255            ; port 65533=select soundchip register.
+       out (c),e           ; tell chip which register we're writing.
        ld a,(hl)           ; value to write.
-       ld c,e              ; register to write.
-
-       ld b,244            ; setup PSG register number on PPI port A.
-       out (c),c           ;
-       ld bc,&f6c0         ; tell PSG to select register from data on PPI port A.
-       out (c),c           ;
-       ld bc,&f600         ; put PSG into inactive state.
-       out (c),c           ;
-       ld b,244            ; setup register data on PPI port A.
-       out (c),a           ;
-       ld bc,&f680         ; tell PSG to write data on PPI port A into selected register.
-       out (c),c           ;
-       ld bc,&f600         ; put PSG into inactive state.
-       out (c),c           ;
-
+       ld b,191            ; port 49149=write value to register.
+       out (c),a           ; this is what we're putting there.
        inc e               ; next sound chip register.
        inc hl              ; next byte to write.
        dec d               ; decrement loop counter.
@@ -1414,7 +1464,7 @@ plsnd1 call cksnd1         ; check sound for first channel.
 ; Show items present.
 
 shwob  ld hl,objdta        ; objects table.
-       ld de,64            ; distance to room number.
+       ld de,33            ; distance to room number.
        add hl,de           ; point to room data.
        ld a,(numob)        ; number of objects in the game.
        ld b,a              ; loop counter.
@@ -1422,10 +1472,10 @@ shwob0 push bc             ; store count.
        push hl             ; store item pointer.
        ld a,(scno)         ; current location.
        cp (hl)             ; same as an item?
-       call z,dobj         ; yes, display object.
+       call z,dobjc        ; yes, display object in colour.
        pop hl              ; restore pointer.
        pop bc              ; restore counter.
-       ld de,70            ; distance to next item.
+       ld de,39            ; distance to next item.
        add hl,de           ; point to it.
        djnz shwob0         ; repeat for others.
        ret
@@ -1437,9 +1487,61 @@ dobj   inc hl              ; point to x.
 dobj0  ld de,dispx         ; coordinates.
        ldi                 ; transfer x coord.
        ldi                 ; transfer y too.
-       ld de,65469         ; minus 67.
+       ld de,65500         ; minus 36.
        add hl,de           ; point to image.
 dobj1  jp sprite           ; draw this sprite.
+
+dobjc  call dobj           ; display object.
+       ld c,(hl)           ; put ink in c register.
+
+; Need to write attribute routine here.
+; set up colour in c register first.
+
+cobj   ld a,(hl)           ; get colour byte.
+       and a               ; test it.
+       ret m               ; colour not set.
+       ld h,22             ; quarter of attrubte address.
+       ld a,(dispx)        ; x coord.
+       and 248             ; only want multiple of 8.
+       rla                 ; multiply by 4.
+       rl h
+       rla
+       rl h                ; high byte now set up.
+       ld l,a
+       ld a,(dispy)        ; take y position.
+       rra                 ; divide it by 8.
+       rra
+       rra
+       and 31              ; remove unwanted bits.
+       add a,l             ; add to low byte.
+       ld l,a              ; low byte of address.
+       
+       ld de,30            ; distance to next line down.
+       ld a,(dispx)        ; x coordinate.
+       ld b,3              ; default rows to write.
+       and 7               ; does x straddle cells?
+       jr nz,cobj0         ; yes, loop counter is good.
+       dec b               ; one less row to write.
+cobj0  ld a,(hl)           ; get attributes.
+       and 248             ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+       inc l               ; next cell.
+       ld a,(hl)           ; get attributes.
+       and 248             ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+       inc l               ; next cell.
+       ld a,(dispy)        ; y coordinate.
+       and 7               ; straddling cells?
+       jr z,cobj1          ; no, only 2 wide.
+       ld a,(hl)           ; get attributes.
+       and 248             ; remove ink.
+       or c                ; put in the new ink.
+       ld (hl),a           ; write back again.
+cobj1  add hl,de           ; next row.
+       djnz cobj0
+       ret
 
 ; Remove an object.
 
@@ -1471,9 +1573,13 @@ getob1 ld e,(hl)           ; x coord.
        inc hl              ; back to y coord.
        ld d,(hl)           ; y coord.
        ld (dispx),de       ; set display coords.
-       ld de,65470         ; minus graphic size.
+       ld de,65501         ; minus graphic size.
        add hl,de           ; point to graphics.
-       jp dobj1            ; delete object sprite.
+       call dobj1          ; delete object sprite.
+       ld a,(bcol)         ; first block colour.
+       and 7               ; only want ink attribute.
+       ld c,a              ; set up colour.
+       jp cobj             ; colour object's old position.
 getob0 ld (hl),255         ; pick it up.
        ret
 
@@ -1490,13 +1596,13 @@ gotob0 ld a,254            ; missing.
        jr gotob1
 
 findob ld hl,objdta        ; objects.
-       ld de,70            ; size of each object.
+       ld de,39            ; size of each object.
        and a               ; is it zero?
        jr z,fndob1         ; yes, skip loop.
        ld b,a              ; loop counter in b.
 fndob2 add hl,de           ; point to next one.
        djnz fndob2         ; repeat until we find address.
-fndob1 ld e,64             ; distance to room it's in.
+fndob1 ld e,33             ; distance to room it's in.
        add hl,de           ; point to room.
        ld a,(hl)           ; fetch status.
        ret
@@ -1517,16 +1623,18 @@ drpob  ld hl,numob         ; number of objects in game.
        inc hl              ; point to object y.
        ld a,(dispy)        ; sprite y coordinate.
        ld (hl),a           ; set the y position.
-       ld de,65470         ; minus graphic size.
+       ld de,65501         ; minus graphic size.
        add hl,de           ; point to graphics.
-       jp dobj1            ; delete object sprite.
+       call dobj1          ; delete object sprite.
+       ld c,(hl)           ; put ink in c register.
+       jp cobj             ; colour the object.
 
 ; Seek objects at sprite position.
 
 skobj  ld hl,objdta        ; pointer to objects.
-       ld de,64            ; distance to room number.
+       ld de,33            ; distance to room number.
        add hl,de           ; point to room data.
-       ld de,70            ; size of each object.
+       ld de,39            ; size of each object.
        ld a,(numob)        ; number of objects in game.
        ld b,a              ; set up the loop counter.
 skobj0 ld a,(scno)         ; current room number.
@@ -1545,8 +1653,8 @@ skobj1 inc hl              ; point to x coordinate.
        inc hl              ; point to y coordinate now.
        ld a,(hl)           ; get coordinate.
        sub (ix+9)          ; subtract the sprite y.
-       add a,8             ; add sprite width minus one.
-       cp 18               ; within range?
+       add a,15            ; add sprite width minus one.
+       cp 31               ; within range?
        jp nc,skobj3        ; no, ignore object.
        pop de              ; remove return address from stack.
        ld a,(numob)        ; objects in game.
@@ -1560,19 +1668,20 @@ skobj2 dec hl              ; back to room.
 ; Spawn a new sprite.
 
 spawn  ld hl,sprtab        ; sprite table.
-       push bc             ; store parameters on stack.
-       ld b,NUMSPR         ; number of sprites.
+numsp1 ld a,NUMSPR         ; number of sprites.
        ld de,TABSIZ        ; size of each entry.
-spaw0  ld a,(hl)           ; get sprite type.
+spaw0  ex af,af'           ; store loop counter.
+       ld a,(hl)           ; get sprite type.
        inc a               ; is it an unused slot?
        jr z,spaw1          ; yes, we can use this one.
        add hl,de           ; point to next sprite in table.
-       djnz spaw0          ; keep going until we find a slot.
+       ex af,af'           ; restore loop counter.
+       dec a               ; one less iteration.
+       jr nz,spaw0         ; keep going until we find a slot.
 
 ; Didn't find one but drop through and set up a dummy sprite instead.
 
-spaw1  pop bc              ; take image and type back off the stack.
-       push ix             ; existing sprite address on stack.
+spaw1  push ix             ; existing sprite address on stack.
        ld (spptr),hl       ; store spawned sprite address.
        ld (hl),c           ; set the type.
        inc hl              ; point to image.
@@ -1610,10 +1719,10 @@ evis1  call evnt09         ; call sprite initialisation event.
 
 spptr  defw 0              ; spawned sprite pointer.
 seed   defb 0              ; seed for random numbers.
-seed2  defb 0              ; second seed.
 score  defb '000000'       ; player's score.
 hiscor defb '000000'       ; high score.
 bonus  defb '000000'       ; bonus.
+grbase defw 15360          ; graphics base address.
 
 checkx ld a,e              ; x position.
        cp 24               ; off screen?
@@ -1621,21 +1730,35 @@ checkx ld a,e              ; x position.
        pop hl              ; remove return address from stack.
        ret
 
+; Displays the current high score.
+
+dhisc  ld hl,hiscor        ; high score text.
+       jr dscor1           ; check in printable range then show 6 digits.
+
 ; Displays the current score.
 
-dscor  call preprt         ; set up font and print position.
+dscor  ld hl,score         ; score text.
+dscor1 call preprt         ; set up font and print position.
        call checkx         ; make sure we're in a printable range.
+       ld b,6              ; digits to display.
        ld a,(prtmod)       ; get print mode.
        and a               ; standard size text?
        jp nz,bscor0        ; no, show double-height.
 dscor0 push bc             ; place counter onto the stack.
        push hl
        ld a,(hl)           ; fetch character.
-       call ptxta          ; display character and advance one.
+       call pchar          ; display character.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current cell colours.
+       ld (hl),a           ; write to attribute cell.
+       ld hl,dispy         ; y coordinate.
+       inc (hl)            ; move along one.
        pop hl
        inc hl              ; next score column.
        pop bc              ; retrieve character counter.
        djnz dscor0         ; repeat for all digits.
+       ld hl,(blkptr)      ; blocks.
+       ld (grbase),hl      ; set graphics base.
 dscor2 ld hl,(dispx)       ; general coordinates.
        ld (charx),hl       ; set up display coordinates.
        ret
@@ -1645,7 +1768,7 @@ dscor2 ld hl,(dispx)       ; general coordinates.
 bscor0 push bc             ; place counter onto the stack.
        push hl
        ld a,(hl)           ; fetch character.
-       call btxt           ; display big char.
+       call bchar          ; display big char.
        pop hl
        inc hl              ; next score column.
        pop bc              ; retrieve character counter.
@@ -1725,40 +1848,21 @@ swpsb0 ld a,(de)           ; get score and bonus digits.
        ret
 
 ; Get print address.
-; Returns screen address in de.
 
-gprad  push hl             ; store hl pair.
-       ld a,(dispx)        ; get vertical position.
-       rlca                ; multiply by 8, max is 192.
-       rlca
-       rlca
-       ld l,a              ; put into hl.
-       ld h,0              ; still 8 bits, no high byte.
-       add hl,hl           ; hl is now coordinate * 16.
-       ld d,h              ; make de 16 * coordinate also.
-       ld e,l
-       add hl,hl           ; hl is coordinate * 32.
-       add hl,hl           ; hl is coordinate * 64.
-       add hl,de           ; now it's coordinate * 80.
-       ld de,49152         ; screen base address.
-       add hl,de           ; add x displacement.
-
-       ld a,(dispy)        ; y coordinate.
-       ld d,0              ; no displacement for odd position.
-       rra                 ; shift odd char position into carry.
-       jr nc,gprad0        ; at even position.
-       ld d,2              ; odd position is two bytes along.
-gprad0 and 15              ; character position / 2.
-       ld e,a              ; copy to e.
-       rlca                ; multiple of 2.
-       rlca                ; multiple of 4.
-       add a,e             ; multiple of 5.
-       add a,d             ; add on any odd displacement.
-       ld e,a              ; copy to de.
-       ld d,0              ; high byte of displacement is zero.
-       add hl,de           ; point to even char position.
-       ex de,hl            ; flip result into de.
-       pop hl              ; retrieve hl.
+gprad  ld a,(dispx)        ; returns scr. add. in de.
+       ld e,a              ; place in e for now.
+       and 24              ; which of 3 segments do we need?
+       add a,64            ; add 64 for start address of screen.
+       ld d,a              ; that's our high byte.
+       ld a,e              ; restore x coordinate.
+       rrca                ; multiply by 32.
+       rrca
+       rrca
+       and 224             ; lines within segment.
+       ld e,a              ; set up low byte for x.
+       ld a,(dispy)        ; now get y coordinate.
+       add a,e             ; add to low byte.
+       ld e,a              ; final low byte.
        ret
 
 ; Get property buffer address of char at (dispx, dispy) in hl.
@@ -1769,7 +1873,7 @@ pradd  ld a,(dispx)        ; x coordinate.
        rrca
        ld l,a              ; store shift in l.
        and 3               ; high byte bits.
-       add a,MAPHI         ; 160 * 256 = 40960, start of properties map.
+       add a,253           ; 88 * 256 = 64768, start of properties map.
        ld h,a              ; that's our high byte.
        ld a,l              ; restore shift result.
        and 224             ; only want low bits.
@@ -1780,7 +1884,24 @@ pradd  ld a,(dispx)        ; x coordinate.
        ld l,a              ; new low byte.
        ret
 
-; Display character block on screen.
+; Get attribute address of char at (dispx, dispy) in hl.
+
+gaadd  ld a,(dispx)        ; x coordinate.
+       rrca                ; multiply by 32.
+       rrca
+       rrca
+       ld l,a              ; store shift in l.
+       and 3               ; high byte bits.
+       add a,88            ; 88 * 256 = 22528, start of screen attributes.
+       ld h,a              ; that's our high byte.
+       ld a,l              ; restore shift result.
+       and 224             ; only want low bits.
+       ld l,a              ; put into low byte.
+       ld a,(dispy)        ; fetch y coordinate.
+       and 31              ; should be in range 0 - 31.
+       add a,l             ; add to low byte.
+       ld l,a              ; new low byte.
+       ret
 
 pchar  rlca                ; multiply char by 8.
        rlca
@@ -1791,82 +1912,64 @@ pchar  rlca                ; multiply char by 8.
        ld a,e              ; restore shifted value.
        and 248             ; only want low byte bits.
        ld e,a              ; that's the low byte.
-       ld hl,chgfx         ; address of graphics.
-       add hl,de           ; 8 * block number.
-       add hl,de           ; 16 * block number.
-       add hl,de           ; 24 * block number.
+       ld hl,(grbase)      ; address of graphics.
+       add hl,de           ; add displacement.
 pchark call gprad          ; get screen address.
-       ld a,(dispy)        ; get horizontal position.
-       rra                 ; are we displaying block at an odd position?
-       jp c,pchar0         ; yes, need to shift everything then.
-       call pchare         ; even pixel position.
-       call pchare
-       call pchare
-       call pchare
-       call pchare
-       call pchare
-       call pchare
-
-pchare ldi                 ; transfer byte.
-       ldi                 ; transfer byte.
-       ld a,(de)           ; get data on screen.
-       and 85              ; lose the left pixel colours.
-       or (hl)             ; merge in third byte of data.
-       inc hl              ; postincrement to next byte of data.
-       ld (de),a           ; write third byte.
-       ex de,hl            ; flip source and target.
-       ld bc,2046          ; distance to next line.
-       add hl,bc           ; look down one pixel.
-       ex de,hl            ; source and target back again.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+;       dec de              ; back again.
+;       inc d               ; next screen row down.
+;       ldi                 ; transfer byte.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
+       inc hl              ; next image byte.
+       inc d               ; next screen row down.
+       ld a,(hl)           ; get image byte.
+       ld (de),a           ; copy to screen.
        ret
 
-pchar0 ex de,hl            ; screen in hl, block image in de.
-       call pcharo         ; odd pixel position.
-       call pcharo
-       call pcharo
-       call pcharo
-       call pcharo
-       call pcharo
-       call pcharo
-
-pcharo ld a,(hl)           ; get data from screen.
-       and 170             ; lose the right pixel colours.
-       ld b,a              ; store result.
-       ld a,(de)           ; get first byte of data to write.
-       rra                 ; shift into right position.
-       and 85              ; get right pixel colour.
-       or b                ; merge onto screen.
-       ld (hl),a           ; write that byte.
-
-       inc hl              ; next screen byte.
-       ld a,(de)           ; get first byte of image again.
-       rla                 ; shift second pixel into left position.
-       and 170             ; remove right bits.
-       ld b,a              ; store for now.
-       inc de              ; point to next byte of data.
-       ld a,(de)           ; get third pixel.
-       rra                 ; shift into right pixel position.
-       and 85              ; remove left pixel.
-       or b                ; merge with previous pixel.
-       ld (hl),a           ; write to screen.
-       inc hl              ; third screen byte.
-       ld a,(de)           ; get second byte of image again.
-       rla                 ; shift fourth pixel into left position.
-       and 170             ; remove right bits.
-       ld b,a              ; store for now.
-       inc de              ; point to next byte of data.
-       ld a,(de)           ; get fifth pixel.
-       rra                 ; shift into right pixel position.
-       and 85              ; remove left pixel.
-       or b                ; merge with previous pixel.
-       ld (hl),a           ; write to screen.
-       inc de              ; point to next byte of data.
-
-       ld bc,2046          ; distance to next line.
-       add hl,bc           ; look down one pixel.
-       ret
-
-; Print property attributes and pixels.
+; Print attributes, properties and pixels.
 
 pattr  ld b,a              ; store cell in b register for now.
        ld e,a              ; displacement in e.
@@ -1878,6 +1981,17 @@ pattr  ld b,a              ; store cell in b register for now.
        ld (hl),c           ; write property.
        ld a,b              ; restore cell.
 
+; Print attributes, no properties.
+
+panp   ld e,a              ; displacement in e.
+       ld d,0              ; no high byte.
+       ld hl,(colptr)      ; pointer to colours.
+       add hl,de           ; colour cell address.
+       ld c,(hl)           ; fetch byte.
+       call gaadd          ; get attribute address.
+       ld (hl),c           ; write colour.
+       ld a,b              ; restore cell.
+
 ; Print character pixels, no more.
 
 pchr   call pchar          ; show character in accumulator.
@@ -1885,255 +1999,75 @@ pchr   call pchar          ; show character in accumulator.
        inc (hl)            ; move along one.
        ret
 
-; Convert ink colour 0 - 15 to bitmask, 0 - 255.
+; Shifter sprite routine for objects.
 
-conink ld c,0              ; clear destination.
-       rra                 ; test lowest bit of colour.
-       rl c                ; shift carry into colour.
-       rl c                ; rotate again.
-       rrca                ; get bit d1 out of the way.
-       rra                 ; test bit d2 of colour.
-       rl c                ; shift carry into mask colour.
-       rl c                ; rotate again.
-       rla                 ; shift original d1 bit back to d7.
-       rla                 ; rotate into carry.
-       rl c                ; shift carry into colour.
-       rl c                ; rotate again.
-       rra                 ; put original bit d3 in d0.
-       rra
-       rra                 ; shift into carry.
-       rl c                ; shift carry into colour.
-       ld a,c              ; copy colour to accumulator.
-       rla                 ; create copy for higher bit of the pair.
-       or c                ; merge colours for both pixels.
-       ret
-
-; Ink and paper masks.  Don't move these around, keep together in this order.
-
-inkmsk defb 255            ; ink mask.
-papmsk defb 0              ; paper mask.
-
-; Print text, standard 5x8 pixel size.
-
-ptxt   rlca                ; multiply char by 8.
-       rlca
-       rlca
-       ld e,a              ; store shift in e.
-       and 7               ; only want high byte bits.
-       ld d,a              ; store in d.
-       ld a,e              ; restore shifted value.
-       and 248             ; only want low byte bits.
-       ld e,a              ; that's the low byte.
-       ld hl,font-256      ; address of charset.
-       add hl,de           ; point to character.
-       call gprad          ; get screen address in de.
-       ex de,hl            ; screen address in hl, font in de.
-
-       ld b,8              ; height.
-ptxt0  push bc             ; store row counter.
-
-       ld bc,(inkmsk)      ; get ink and paper colours.
-       ld a,(dispy)        ; get y coordinate.
-       rra                 ; odd or even alignment?
-       ld a,(de)           ; get byte of image.
-       push de             ; store pointer to font data.
-       jr c,ptxt2          ; odd alignment.
-       call ptxte          ; print at even cell position.
-       jp ptxt1
-ptxt2  call ptxto          ; print at odd cell position.
-ptxt1  dec hl              ; back to left edge of character.
-       dec hl
-       call nline2         ; down one line.
-
-       pop de              ; restore text image address.
-       inc de              ; next byte.
-       pop bc              ; retrieve row counter.
-       djnz ptxt0          ; repeat for all rows.
-       ret
-ptxta  call ptxt           ; show character in accumulator.
-       ld hl,dispy         ; y coordinate.
-       inc (hl)            ; move along one.
-       res 5,(hl)          ; don't spill over line.
-       ret
-
-
-; Print big text, stretched to 5x16 pixels.
-
-btxt   rlca                ; multiply char by 8.
-       rlca
-       rlca
-       ld e,a              ; store shift in e.
-       and 7               ; only want high byte bits.
-       ld d,a              ; store in d.
-       ld a,e              ; restore shifted value.
-       and 248             ; only want low byte bits.
-       ld e,a              ; that's the low byte.
-       ld hl,font-256      ; address of charset.
-       add hl,de           ; point to character.
-       call gprad          ; get screen address in de.
-       ex de,hl            ; screen address in hl, font in de.
-
-       ld b,8              ; pixel rows.
-btxt0  push bc             ; store row counter.
-       ld b,2              ; vertical stretch factor.
-btxt3  push bc             ; store row counter.
-
-       ld bc,(inkmsk)      ; get ink and paper colours.
-       ld a,(dispy)        ; get y coordinate.
-       rra                 ; odd or even alignment?
-       ld a,(de)           ; get byte of image.
-       push de             ; store pointer to font data.
-       jr c,btxt2          ; odd alignment.
-       call ptxte          ; print at even cell position.
-       jp btxt1
-btxt2  call ptxto          ; print at odd cell position.
-btxt1  dec hl              ; back to left edge of character.
-       dec hl
-       call nline2         ; down one line.
-
-       pop de              ; restore text image address.
-       pop bc              ; retrieve stretch counter.
-       djnz btxt3          ; repeat for all rows.
-       inc de              ; next byte.
-       pop bc              ; retrieve row counter.
-       djnz btxt0          ; repeat for all rows.
-bchr1  call nexpos         ; display position.
-       jp nz,bchr2         ; not on a new line.
-bchr3  inc (hl)            ; newline.
-       call nexlin         ; next line check.
-bchr2  jp dscor2           ; tidy up line and column variables.
-
-
-; Print text at odd cell.
-
-ptxto  rla                 ; test bit.
-       ld d,a              ; store font data.
-       ld a,(hl)           ; get screen data.
-       jr c,ptxto8         ; it was set.
-       and 170             ; preserve left pixels.
-       ld e,a              ; store in e.
-       ld a,b              ; paper colour.
-       jr ptxto9
-ptxto8 and 170             ; preserve left pixels.
-       ld e,a              ; store in e.
-       ld a,c              ; ink colour.
-ptxto9 and 85              ; right bits only.
-       or e                ; merge with screen.
-       ld (hl),a           ; write first bit.
-       inc hl              ; next two pixels.
-       ld a,d              ; get data again.
-       rla                 ; test bit.
-       jr c,ptxto0         ; it was set.
-       ld (hl),b           ; set paper.
-       jr ptxto1
-ptxto0 ld (hl),c           ; set to ink.
-ptxto1 rla                 ; test bit.
-       ld d,a              ; store data.
-       jr c,ptxto2         ; it was set.
-       ld a,b              ; paper colour.
-       jr ptxto3
-ptxto2 ld a,c              ; ink colour.
-ptxto3 and 85              ; right bits.
-       ld e,a              ; store in e.
-       ld a,(hl)           ; get screen colours.
-       and 170             ; left bits only.
-       or e                ; merge with right bits.
-       ld (hl),a           ; write to screen.
-       ld a,d              ; get bit of image data again.
-       inc hl              ; next two pixels.
-       ld a,d              ; get data again.
-       rla                 ; test bit.
-       jr c,ptxto4         ; it was set.
-       ld (hl),b           ; set paper.
-       jr ptxto5
-ptxto4 ld (hl),c           ; set to ink.
-ptxto5 rla                 ; test bit.
-       ld d,a              ; store data.
-       jr c,ptxto6         ; it was set.
-       ld a,b              ; paper colour.
-       jr ptxto7
-ptxto6 ld a,c              ; ink colour.
-ptxto7 and 85              ; right bits.
-       ld e,a              ; store in e.
-       ld a,(hl)           ; get screen colours.
-       and 170             ; left bits only.
-       or e                ; merge with right bits.
-       ld (hl),a           ; write to screen.
-       ret
-
-; Print text at even cell.
-
-ptxte  rla                 ; test bit.
-       jr c,ptxte0         ; it was set.
-       ld (hl),b           ; set paper.
-       jr ptxte1
-ptxte0 ld (hl),c           ; set to ink.
-ptxte1 rla                 ; test bit.
-       ld d,a              ; store data.
-       jr c,ptxte2         ; it was set.
-       ld a,b              ; paper colour.
-       jr ptxte3
-ptxte2 ld a,c              ; ink colour.
-ptxte3 and 85              ; right bits.
-       ld e,a              ; store in e.
-       ld a,(hl)           ; get screen colours.
-       and 170             ; left bits only.
-       or e                ; merge with right bits.
-       ld (hl),a           ; write to screen.
-       ld a,d              ; get bit of image data again.
-       inc hl              ; next screen address.
-       rla                 ; test bit.
-       jr c,ptxte4         ; it was set.
-       ld (hl),b           ; set paper.
-       jr ptxte5
-ptxte4 ld (hl),c           ; set to ink.
-ptxte5 rla                 ; test bit.
-       ld d,a              ; store data.
-       jr c,ptxte6         ; it was set.
-       ld a,b              ; paper colour.
-       jr ptxte7
-ptxte6 ld a,c              ; ink colour.
-ptxte7 and 85              ; right bits.
-       ld e,a              ; store in e.
-       ld a,(hl)           ; get screen colours.
-       and 170             ; left bits only.
-       or e                ; merge with right bits.
-       ld (hl),a           ; write to screen.
-       ld a,d              ; get bit of image data again.
-       inc hl              ; next screen address.
-       rla                 ; test bit.
-       ld a,(hl)           ; get screen data.
-       jr c,ptxte8         ; it was set.
-       and 85              ; preserve right pixels.
-       ld e,a              ; store in e.
-       ld a,b              ; paper colour.
-       jr ptxte9
-ptxte8 and 85              ; preserve right pixels.
-       ld e,a              ; store in e.
-       ld a,c              ; ink colour.
-ptxte9 and 170             ; left bits only.
-       or e                ; merge with screen.
-       ld (hl),a           ; write final bit.
-       ret
-
-
-; Sprite routine for objects, only appears at even pixel positions.
+sprit7 xor 7
+       inc a
+sprit3 rl l                ; shift into position.
+       rl c
+       rl h
+       dec a               ; one less iteration.
+       jp nz,sprit3
+       ld a,l
+       ld l,c
+       ld c,h
+       ld h,a
+       jp sprit0           ; now apply to screen.
 
 sprite push hl             ; store sprite graphic address.
        call scadd          ; get screen address in hl.
-       pop de              ; restore graphic address in de pair.
-       ld b,16             ; pixel height.
-sprit1 push bc             ; store row counter.
-       ld b,4              ; pixel width.
-sprit0 ld a,(de)           ; fetch graphic data.
-       xor (hl)            ; merge with what's on screen.
-       ld (hl),a           ; bung it onto the screen.
-       inc de              ; point to next piece of image.
-       inc l               ; next screen address.
-       djnz sprit0         ; repeat for all columns.
-       call nline          ; next line down.
-       pop bc              ; restore row counter.
-       djnz sprit1         ; repeat for all rows.
+       ex de,hl            ; switch to de.
+       pop hl              ; restore graphic address.
+       ld a,(dispy)        ; y position.
+       and 7               ; position straddling cells.
+       ld b,a              ; store in b register.
+       ld a,16             ; pixel height.
+sprit1 ex af,af'
+       ld c,(hl)           ; fetch first byte.
+       inc hl              ; next byte.
+       push hl             ; store source address.
+       ld l,(hl)
+       ld h,0
+       ld a,b              ; position straddling cells.
+       and a               ; is it zero?
+       jr z,sprit0         ; yes, apply to screen.
+       cp 5
+       jr nc,sprit7
+       and a               ; clear carry.
+sprit2 rr c
+       rr l
+       rr h
+       dec a
+       jp nz,sprit2
+sprit0 ld a,(de)           ; fetch screen image.
+       xor c               ; merge with graphic.
+       ld (de),a           ; write to screen.
+       inc e               ; next screen byte.
+       ld a,(de)           ; fetch screen image.
+       xor l               ; combine with graphic.
+       ld (de),a           ; write to screen.
+       inc de              ; next screen address.
+       ld a,(de)           ; fetch screen image.
+       xor h               ; combine with graphic.
+       ld (de),a           ; write to screen.
+       dec de              ; left to middle byte.
+       dec e               ; back to start byte.
+       inc d               ; increment line number.
+       ld a,d              ; segment address.
+       and 7               ; reached end of segment?
+       jp nz,sprit6        ; no, just do next line within cell.
+       ld a,e              ; low byte.
+       add a,32            ; look down.
+       ld e,a              ; new address.
+       jp c,sprit6         ; done.
+       ld a,d              ; high byte.
+       sub 8               ; start of segment.
+       ld d,a              ; new high byte.
+sprit6 pop hl              ; restore source address.
+       inc hl              ; next source byte.
+       ex af,af'
+       dec a
+       jp nz,sprit1
        ret
 
 ; Get room address.
@@ -2165,7 +2099,9 @@ groom0 ld hl,(scrptr)      ; pointer to screens.
 
 droom  ld a,(wintop)       ; window top.
        ld (dispx),a        ; set x coordinate.
-droom2 call groom          ; get address of current room.
+droom2 ld hl,(blkptr)      ; blocks.
+       ld (grbase),hl      ; set graphics base.
+       call groom          ; get address of current room.
        xor a               ; zero in accumulator.
        ld (comcnt),a       ; reset compression counter.
        ld a,(winhgt)       ; height of window.
@@ -2208,22 +2144,27 @@ flbyt1 dec a               ; one less.
        ld a,(combyt)       ; byte to expand.
        ret
 
+
 combyt defb 0              ; byte type compressed.
 comcnt defb 0              ; compression counter.
 
 ; Ladder down check.
 
 laddd  ld a,(ix+8)         ; x coordinate.
+       and 254             ; make it even.
+       ld (ix+8),a         ; reset it.
        ld h,(ix+9)         ; y coordinate.
-       add a,16            ; look down 16 pixels.
+numsp5 add a,16            ; look down 16 pixels.
        ld l,a              ; coords in hl.
        jr laddv
 
 ; Ladder up check.
 
 laddu  ld a,(ix+8)         ; x coordinate.
+       and 254             ; make it even.
+       ld (ix+8),a         ; reset it.
        ld h,(ix+9)         ; y coordinate.
-       add a,14            ; look 2 pixels above feet.
+numsp6 add a,14            ; look 2 pixels above feet.
        ld l,a              ; coords in hl.
 laddv  ld (dispx),hl       ; set up test coordinates.
        call tstbl          ; get map address.
@@ -2233,9 +2174,7 @@ laddv  ld (dispx),hl       ; set up test coordinates.
        call ldchk          ; do the check.
        ret nz              ; impassable.
        ld a,(dispy)        ; y coordinate.
-       call rem5           ; position straddling block cells.
-       ret z               ; no more checks needed.
-       dec a               ; one pixel to right?
+       and 7               ; position straddling block cells.
        ret z               ; no more checks needed.
        inc hl              ; look to third cell.
        call ldchk          ; do the check.
@@ -2255,9 +2194,7 @@ cangu  ld a,(ix+8)         ; x coordinate.
        call lrchk          ; do the check.
        ret nz              ; impassable.
        ld a,(dispy)        ; y coordinate.
-       call rem5           ; position straddling block cells.
-       ret z               ; no more checks needed.
-       dec a               ; one pixel to right?
+       and 7               ; position straddling block cells.
        ret z               ; no more checks needed.
        inc hl              ; look to third cell.
        call lrchk          ; do the check.
@@ -2267,7 +2204,7 @@ cangu  ld a,(ix+8)         ; x coordinate.
 
 cangd  ld a,(ix+8)         ; x coordinate.
        ld h,(ix+9)         ; y coordinate.
-       add a,16            ; look down 16 pixels.
+numsp3 add a,16            ; look down 16 pixels.
        ld l,a              ; coords in hl.
        ld (dispx),hl       ; set up test coordinates.
        call tstbl          ; get map address.
@@ -2277,9 +2214,7 @@ cangd  ld a,(ix+8)         ; x coordinate.
        call plchk          ; block, platform check.
        ret nz              ; impassable.
        ld a,(dispy)        ; y coordinate.
-       call rem5           ; position straddling block cells.
-       ret z               ; no more checks needed.
-       dec a               ; one pixel to right?
+       and 7               ; position straddling block cells.
        ret z               ; no more checks needed.
        inc hl              ; look to third cell.
        call plchk          ; block, platform check.
@@ -2288,31 +2223,31 @@ cangd  ld a,(ix+8)         ; x coordinate.
 ; Can go left check.
 
 cangl  ld l,(ix+8)         ; x coordinate.
-       ld h,(ix+9)         ; y coordinate.
-       dec h               ; look left 1 pixel.
+       ld a,(ix+9)         ; y coordinate.
+       sub 2               ; look left 2 pixels.
+       ld h,a              ; coords in hl.
        jr cangh            ; test if we can go there.
 
 ; Can go right check.
 
 cangr  ld l,(ix+8)         ; x coordinate.
        ld a,(ix+9)         ; y coordinate.
-       add a,9             ; look right 9 pixels.
+       add a,16            ; look right 16 pixels.
        ld h,a              ; coords in hl.
 
 cangh  ld (dispx),hl       ; set up test coordinates.
-       call tstbl          ; get map address.
-       call lrchk          ; standard left/right check.
-       ret nz              ; no way through.
+cangh2 ld b,3              ; default rows to write.
+       ld a,l              ; x position.
+       and 7               ; does x straddle cells?
+       jr nz,cangh0        ; yes, loop counter is good.
+       dec b               ; one less row to write.
+cangh0 call tstbl          ; get map address.
        ld de,32            ; distance to next cell.
+cangh1 call lrchk          ; standard left/right check.
+       ret nz              ; no way through.
        add hl,de           ; look down.
-       call lrchk          ; do the check.
-       ret nz              ; impassable.
-       ld a,(dispx)        ; x coordinate.
-       and 7               ; position straddling block cells.
-       ret z               ; no more checks needed.
-       add hl,de           ; look down to third cell.
-       call lrchk          ; do the check.
-       ret                 ; return with zero flag set accordingly.
+       djnz cangh1
+       ret
 
 ; Check left/right movement is okay.
 
@@ -2351,34 +2286,6 @@ ldchk  ld a,(hl)           ; fetch cell.
        cp LADDER           ; is it a ladder?
        ret                 ; return with zero flag set accordingly.
 
-; Get collectables.
-
-getcol ld b,COLECT         ; collectable blocks.
-       call tded           ; test for collectable blocks.
-       cp b                ; did we find one?
-       ret nz              ; none were found, job done.
-       call gtblk          ; get block.
-       call evnt20         ; collected block event.
-       jr getcol           ; repeat until none left.
-
-; Get collectable block.
-
-gtblk  ld (hl),0           ; make it empty now.
-       ld de,MAP           ; map address.
-       and a               ; clear carry.
-       sbc hl,de           ; find cell number.
-       ld a,l              ; get low byte of cell number.
-       and 31              ; 0 - 31 is column.
-       ld d,a              ; store y in d register.
-       add hl,hl           ; multiply by 8.
-       add hl,hl
-       add hl,hl           ; x is now in h.
-       ld e,h              ; put x in e.
-       ld (dispx),de       ; set display coordinates.
-       xor a               ; block zero.
-       call pchr           ; display block on screen.
-       ret
-
 ; Touched deadly block check.
 ; Returns with DEADLY (must be non-zero) in accumulator if true.
 
@@ -2395,10 +2302,8 @@ tded   ld l,(ix+8)         ; x coordinate.
        ret z               ; yes.
        ld a,(dispy)        ; horizontal position.
        ld c,a              ; store column in c register.
-       call rem5           ; is it straddling cells?
+       and 7               ; is it straddling cells?
        jr z,tded0          ; no.
-       dec a               ; one pixel to right?
-       jr z,tded0          ; no more checks needed.
        inc hl              ; last cell.
        ld a,(hl)           ; fetch type.
        cp b                ; is this the block?
@@ -2413,10 +2318,8 @@ tded0  add hl,de           ; point to next row.
        cp b                ; is this fatal?
        ret z               ; yes.
        ld a,c              ; horizontal position.
-       call rem5           ; is it straddling cells?
+       and 7               ; is it straddling cells?
        jr z,tded1          ; no.
-       dec a               ; one pixel to right?
-       jr z,tded1          ; no more checks needed.
        inc hl              ; last cell.
        ld a,(hl)           ; fetch type.
        cp b                ; is this fatal?
@@ -2433,10 +2336,8 @@ tded1  ld a,(dispx)        ; vertical position.
        cp b                ; is this fatal?
        ret z               ; yes.
        ld a,c              ; horizontal position.
-       call rem5           ; is it straddling cells?
+       and 7               ; is it straddling cells?
        ret z               ; no.
-       dec a               ; one pixel to right?
-       ret z               ; no more checks needed.
        inc hl              ; last cell.
        ld a,(hl)           ; fetch final type.
        ret                 ; return with final type in accumulator.
@@ -2454,61 +2355,16 @@ tstbl  ld a,(dispx)        ; fetch x coord.
        and 3               ; high bits.
        ld d,a              ; got displacement in de.
        ld a,(dispy)        ; y coord.
-       call div5           ; divide by 5.
+       rra                 ; divide by 8.
+       rra
+       rra
+       and 31              ; only want 0 - 31.
        add a,e             ; add to displacement.
        ld e,a              ; displacement in de.
        ld hl,MAP           ; position of dummy screen.
        add hl,de           ; point to address.
        ld a,(hl)           ; fetch byte there.
        ret
-
-; Divide y coordinate by 5 to give block position.
-
-div5   push bc             ; store bc.
-       ld b,0              ; reset result.
-       cp 80               ; more than 80?
-       jr c,div5a          ; no.
-       sub 80              ; subtract 80.
-       set 4,b             ; set bit for 16.
-div5a  cp 40               ; more than 40?
-       jr c,div5b          ; no.
-       sub 40              ; subtract 40.
-       set 3,b             ; set bit for 8.
-div5b  cp 20               ; more than 20?
-       jr c,div5c          ; no.
-       sub 20              ; subtract 20.
-       set 2,b             ; set bit for 4.
-div5c  cp 10               ; more than 10?
-       jr c,div5d          ; no.
-       sub 10              ; subtract 10.
-       set 1,b             ; set bit for 2.
-div5d  cp 5                ; more than 5?
-       jr c,div5e          ; no.
-       inc b               ; set bit for 1.
-div5e  ld a,b              ; get result.
-       pop bc              ; restore bc.
-       ret
-
-; Find remainder when coordinate divided by 5 to establish block alignment.
-
-rem5   cp 80               ; is coordinate more than 80?
-       jr c,rem5a          ; no.
-       sub 80              ; subtract amount.
-rem5a  cp 40               ; is coordinate more than 40?
-       jr c,rem5b          ; no.
-       sub 40              ; subtract amount.
-rem5b  cp 20               ; is coordinate more than 20?
-       jr c,rem5c          ; no.
-       sub 20              ; subtract amount.
-rem5c  cp 10               ; is coordinate more than 10?
-       jr c,rem5d          ; no.
-       sub 10              ; subtract amount.
-rem5d  cp 5                ; is coordinate more than 5?
-       jr c,rem5e          ; no.
-       sub 5               ; subtract amount.
-rem5e  and a               ; remainder in accumulator, set zero flag accordingly.
-       ret
-
 
 ; Jump - if we can.
 ; Requires initial speed to be set up in accumulator prior to call.
@@ -2530,7 +2386,7 @@ jump   neg                 ; switch sign so we jump up.
 ;       call plchk          ; block, platform check.
 ;       jr nz,jump0         ; it's solid, we can jump.
 ;       ld a,b              ; y coordinate.
-;       call rem5           ; position straddling block cells.
+;       and 7               ; position straddling block cells.
 ;       ret z               ; no more checks needed.
 ;       inc hl              ; look to third cell.
 ;       call plchk          ; block, platform check.
@@ -2549,11 +2405,8 @@ hop    ld a,(ix+13)        ; jumping flag.
        ld (ix+14),0        ; set jump table displacement.
        ret
 
-
 ; Random numbers code.
 ; Pseudo-random number generator, 8-bit.
-; Steps a pointer through the code (held in seed), returning the contents
-; of the byte at that location.
 
 random ld hl,seed          ; set up seed pointer.
        ld a,(hl)           ; get last random number.
@@ -2568,105 +2421,102 @@ random ld hl,seed          ; set up seed pointer.
        ld (varrnd),a       ; return number in variable.
        ret
 
-;random	ld	a,(seed)		; Seed is usually 0
-;	ld	b,a
-;	add	a,a
-;	add	a,a
-;	add	a,b
-;	inc	a		; another possibility is ADD A,7
-;	ld	(seed),a
-;	ret
 
-;ranini ld hl,start         ; start of code should be random enough.
-;       jr rand0
-;random ld hl,(seed)        ; pointer to ROM.
-;       inc hl              ; increment pointer.
-;rand0  ld de,lstrnd        ; last random area address.
-;       ld (seed),hl        ; new position.
-;       sbc hl,de           ; do comparison.
-;       jr nc,ranini        ; reinitialise random number.
-;       ld a,(seed2)        ; previous seed.
-;       add a,(hl)          ; combine with number from location.
-;       ld (seed2),a        ; second seed.
-;       xor l               ; more randomness.
-;       and b               ; use mask.
-;       cp c                ; is it less than parameter?
-;       ld (varrnd),a       ; set random number.
-;       ret c               ; yes, number is good.
-;       jp random           ; go round again.
+keys   defb 35,27,29,28,16,31,1    ; Keys defined by game designer.
+       defb 36,28,20,12    ; menu options.
+
+; Keyboard test routine.
+
+ktest  ld c,a              ; key to test in c.
+       and 7               ; mask bits d0-d2 for row.
+       inc a               ; in range 1-8.
+       ld b,a              ; place in b.
+       srl c               ; divide c by 8
+       srl c               ; to find position within row.
+       srl c
+       ld a,5              ; only 5 keys per row.
+       sub c               ; subtract position.
+       ld c,a              ; put in c.
+       ld a,254            ; high byte of port to read.
+ktest0 rrca                ; rotate into position.
+       djnz ktest0         ; repeat until we've found relevant row.
+       in a,(254)          ; read port (a=high, 254=low).
+ktest1 rra                 ; rotate bit out of result.
+       dec c               ; loop counter.
+       jp nz,ktest1        ; repeat until bit for position in carry.
+       ret
+
 
 ; Joystick and keyboard reading routines.
-; General keyboard test routine used by compiler.
 
-ktest  call 47902          ; check if keycode is pressed.
-       jr nz,ktest0        ; pressed, reset carry.
-       scf                 ; set carry.
-       ret
-ktest0 and a               ; clear carry flag.
-       ret
+joykey ld a,(contrl)       ; control flag.
+       dec a               ; is it the keyboard?
+       jr z,joyjoy         ; no, it's Kempston joystick.
+       dec a               ; Sinclair?
+       jr z,joysin         ; read Sinclair joystick.
 
-; Joystick states:
-; 1 - up.
-; 2 - down.
-; 4 - left.
-; 8 - right.
-; 16 - fire 1.
-; 32 - fire 2.
+; Keyboard controls.
 
-joykey call 47908          ; get joystick states in hl.
-       ld a,(contrl)       ; controls.
-       and a               ; keyboard?
-       jp z,keyb           ; read keys.
-       dec a               ; joystick zero?
-       jr z,joy0           ; just want joystick 0.
-       ld h,l              ; copy joystick 1 to joystick 0.
-joy0   ld c,0              ; clear c register.
-       ld a,h              ; joystick reading.
-       and 5               ; get relevant bits.
-       sla a               ; shift into correct positions.
-       ld c,a              ; copy to c.
-       ld a,h              ; get joystick reading again.
-       and 10              ; git bits we want.
-       sra a               ; shift these the other way.
-       or c                ; merge with previous shifted bits.
-       ld c,a              ; store in c.
-       ld a,h              ; get joystick again.
-       and 240             ; all remaining bits.
-       or c                ; merge in shifted bits.
-       ld (joyval),a       ; set joystick reading.
-       ret
-;joy0   ld a,h              ; value of joystick 0.
-;       ld (joyval),a       ; remember value.
-;       ret
-keyb   ld b,0              ; default value.
-       ld a,(keys+5)       ; fire 2.
-       call keybck         ; check if pressed.
-       sla b               ; shift result byte.
-       ld a,(keys+4)       ; fire 1.
-       call keybck         ; check if pressed.
-       sla b               ; shift result byte.
-       ld a,(keys+3)       ; right.
-       call keybck         ; check if pressed.
-       sla b               ; shift result byte.
-       ld a,(keys+2)       ; left.
-       call keybck         ; check if pressed.
-       sla b               ; shift result byte.
-       ld a,(keys+1)       ; down.
-       call keybck         ; check if pressed.
-       sla b               ; shift result byte.
-       ld a,(keys)         ; up.
-       call keybck         ; check if pressed.
-       ld a,b              ; put result in accumulator.
-       ld (joyval),a       ; set the joystick reading.
-       ret
-keybck call 47902          ; check if key pressed.
-       ret z               ; not pressed.
-       inc b               ; set bit to say pressed.
+       ld hl,keys+6        ; address of last key.
+       ld e,0              ; zero reading.
+       ld d,7              ; keys to read.
+joyke0 ld a,(hl)           ; get key from table.
+       call ktest          ; being pressed?
+       ccf                 ; complement the carry.
+       rl e                ; rotate into reading.
+       dec hl              ; next key.
+       dec d               ; one less to do.
+       jp nz,joyke0        ; repeat for all keys.
+       jr joyjo1           ; store the value.
+
+; Kempston joystick controls.
+
+joyjoy ld bc,31            ; port for Kempston interface.
+       in a,(c)            ; read it.
+joyjo3 ld e,a              ; copy to e register.
+       ld a,(keys+5)       ; key six.
+       call ktest          ; being pressed?
+       jr c,joyjo0         ; not pressed.
+       set 5,e             ; set bit d5.
+joyjo0 ld a,(keys+6)       ; key seven.
+       call ktest          ; being pressed?
+       jr c,joyjo1         ; not pressed.
+       set 6,e             ; set bit d6.
+joyjo1 ld a,e              ; copy e register to accumulator.
+joyjo2 ld (joyval),a       ; remember value.
        ret
 
+; Sinclair joystick controls.
+
+joysin ld bc,61438         ; port for Sinclair 2.
+       in a,(c)            ; read joystick.
+       ld d,a              ; clear values.
+       xor a               ; clear accumulator.
+       ld e,16             ; Kempston fire bit value.
+       bit 0,d             ; fire bit pressed?
+       call z,joysi0       ; add bit.
+       ld e,1              ; Kempston bit value.
+       bit 3,d             ; fire bit pressed?
+       call z,joysi0       ; add bit.
+       ld e,2              ; Kempston bit value.
+       bit 4,d             ; fire bit pressed?
+       call z,joysi0       ; add bit.
+       ld e,8              ; Kempston bit value.
+       bit 1,d             ; fire bit pressed?
+       call z,joysi0       ; add bit.
+       ld e,4              ; Kempston bit value.
+       bit 2,d             ; fire bit pressed?
+       call z,joysi0       ; add bit.
+       jr joyjo3           ; read last 2 keys a la Kempston.
+
+joysi0 add a,e             ; add bit value.
+       ret
 
 ; Display message.
 
+;dmsg   ld hl,nummsg        ; total messages.
+;       cp (hl)             ; does this one exist?
+;       ret nc              ; no, nothing to display.
 dmsg   ld hl,msgdat        ; pointer to messages.
        call getwrd         ; get message number.
 dmsg3  call preprt         ; pre-printing stuff.
@@ -2679,7 +2529,10 @@ dmsg0  push hl             ; store string pointer.
        and 127             ; remove any end marker.
        cp 13               ; newline character?
        jr z,dmsg1
-       call ptxt           ; display character.
+       call pchar          ; display character.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current cell colours.
+       ld (hl),a           ; write to attribute cell.
        call nexpos         ; display position.
        jr nz,dmsg2         ; not on a new line.
        call nexlin         ; next line down.
@@ -2692,7 +2545,7 @@ dmsg2  pop hl
 dmsg1  ld hl,dispx         ; x coordinate.
        inc (hl)            ; newline.
        ld a,(hl)           ; fetch position.
-       cp 25               ; past screen edge?
+       cp 24               ; past screen edge?
        jr c,dmsg4          ; no, it's okay.
        ld (hl),0           ; restart at top.
 dmsg4  inc hl              ; y coordinate.
@@ -2706,8 +2559,8 @@ bmsg1  ld a,(hl)           ; get character to display.
        push hl             ; store pointer to message.
        and 127             ; only want 7 bits.
        cp 13               ; newline character?
-       jr z,bmsg2          ; newline instead.
-       call btxt           ; display big char.
+       jr z,bmsg2
+       call bchar          ; display big char.
 bmsg3  pop hl              ; retrieve message pointer.
        ld a,(hl)           ; look at last character.
        inc hl              ; next character in list.
@@ -2718,12 +2571,52 @@ bmsg2  ld hl,charx         ; x coordinate.
        inc (hl)            ; newline.
        inc (hl)            ; newline.
        ld a,(hl)           ; fetch position.
-       cp 24               ; past screen edge?
+       cp 23               ; past screen edge?
        jr c,bmsg3          ; no, it's okay.
        ld (hl),0           ; restart at top.
        inc hl              ; y coordinate.
        ld (hl),0           ; carriage return.
        jr bmsg3
+
+
+; Big character display.
+
+bchar  rlca                ; multiply char by 8.
+       rlca
+       rlca
+       ld e,a              ; store shift in e.
+       and 7               ; only want high byte bits.
+       ld d,a              ; store in d.
+       ld a,e              ; restore shifted value.
+       and 248             ; only want low byte bits.
+       ld e,a              ; that's the low byte.
+       ld hl,(23606)       ; address of font.
+       add hl,de           ; add displacement.
+       call gprad          ; get screen address.
+       ex de,hl            ; font in de, screen address in hl.
+       ld b,8              ; height of character in font.
+bchar0 ld a,(de)           ; get a bit of the font.
+       inc de              ; next line of font.
+       ld (hl),a           ; write to screen.
+       inc h               ; down a line.
+       ld (hl),a           ; write to screen.
+       call nline          ; next line down.
+       djnz bchar0         ; repeat.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current colour.
+       ld (hl),a           ; set attribute.
+       ld c,a              ; copy colour to c.
+       ld de,32            ; distance to next line.
+       add hl,de           ; point to second cell.
+       ld a,h              ; high byte of address.
+       cp 91               ; past edge of screen?
+       jr nc,bchar1        ; yes, don't write to printer buffer/sysvars.
+       ld (hl),c           ; set second cell's attributes.
+bchar1 call nexpos         ; display position.
+       jp nz,bchar2        ; not on a new line.
+bchar3 inc (hl)            ; newline.
+       call nexlin         ; next line check.
+bchar2 jp dscor2           ; tidy up line and column variables.
 
 ; Display a character.
 
@@ -2732,11 +2625,14 @@ achar  ld b,a              ; copy to b.
        ld a,(prtmod)       ; print mode.
        and a               ; standard size?
        ld a,b              ; character in accumulator.
-       jp nz,btxt          ; no, double-height text.
-       call ptxt           ; display character.
+       jp nz,bchar         ; no, double-height text.
+       call pchar          ; display character.
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; current cell colours.
+       ld (hl),a           ; write to attribute cell.
        call nexpos         ; display position.
-       jp z,btxt3          ; next line down.
-       jp btxt2            ; tidy up.
+       jp z,bchar3         ; next line down.
+       jp bchar2           ; tidy up.
 
 ; Get next print column position.
 
@@ -2759,11 +2655,13 @@ nexlin inc (hl)            ; newline.
 
 ; Pre-print preliminaries.
 
-preprt ld de,(charx)       ; display coordinates.
+preprt ld de,(23606)       ; font pointer.
+       ld (grbase),de      ; set up graphics base.
+prescr ld de,(charx)       ; display coordinates.
        ld (dispx),de       ; set up general coordinates.
        ret
 
-; On entry  hl points to word list
+; On entry: hl points to word list
 ;           a contains word number.
 
 getwrd and a               ; first word in list?
@@ -2791,7 +2689,7 @@ bsort0 push bc             ; store loop counter for now.
        inc a               ; is it enabled?
        jr z,bsort2         ; no, nothing to swap.
 
-       ld a,(ix+3+TABSIZ)  ; fetch next sprite's coordinate.
+       ld a,(ix+(3+TABSIZ)); fetch next sprite's coordinate.
        cp (ix+3)           ; compare with this x coordinate.
        jr c,bsort1         ; next sprite is higher - may need to switch.
 bsort2 ld de,TABSIZ        ; distance to next odd/even entry.
@@ -2909,21 +2807,15 @@ dspr2  push ix             ; put ix on stack.
 ;dspr1  ld a,(ix+3)         ; old x coord.
 ;       cp 177              ; beyond maximum?
 ;       jr nc,dspr5         ; yes, don't delete it.
-dspr1  ld a,(ix+3)         ; old x coord.
-       cp 185              ; beyond maximum?
-       jr nc,dspr5         ; yes, don't delete it.
-       ld a,(ix+5)         ; type of new sprite.
+dspr1  ld a,(ix+5)         ; type of new sprite.
        inc a               ; is this enabled?
        jr nz,dspr4         ; yes, display both.
 dspr6  call sspria         ; show single sprite.
        jp dspr2
-dspr4  ld a,(ix+8)         ; new x coord.
-       cp 185              ; beyond maximum?
-       jr nc,dspr6         ; yes, don't display it.
 
 ; Displaying two sprites.  Don't bother redrawing if nothing has changed.
 
-       ld a,(ix+4)         ; old y.
+dspr4  ld a,(ix+4)         ; old y.
        cp (ix+9)           ; compare with new value.
        jr nz,dspr7         ; they differ, need to redraw.
        ld a,(ix+3)         ; old x.
@@ -2937,10 +2829,7 @@ dspr4  ld a,(ix+8)         ; new x coord.
        jp z,dspr2          ; everything is the same, don't redraw.
 dspr7  call sspric         ; delete old sprite, draw new one simultaneously.
        jp dspr2
-dspr3  ld a,(ix+8)         ; new x coord.
-       cp 185              ; beyond maximum?
-       jr nc,dspr2         ; yes, don't display it.
-       call ssprib         ; show single sprite.
+dspr3  call ssprib         ; show single sprite.
        jp dspr2
 
 
@@ -2950,10 +2839,6 @@ dspr3  ld a,(ix+8)         ; new x coord.
 gspran ld l,(ix+8)         ; new x coordinate.
        ld h,(ix+9)         ; new y coordinate.
        ld (dispx),hl       ; set display coordinates.
-       ld a,l              ; x coordinate.
-       cp 185              ; beyond maximum?
-       ret nc              ; yes, don't display it.
-
        ld a,(ix+6)         ; new sprite image.
        call gfrm           ; fetch start frame for this sprite.
        ld a,(hl)           ; frame in accumulator.
@@ -2963,68 +2848,60 @@ gspran ld l,(ix+8)         ; new x coordinate.
 gsprad ld l,(ix+3)         ; x coordinate.
        ld h,(ix+4)         ; y coordinate.
        ld (dispx),hl       ; set display coordinates.
-       ld a,l              ; x coordinate.
-       cp 185              ; beyond lowest point on screen?
-       ret nc              ; yes, don't display it.
-
        ld a,(ix+1)         ; sprite image.
        call gfrm           ; fetch start frame for this sprite.
        ld a,(hl)           ; frame in accumulator.
        add a,(ix+2)        ; add frame number.
-gspra0 rrca                ; multiply by 32.
-       rrca
-       rrca
+
+gspra0 rrca                ; multiply by 128.
        ld d,a              ; store in d.
-       and 224             ; low byte bits.
+       and 128             ; low byte bit.
        ld e,a              ; got low byte.
        ld a,d              ; restore result.
-       and 31              ; high byte bits.
+       and 127             ; high byte bits.
        ld d,a              ; displacement high byte.
        ld hl,sprgfx        ; address of play sprites.
-       add hl,de           ; frame * 32.
-       add hl,de           ; frame * 64.
-       add hl,de           ; frame * 96.
-       add hl,de           ; frame * 128.
-       add hl,de           ; frame * 160.
+       add hl,de           ; point to frame.
 
        ld a,(dispy)        ; y coordinate.
-       rra                 ; test odd pixel number.
-       jr nc,gspra1        ; it's even, this address is good.
-
-       ld de,80            ; displacement to second frame.
+       and 6               ; position within byte boundary.
+       ld c,a              ; low byte of table displacement.
+       rlca                ; multiply by 32.
+       rlca                ; already a multiple
+       rlca                ; of 2, so just 4
+       rlca                ; shifts needed.
+       ld e,a              ; put displacement in low byte of de.
+       ld d,0              ; zero the high byte.
+       ld b,d              ; no high byte for mask displacement either.
        add hl,de           ; add to sprite address.
-gspra1 ex de,hl            ; need it in de for now.
+       ex de,hl            ; need it in de for now.
+       ld hl,spmask        ; pointer to mask table.
+       add hl,bc           ; add displacement to pointer.
+       ld c,(hl)           ; left mask.
+       inc hl
+       ld b,(hl)           ; right mask.
 
 ; Drop into screen address routine.
-; This routine returns a mode 0 screen address for (dispx, dispy) in hl.
+; This routine returns a screen address for (dispx, dispy) in hl.
 
-scadd  ld a,(dispx)        ; x position.
-       and 248             ; get character row (multiple of 8), only 25 so only need 5 bits.
-       ld l,a              ; copy to hl.
-       ld h,0
-       add hl,hl           ; * 16.
-       ld b,h              ; copy to bc.
-       ld c,l              ; bc = * 16.
-       add hl,hl           ; * 32.
-       add hl,hl           ; * 64.
-       add hl,bc           ; * 80.
-
-; Done character row, now work out pixel position.
-
-       ld a,(dispx)        ; restore x position.
-       and 7               ; line 0-7 within character square.
-       rlca                ; multiply by 2048.
-       rlca
-       rlca
-       add a,h             ; add to high byte.
-       add a,192           ; add base address of screen.
-       ld h,a              ; store in high byte.
-       ld a,(dispy)        ; y coordinate.
-       rra                 ; divide by 2, carry already cleared.
-       ld c,a              ; low byte.
-       ld b,0              ; no high byte.
-       add hl,bc           ; add to address.
+scadd  ld a,(dispx)        ; coordinate.
+       ld l,a              ; low byte of table.
+       ld h,251            ; high byte of 64256 (SCADTB).
+       ld a,(hl)           ; fetch high byte.
+       inc h               ; point to low byte table.
+       ld l,(hl)           ; fetch low byte.
+       ld h,a              ; hl points to start of line.
+       ld a,(dispy)        ; y pixel coordinate.
+       rrca                ; divide by 8.
+       rrca
+       rrca
+       and 31              ; squares 0 - 31 across screen.
+       add a,l             ; add to address.
+       ld l,a              ; copy to hl = address of screen.
        ret
+
+spmask defb 255,0,63,192,15,240,3,252
+
 
 ; These are the sprite routines.
 ; sspria = single sprite, old (ix).
@@ -3033,9 +2910,9 @@ scadd  ld a,(dispx)        ; x position.
 
 sspria call gsprad         ; get old sprite address.
 sspri2 ld a,16             ; vertical lines.
-sspri0 push af             ; store line counter on stack.
+sspri0 ex af,af'           ; store line counter away in alternate registers.
        call dline          ; draw a line.
-       pop af              ; restore line counter.
+       ex af,af'           ; restore line counter.
        dec a               ; one less to go.
        jp nz,sspri0
        ret
@@ -3044,77 +2921,111 @@ ssprib call gspran         ; get new sprite address.
        jp sspri2
 
 sspric call gsprad         ; get old sprite address.
-       ld (spad1),hl       ; store addresses.
-       ld (spad2),de
+       exx                 ; store addresses.
        call gspran         ; get new sprite addresses.
-       ld a,16             ; vertical lines.
-sspri1 push af             ; store line counter.
        call dline          ; draw a line.
-       ld (spad3),hl       ; store these addresses.
-       ld (spad4),de
-       ld hl,(spad1)       ; restore old addresses.
-       ld de,(spad2)
+       exx                 ; restore old addresses.
        call dline          ; delete a line.
-       ld (spad1),hl       ; store addresses.
-       ld (spad2),de
-       ld hl,(spad3)       ; flip to new sprite addresses.
-       ld de,(spad4)
-       pop af              ; restore line counter.
-       dec a               ; one less to go.
-       jp nz,sspri1
-       ret
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
+       call dline          ; delete a line.
+       exx                 ; flip to new sprite addresses.
+       call dline          ; draw a line.
+       exx                 ; restore old addresses.
 
-; Storage space for addresses.
-
-spad1  defw 0
-spad2  defw 0
-spad3  defw 0
-spad4  defw 0
+; Drop through.
+; Line drawn, now work out next target address.
 
 dline  ld a,(de)           ; graphic data.
+       and c               ; mask away what's not needed.
        xor (hl)            ; XOR with what's there.
        ld (hl),a           ; bung it in.
-       inc de              ; next graphic.
-       inc hl              ; next screen address.
+       inc l               ; next screen address.
+       inc l               ; next screen address.
        ld a,(de)           ; fetch data.
+       and b               ; mask away unwanted bits.
        xor (hl)            ; XOR with what's there.
        ld (hl),a           ; bung it in.
        inc de              ; next graphic.
-       inc hl              ; next destination address.
-       ld a,(de)           ; third bit of data.
+       dec l               ; one character cell to the left.
+       ld a,(de)           ; second bit of data.
        xor (hl)            ; XOR with what's there.
        ld (hl),a           ; bung it in.
-       inc de              ; point to next piece of image.
-       inc hl              ; next screen address.
-       ld a,(de)           ; fetch fourth byte.
-       xor (hl)            ; XOR with what's on screen.
-       ld (hl),a           ; write it back.
-       inc de              ; next graphic address.
-       inc hl              ; next screen address.
-       ld a,(de)           ; fetch last byte.
-       xor (hl)            ; XOR with screen image.
-       ld (hl),a           ; copy new image to screen.
-       inc de              ; next graphic address.
+       inc de              ; point to next line of data.
+       dec l               ; another char left.
 
 ; Line drawn, now work out next target address.
 
-nline  ld bc,2044          ; distance to next pixel minus width.
-       add hl,bc           ; point to new screen address.
+nline  inc h               ; increment pixel.
        ld a,h              ; get pixel address.
-       and 56              ; straddling character position?
-       ret nz              ; no, address is okay.
-       ld bc,49232         ; distance to next pixel.
-;       ld bc,49216         ; distance to next pixel.
-       add hl,bc           ; point to new screen address.
-       ret
-
-nline2 ld bc,2048          ; distance to next pixel minus width.
-       add hl,bc           ; point to new screen address.
+       and 7               ; straddling character position?
+       ret nz              ; no, we're on next line already.
        ld a,h              ; get pixel address.
-       and 56              ; straddling character position?
-       ret nz              ; no, address is okay.
-       ld bc,49232         ; distance to next pixel.
-       add hl,bc           ; point to new screen address.
+       sub 8               ; subtract 8 for start of segment.
+       ld h,a              ; new high byte of address.
+       ld a,l              ; get low byte of address.
+       add a,32            ; one line down.
+       ld l,a              ; new low byte.
+       ret nc              ; not reached next segment yet.
+       ld a,h              ; address high.
+       add a,8             ; add 8 to next segment.
+       ld h,a              ; new high byte.
+       cp 88               ; reached end of screen?
+       ret c               ; not yet.
+       ld h,56             ; back to ROM.
        ret
 
 
@@ -3149,15 +3060,17 @@ rtanb0 dec a               ; next one along.
 ; Check for collision with other sprite, strict enforcement.
 
 sktyp  ld hl,sprtab        ; sprite table.
-       ld c,NUMSPR         ; number of sprites.
-sktyp0 ld (skptr),hl       ; store pointer to sprite.
+numsp2 ld a,NUMSPR         ; number of sprites.
+sktyp0 ex af,af'           ; store loop counter.
+       ld (skptr),hl       ; store pointer to sprite.
        ld a,(hl)           ; get sprite type.
        cp b                ; is it the type we seek?
        jr z,coltyp         ; yes, we can use this one.
 sktyp1 ld hl,(skptr)       ; retrieve sprite pointer.
        ld de,TABSIZ        ; size of each entry.
        add hl,de           ; point to next sprite in table.
-       dec c               ; one iteration fewer.
+       ex af,af'           ; restore loop counter.
+       dec a               ; one less iteration.
        jp nz,sktyp0        ; keep going until we find a slot.
        ld hl,0             ; default to ROM address - no sprite.
        ld (skptr),hl       ; store pointer to sprite.
@@ -3182,15 +3095,15 @@ colc16 ld a,(ix+X)         ; x coord.
        neg                 ; make negative positive.
 colc1a cp 16               ; within x range?
        jr nc,sktyp1        ; no - they've missed.
-       ld h,a              ; store difference.
+       ld c,a              ; store difference.
        ld a,(ix+Y)         ; y coord.
        sub d               ; subtract y.
        jr nc,colc1b        ; result is positive.
        neg                 ; make negative positive.
-colc1b cp 10               ; within y range?
+colc1b cp 16               ; within y range?
        jr nc,sktyp1        ; no - they've missed.
-       add a,h             ; add x difference.
-       cp 21               ; only 4 corner pixels touching?
+       add a,c             ; add x difference.
+       cp 26               ; only 5 corner pixels touching?
        ret c               ; carry set if there's a collision.
        jp sktyp1           ; try next sprite in table.
 
@@ -3206,7 +3119,7 @@ colty1 push ix             ; base sprite address onto stack.
 
 disply ld bc,displ0        ; display workspace.
        call num2ch         ; convert accumulator to string.
-displ1 dec bc              ; back one character.
+       dec bc              ; back one character.
        ld a,(bc)           ; fetch digit.
        or 128              ; insert end marker.
        ld (bc),a           ; new value.
@@ -3313,7 +3226,7 @@ gravst ld a,(ix+14)        ; jump pointer high.
 evftf  jp z,evnt15         ; yes, fallen too far.
        ret
 
-; Old gravity processing for compatibility with Spectrum versions 4.6 and 4.7.
+; Old gravity processing for compatibility with 4.6 and 4.7.
 
 ogrv   ld e,(ix+14)        ; get index to table.
        ld d,0              ; no high byte.
@@ -3380,7 +3293,7 @@ ifall  ld a,(ix+13)        ; jump pointer flag.
        call plchk          ; block, platform check.
        ret nz              ; it's solid, don't fall.
        ld a,(dispy)        ; y coordinate.
-       call rem5           ; position straddling block cells.
+       and 7               ; position straddling block cells.
        jr z,ifalls         ; no more checks needed.
        inc hl              ; look to third cell.
        call plchk          ; block, platform check.
@@ -3536,50 +3449,34 @@ evis0  call evnt09         ; perform event.
 
 clw    ld hl,(wintop)      ; get coordinates of window.
        ld (dispx),hl       ; put into dispx for calculation.
-       ld a,(papmsk)       ; get paper colour.
-       ld c,a              ; set colour in c register.
-       call gprad          ; get print address.
-       ex de,hl            ; flip screen address into hl.
        ld a,(winhgt)       ; height of window.
-       rlca                ; multiply by 8 for block height.
-       rlca
-       rlca
        ld b,a              ; copy to b register.
-clw1   push bc             ; store lines on stack.
+clw3   push bc             ; store lines on stack.
        ld a,(winwid)       ; width of window.
-       ld e,a              ; copy to e.
-       rlca                ; multiply by 4.
-       rlca
-       add a,e             ; multiple of 5 = pixels to write.
-       srl a               ; divide by 2 = bytes to write.
-       push hl             ; store screen address.
-clw0   ld (hl),c           ; write to screen.
-       inc hl              ; next 2 pixels.
-       dec a               ; one less byte.
-       jr nz,clw0          ; repeat to end of window.
-       pop hl              ; restore screen address.
-       call nline2         ; down one line.
+clw2   ex af,af'           ; store column counter.
+       call gprad          ; get print address.
+       xor a               ; zero byute to write.
+       ld b,8              ; pixel height of each cell.
+clw1   ld (de),a           ; copy to screen.
+       inc d               ; next screen row down.
+       djnz clw1
+       call gaadd          ; get attribute address.
+       ld a,(23693)        ; get colour.
+       ld (hl),a           ; write colour.
+       ld hl,dispy         ; column position.
+       inc (hl)            ; next column.
+       ex af,af'           ; restore column counter.
+       dec a               ; one less to do.
+       jr nz,clw2          ; repeat for remaining columns.
+       ld a,(winlft)       ; get left edge.
+       ld (dispy),a        ; reset y.
+       ld hl,dispx         ; line.
+       inc (hl)            ; next line down.
        pop bc              ; restore line counter.
-       djnz clw1           ; repeat down the screen.
+       djnz clw3           ; repeat down the screen.
        ld hl,(wintop)      ; get coordinates of window.
        ld (charx),hl       ; put into display position.
        ret
-
-; Redefine key.
-; Go through table of 80 keys testing each one.
-; Return code for first detected keypress.
-
-redky  call debkey         ; debounce previous key.
-       ld b,80             ; codes to check.
-redky0 ld a,b              ; put code in accumulator.
-       dec a               ; test 0 - 79, not 1 - 80.
-       call 47902          ; check if key pressed.
-       jr nz,redky1        ; pressed.
-       djnz redky0         ; repeat until we've scanned them all.
-       jr redky            ; repeat until something is pressed.
-redky1 dec b               ; always one less.
-       ret
-       
 
 ; Effects code.
 ; Ticker routine is called 25 times per second.
@@ -3590,31 +3487,14 @@ scrly  ret
        push hl             ; store screen address.
 scrly1 push bc             ; store rows on stack.
        push hl
-
        ld a,(txtwid)       ; characters wide.
-       ld b,a              ; copy to b.
-       rlca                ; double it.
-       rlca                ; now quadruple it.
-       add a,b             ; quintuple width.
-       srl a               ; divide by 2 for number of bytes to shift.
        ld b,a              ; put into the loop counter.
-       ld d,0              ; clear previous pixels byte.
-scrly0 ld a,(hl)           ; get byte from screen.
-       ld e,a              ; copy to e.
-       and 85              ; take right pixel.
-       rlca                ; shift into left position.
-       ld (hl),a           ; write to screen.
-       ld a,d              ; value of 2 pixels to our right.
-       and 170             ; we want the left pixel of that.
-       rrca                ; shift into right position.
-       or (hl)             ; merge with screen image.
-       ld (hl),a           ; write to screen.
-       ld d,e              ; get old value for next time round.
-       dec hl              ; 2 pixels left.
+       and a               ; reset carry flag.
+scrly0 rl (hl)             ; rotate left.
+       dec l               ; char left.
        djnz scrly0         ; repeat for width of ticker message.
        pop hl
-       call nline2         ; next screen row down.
-
+       inc h               ; next row down.
        pop bc              ; retrieve row counter from stack.
        djnz scrly1         ; repeat for all rows.
        ld hl,(txtpos)      ; get text pointer.
@@ -3632,37 +3512,24 @@ scrly5 rlca
        ld a,b              ; restore the shift.
        and 248
        ld e,a
-       ld hl,font-256      ; font address.
+       ld hl,(23606)       ; font address.
        add hl,de           ; point to image of character.
        ex de,hl            ; need the address in de.
-       pop hl              ; restore screen address.
+       pop hl
 
        ld a,(txtbit)
        ld c,a
-       ld b,8              ; height of ticker in pixels.
-scrly3 ld a,(hl)           ; get screen byte.
-       and 170             ; mask off right bit colours.
-       ld (hl),a           ; write back to screen.
-       ld a,(de)           ; get image of char line.
+       ld b,8
+scrly3 ld a,(de)           ; get image of char line.
        and c               ; test relevant bit of char.
-       jr z,scrly7         ; not set, write paper pixel.
-       ld a,(inkmsk)       ; get ink colour.
-       jr scrly2
-scrly7 ld a,(papmsk)       ; get paper colour.
-scrly2 and 85              ; remove left bit.
-       or (hl)             ; merge with screen.
-       ld (hl),a           ; write new bit.
-       push bc             ; preserve row number and column bit.
-       call nline2         ; next screen row down.
-       pop bc              ; restore row number and column bit.
+       jr z,scrly2         ; not set - skip.
+       inc (hl)            ; set bit.
+scrly2 inc h               ; next line of window.
        inc de              ; next line of char.
        djnz scrly3
        ld hl,txtbit        ; bit of text to display.
-       rr (hl)             ; next bit of char to use.
-       ld a,(hl)           ; get bit value.
-       cp 8                ; last valid value.
+       rrc (hl)            ; next bit of char to use.
        ret nc              ; not reached end of character yet.
-       ld (hl),128         ; start at leftmost bit again.
        ld hl,(txtpos)      ; text pointer.
        ld a,(hl)           ; what was the character?
        inc hl              ; next character in message.
@@ -3675,7 +3542,7 @@ scrly4 ld hl,(txtini)      ; start of scrolling message.
 scrly6 ld (txtpos),hl      ; new text pointer position.
        ret
 
-iscrly call preprt         ; set up display position.
+iscrly call prescr         ; set up display position.
        ld hl,msgdat        ; text messages.
        ld a,b              ; width.
        dec a               ; subtract one.
@@ -3688,16 +3555,11 @@ iscrly call preprt         ; set up display position.
        ld (txtini),hl      ; set initial text position.
        ld a,42             ; code for ld hl,(nn).
 iscrl0 ld (scrly),a        ; enable/disable scrolling routine.
-       call preprt         ; set up display position.
+       call prescr         ; set up display position.
        call gprad          ; get print address.
-       ld a,b              ; width of ticker.
-       rlca                ; multiple of 2.
-       rlca                ; multiple of 4.
-       add a,b             ; now a multiple of 5.
-       srl a               ; divide by 2 for number of bytes.
-       ld l,a              ; copy to hl.
+       ld l,b              ; width in b so copy to hl.
        ld h,0              ; no high byte.
-       dec hl              ; left to end of ticker display.
+       dec hl              ; width minus one.
        add hl,de           ; add width.
        ld (txtscr),hl      ; set text screen address.
        ld a,b              ; width.
@@ -3705,8 +3567,6 @@ iscrl0 ld (scrly),a        ; enable/disable scrolling routine.
        ld hl,txtbit        ; bit of text to display.
        ld (hl),128         ; start with leftmost bit.
        jr scrly4
-
-lstrnd equ $               ; end of "random" area.
 
 ; Sprite table.
 ; ix+0  = type.
@@ -3749,7 +3609,6 @@ sprtab equ $
 ssprit defb 255,255,255,255,255,255,255,0,192,120,0,0,0,255,255,255,255
 
 roomtb defb 34                     ; room number.
-nosnd  defb 255
 
 ; Everything below here will be generated by the editors.
 

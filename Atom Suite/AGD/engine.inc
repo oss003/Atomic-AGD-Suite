@@ -1,28 +1,100 @@
-; Game engine code --------------------------------------------------------------
-
+;--------------------------------------------------------------
 ; Arcade Game Designer.
 ; (C) 2008 Jonathan Cauldwell.
-; ZX Spectrum Next Engine v0.1.
+; ZX Spectrum Next Engine v0.7.
+; Acorn Atom port by K.v.Oss 2018
+;--------------------------------------------------------------
+
+; Conditional compilation flags
+; Code is installed if flag is set
+; Flags are set in commandline assembly or by the compiler
+
+; Flags set by AGD compiler
+;	mflag  			; MENU + INV
+;	pflag 			; particle engine
+;	sflag 			; scrollytext
+;	dflag 			; digging mode
+;	cflag			; collectable blocks
+;	oflag			; objects
+;	lflag			; ladders
+;
+; Flags set manually
+;	aflag			; adventure mode
+;	bflag			; big sprites (16x24)
+;	gflag			; graphic colour mode
+;	hflag			; hidden sprite mode
+;	iflag			; invert mode
+
+.if mflag 
+	.out "- MEN/INV enabled"  
+.endif
+.if pflag 
+	.out "- Particles enabled" 
+.endif
+.if sflag 
+	.out "- Scrolling enabled" 
+.endif
+.if dflag
+	.out "- Digging enabled" 
+.endif
+.if cflag
+	.out "- Collectable blocks enabled" 
+.endif
+.if oflag
+	.out "- Objects enabled" 
+.endif
+.if lflag
+	.out "- Ladders enabled" 
+.endif
+.if aflag
+	.out "- Adventure mode enabled" 
+.endif
+.if bflag
+	.out "- Big Sprites (16x24) enabled" 
+.endif
+.if gflag
+	.out "- Colourmode enabled" 
+.endif
+.if hflag
+	.out "- Hidden sprites/foregroundblocks enabled" 
+.endif
+.if iflag
+	.out "- Invert mode enabled" 
+.endif
 
 ; Global definitions ------------------------------------------------------------
 
 	FONT = font		; Font address
 
+	green	= $00		; Colour definition filters
+	yellow	= $55
+	blue	= $aa
+	red	= $ff
+
 ; Block characteristics.
 
-	PLATFM = 1		; platform.
-	WALL = PLATFM + 1	; solid wall.
-	LADDER = WALL + 1	; ladder.
-	FODDER = LADDER + 1	; fodder block.
-	DEADLY = FODDER + 1	; deadly block.
-	CUSTOM = DEADLY + 1	; custom block.
-	WATER  = CUSTOM + 1	; water block.
-        COLECT = WATER + 1      ; collectable block.
-        NUMTYP = COLECT + 1     ; number of types.
+	PLATFM	= 1		; platform.
+	WALL	= PLATFM + 1	; solid wall.
+	LADDER	= WALL + 1	; ladder.
+	FODDER	= LADDER + 1	; fodder block.
+	DEADLY	= FODDER + 1	; deadly block.
+	CUSTOM	= DEADLY + 1	; custom block.
+	WATER	= CUSTOM + 1	; water block.
+        COLECT	= WATER + 1	; collectable block.
+        NUMTYP	= COLECT + 1	; number of types.
 
 ; Sprites.
 
-	NUMSPR = 12		; number of sprites.
+.if bflag 
+	SPR_HGT	= 24		; Sprite height
+	SPR_WID = 16		; Sprite width
+	NUMSPR	= 8		; number of sprites.
+.else				; 16x16 sprites
+	SPR_HGT = 16		; Sprite height
+	SPR_WID = 16		; Sprite width
+	NUMSPR	= 12		; number of sprites.
+.endif
+
 	TABSIZ = 17		; size of each entry.
 	SPRBUF = NUMSPR * TABSIZ; size of entire table.
 	NMESIZ = 4		; bytes stored in nmetab for each sprite.
@@ -34,19 +106,6 @@
 
 	NUMSHR = 55		; pieces of shrapnel.
 	SHRSIZ = 6		; bytes per particle.
-
-; Local vars
-
-;	scraddr	= $80
-;	fntaddr	= $82
-;	tileaddr= $84
-;	bufaddr	= $86
-;	tmp     = $88
-
-;	scr_l	= $90
-;	scr_r	= $92
-;	scr_txt	= $94
-	pbptr	= $96		; Needed for Adventuremode
 
 ; System constants
 
@@ -66,54 +125,8 @@
 	SCRSYNC1 = $fe6b	; wait for CRT field flyback 60 Hz
 	OSRDCH   = $fe94	; get key subroutine
         READKEY  = $fe71	; scan key matrix subroutine
+	OSWRCH	 = $fff4	; write character
 
-; Conditional compilation flags
-; Flags are set in commandline assembly
-
-; Flags set by AGD compiler
-;	mflag  			; MENU + INV
-;	pflag 			; particle engine
-;	sflag 			; scrollytext
-;	dflag 			; digging mode
-;	cflag			; collectable blocks
-;	oflag			; objects
-;	lflag			; ladders
-;
-; Flags set manually
-;	iflag			; invert mode
-;	aflag			; adventure mode
-;	hflag			; hidden sprite mode
-
-.if mflag 
- .out "- MEN/INV enabled"  
-.endif
-.if pflag 
- .out "- Particles enabled" 
-.endif
-.if sflag 
- .out "- Scrolling enabled" 
-.endif
-.if dflag
- .out "- Digging enabled" 
-.endif
-.if cflag
- .out "- Collectable blocks enabled" 
-.endif
-.if oflag
- .out "- Objects enabled" 
-.endif
-.if lflag
- .out "- Ladders enabled" 
-.endif
-.if iflag
- .out "- Invert mode enabled" 
-.endif
-.if aflag
- .out "- Adventure mode enabled" 
-.endif
-.if hflag
- .out "- Hidden sprites/foregroundblocks enabled" 
-.endif
 
 .if iflag
 	TxtInvert   = $ff	; Invert byte for character printing
@@ -123,9 +136,11 @@
 	ScrFillByte = $00	; Screen fill byte for CLS
 .endif
 
-	ScrMode     = $f0	; Screen mode:
-				;  $d0 = CLEAR4a colour
-				;  $f0 = CLEAR4  mono
+.if gflag
+	ScrMode     = $d0	;  $d0 = CLEAR4a colour
+.else
+	ScrMode     = $f0	;  $f0 = CLEAR4  mono
+.endif
 
 ;===============================================================
 ; Game starts here
@@ -133,102 +148,62 @@
 
 .segment "CODE"
 
-;--------------------------------------------------------------
-; If a font is required...
-;--------------------------------------------------------------
-
-;	lda #<(FONT-256)	; address of font.
-;	sta #<(FONT-256)r
-;	lda #>(FONT-256)
-;	sta #>(FONT-256)
-
 	jsr game	 	; start the game.
 	lda #12			; Clear screen + exit to Basic
-	jmp $fff4
+	jmp OSWRCH
 	
-;contrl:	.byte 0			; control, 0 = keyboard, 1 = Kempston, 2 = Sinclair, 3 = Mouse.
-;joyval:	.byte 0			; joystick reading.
-;frmno:	.byte 0			; selected frame.
+; Definition of variables
+; Make sure pointers are arranged in the same order as the data itself.
+
+msgptr:		.word msgdat	; messages
+blkptr:		.word chgfx	; block graphics.
+proptr:		.word bprop	; address of char properties.
+sptptr:		.word sprgfx	; sprite graphics
+frmptr:		.word frmlst	; sprite frames.
+scrptr:		.word scdat	; address of screens.
+nmeptr:		.word nmedat	; enemy start positions.
+objptr:		.word objdta	; object graphics
+
+TxtFilter:	.byte $ff
+txtcol:		.byte green,yellow,blue,red
 
 ; Don't change the order of these four.  
 ; Menu routine relies on winlft following wintop.
 
-wintop:	.byte WINDOWTOP		; top of window.
-winlft:	.byte WINDOWLFT		; left edge.
-winhgt:	.byte WINDOWHGT		; window height.
-winwid:	.byte WINDOWWID		; window width.
-numob:	.byte NUMOBJ		; number of objects in game.
+wintop:		.byte WINDOWTOP	; top of window.
+winlft:		.byte WINDOWLFT	; left edge.
+winhgt:		.byte WINDOWHGT	; window height.
+winwid:		.byte WINDOWWID	; window width.
+numob:		.byte NUMOBJ	; number of objects in game.
 
 ; Variables start here.
 ; Pixel versions of wintop, winlft, winhgt, winwid.
 
-wntopx:	.byte (8 * WINDOWTOP)
-wnlftx:	.byte (8 * WINDOWLFT)
-wnbotx:	.byte ((WINDOWTOP * 8) + (WINDOWHGT * 8) - 16)
-wnrgtx:	.byte ((WINDOWLFT * 8) + (WINDOWWID * 8) - 16)-2
-
-;scno:	.byte 0			; present screen number.
-;numlif:	.byte 3			; number of lives.
-
-;vara:	.byte 0			; general-purpose variable.
-;varb:	.byte 0			; general-purpose variable.
-;varc:	.byte 0			; general-purpose variable.
-;vard:	.byte 0			; general-purpose variable.
-;vare:	.byte 0			; general-purpose variable.
-;varf:	.byte 0			; general-purpose variable.
-;varg:	.byte 0			; general-purpose variable.
-;varh:	.byte 0			; general-purpose variable.
-;vari:	.byte 0			; general-purpose variable.
-;varj:	.byte 0			; general-purpose variable.
-;vark:	.byte 0			; general-purpose variable.
-;varl:	.byte 0			; general-purpose variable.
-;varm:	.byte 0			; general-purpose variable.
-;varn:	.byte 0			; general-purpose variable.
-;varo:	.byte 0			; general-purpose variable.
-;varp:	.byte 0			; general-purpose variable.
-;varq:	.byte 0			; general-purpose variable.
-;varr:	.byte 0			; general-purpose variable.
-;vars:	.byte 0			; general-purpose variable.
-;vart:	.byte 0			; general-purpose variable.
-;varu:	.byte 0			; general-purpose variable.
-;varv:	.byte 0			; general-purpose variable.
-;varw:	.byte 0			; general-purpose variable.
-;varz:	.byte 0			; general-purpose variable.
-
-;charx:	.byte 0			; cursor x position.
-;chary:	.byte 0			; cursor y position.
-
-;clock:	.byte 0			; last clock reading.
-;varrnd:	.byte 255		; last random number.
-;varobj:	.byte 254		; last object number.
-;varopt:	.byte 255		; last option chosen from menu.
-;varblk:	.byte 255		; block type.
-;nexlev:	.byte 0			; next level flag.
-;restfl:	.byte 0			; restart screen flag.
-;deadf:	.byte 0			; dead flag.
-;gamwon:	.byte 0			; game won flag.
-;dispx:	.byte 0			; cursor x position.
-;dispy:	.byte 0			; cursor y position.
-
-; Make sure pointers are arranged in the same order as the data itself.
-
-frmptr:	.word frmlst         ; sprite frames.
+wntopx:		.byte (8 * WINDOWTOP)
+wnlftx:		.byte (8 * WINDOWLFT)
+wnbotx:		.byte ((WINDOWTOP * 8) + (WINDOWHGT * 8) - 16)
+wnrgtx:		.byte ((WINDOWLFT * 8) + (WINDOWWID * 8) - 16)-2
 
 ; Assorted game routines which can go in contended memory.
 
 ;--------------------------------------------------------------
-; Modify for inventory.
-; called by the INV command
+; Entry for inventory called by the INV command
 ;
 ; Input:
 ;  X   = message nr with objects seperated with ,
 ;
 ; Output:
-;  OPT = selected line nr of INV menu
+;  OPT = selected objectnr of INV menu
 ;--------------------------------------------------------------
 
 .if mflag
 minve:
+.if gflag
+	lda #$ff		; blue frontcolour
+	sta andeor
+	lda #$aa		; yellow backcoloour
+	sta andeor+1
+.endif
 	lda #<(invdis)		; routine address.
 	sta mod0+1		; set up menu routine.
 	sta mod2+1		; set up count routine.
@@ -242,8 +217,7 @@ minve:
 	jmp dbox		; do menu routine.
 
 ;--------------------------------------------------------------
-; Modify for menu.
-; called by the MENU command
+; Entry for menu called by the MENU command
 ;
 ; Input:
 ;  X   = message nr with menu items seperated with ,
@@ -330,6 +304,8 @@ dbox4:
 dbox8:
 	dec z80_d		; decrement items found.
 	bne :+			; total was zero.
+	lda #255
+	sta varopt
 	jmp dbox15		
 :
 	lda z80_e		; longest line.
@@ -586,7 +562,7 @@ dbar0:
 ; Point to object
 ;
 ; Input:
-;  -
+;  combyt
 ;
 ; Output:
 ;  A = object number, A=255 if already in possession
@@ -826,6 +802,12 @@ sndtyp:	.byte 0
 ;-----------------------------------------------
 
 redraw:
+.if gflag
+	lda #$ff
+	sta andeor
+	lda #$00
+	sta andeor+1
+.endif
 	lda z80_i 		; place sprite pointer on stack.
 	pha
 	lda z80_x
@@ -887,7 +869,10 @@ rpblc1:
 cls:
 	lda #>ScreenAddr		; screen address.
 	sta clsloop+2
-	lda #ScrFillByte
+	lda andeor+1
+.if iflag
+	eor #$ff
+.endif
 	ldy #0
 clsloop:
 	sta ScreenAddr,y
@@ -1405,9 +1390,9 @@ shoot:
 	sta z80_c		; store direction in c register.
 	ldy #8
 	lda (z80_ix),y 		; y coordinate.
-shoot1:
 	clc
-	adc #7 			; down 7 pixels.
+shoot1:
+	adc #(SPR_HGT/2-1)	; down 7 pixels.
 	sta z80_l 		; puty y coordinate in l.
 
 	ldy #9
@@ -1464,7 +1449,8 @@ vapour:
 	ldy #8
 	lda (z80_ix),y 		; y coordinate.
 	clc
-	adc #7			; mid-point of sprite.
+vapou3:
+	adc #(SPR_HGT/2-1)	; mid-point of sprite.
 	sta z80_l
 
 	ldy #9
@@ -1828,7 +1814,7 @@ lcol1:
 	ldy #8
 	sbc (z80_ix),y		; subtract sprite y.
 lcolh:
-	cmp #16 		; within range?
+	cmp #SPR_HGT 		; within range?
 	bcc :+
 	jmp lcol2		; no, missed.
 :
@@ -2715,9 +2701,11 @@ checkx:
 
 dhisc:
 	lda #<hiscor 		; high score text.
-	sta z80_l
+	sta dscor3+1
+	sta bscor3+1
 	lda #>hiscor
-	sta z80_h
+	sta dscor3+2
+	sta bscor3+2
 	jmp dscor1		; check in printable range then show 6 digits.
 
 ;------------------------------------------------------
@@ -2726,29 +2714,36 @@ dhisc:
 
 dscor:
 	lda #<score		; score text.
-	sta z80_l
+	sta dscor3+1
+	sta bscor3+1
 	lda #>score
-	sta z80_h
+	sta dscor3+2
+	sta bscor3+2
 dscor1:
+	sty tmpscr
 	jsr preprt		; set up font and print position.
 	jsr checkx		; make sure we're in a printable range.
 
-	lda #6			; digits to display.
-	sta z80_b
+;	lda #6			; digits to display.
+;	sta z80_b
 	lda prtmod		; get print mode.
 	beq :+			; standard size text?
 	jmp bscor0		; no, show double-height.
 :
 dscor0:
-	ldy #0
-	lda (z80_hl),y 		; fetch character.
+;	ldy #0
+;	lda (z80_hl),y 		; fetch character.
+	ldy tmpscr
+dscor3:
+	lda score,y
 	jsr pchar 		; display character.
 	inc dispx		; move along x coordinate
 
-	inc z80_l		; next score column.
-	bne :+
-	inc z80_h
-:
+;	inc z80_l		; next score column.
+;	bne :+
+;	inc z80_h
+;:
+	inc tmpscr
 	dec z80_b
 	bne dscor0 		; repeat for all digits.
 dscor2:
@@ -2758,6 +2753,7 @@ dscor2:
 	sta chary
 	rts
 
+tmpscr:	.byte 0
 ;------------------------------------------------------
 ; Displays the current score in double-height characters.
 ;
@@ -2767,15 +2763,19 @@ dscor2:
 ;------------------------------------------------------
 
 bscor0:
-	ldy #0
+;	ldy #0
 
-	lda (z80_hl),y 		; fetch character.
+;	lda (z80_hl),y 		; fetch character.
+	ldy tmp
+bscor3:
+	lda score,y
 	jsr bchar 		; display big char.
 
-	inc z80_l 		; next score column.
-	bne :+
-	inc z80_h
-:
+;	inc z80_l 		; next score column.
+;	bne :+
+;	inc z80_h
+;:
+	inc tmp
 	dec z80_b
 	beq :+
 	jmp bscor0 		; repeat for all digits.
@@ -3012,9 +3012,13 @@ pchar0:
 	ldy #0
 	lda (fntaddr),y 	; get image byte.
 	ldy scrtab,x		; Get rowoffset
-
-	eor #TxtInvert		; Invert
-
+.if gflag
+	and andeor
+	eor andeor+1
+.endif
+.if iflag
+	eor #$ff
+.endif
 	sta (scraddr),y 	; copy to screen.
 	inc fntaddr		; next image byte.
 	bne :+
@@ -3027,6 +3031,7 @@ pchar0:
 scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 
 ;----------------------------------------------
+
 ; Print attributes, properties and pixels.
 ;
 ; Input:
@@ -3035,6 +3040,11 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 
 colpatt:	.byte 0
 
+pbpattr:			; entry PUTBLOCK command
+	ldy charx
+	sty dispx
+	ldy chary
+	sty dispy
 pattr:
 .if aflag
 	pha
@@ -3082,7 +3092,9 @@ panp:
 panp0:
 	ldy #0
 	lda (tileaddr),y 	; get image byte.
-	eor #TxtInvert		; Invert
+.if iflag
+	eor #$ff		; Invert
+.endif
 	ldy scrtab,x
 	sta (scraddr),y 	; copy to screen.
 	inc tileaddr 		; next image byte.
@@ -3349,9 +3361,9 @@ laddd:
 	lda (z80_ix),y		; y coordinate.
 	and #254		; make it even.
 	sta (z80_ix),y 		; reset it.
-numsp5:
 	clc 			; look down 16 pixels.
-	adc #16
+numsp5:
+	adc #SPR_HGT
 	sta dispy		; coords in dispx,dispy.
 	jmp laddv
 
@@ -3374,9 +3386,9 @@ laddu:
 	lda (z80_ix),y		; y coordinate.
 	and #254 		; make it even.
 	sta (z80_ix),y		; reset it.
-numsp6:
 	clc 			; look 2 pixels above feet.
-	adc #14
+numsp6:
+	adc #SPR_HGT-2
 	sta dispy		; coords in dispx,dispy.
 laddv:
 	jsr tstbl 		; get map address.
@@ -3465,9 +3477,9 @@ cangd:
 	sta dispx
 	ldy #8
 	lda (z80_ix),y		; y coordinate.
-numsp3:
 	clc
-	adc #16 		; look down 16 pixels.
+numsp3:
+	adc #SPR_HGT 		; look down 16 pixels.
 	sta dispy		; coords in dispx,dispy.
 	jsr tstbl 		; get map address.
 	jsr plchk 		; block, platform check.
@@ -3536,7 +3548,7 @@ cangr:
 	sta dispx		; coords in dispx,dispy.
 cangh:
 cangh2:
-	lda #3			; default rows to write.
+	lda #(SPR_HGT/8+1)	; default rows to write.
 	sta z80_b
 	lda dispy		; y position.
 	and #7			; does x straddle cells?
@@ -3956,6 +3968,15 @@ jump:
 ;------------------------------------------------
 
 random:
+	lda seed
+	beq doEor
+	asl a
+	beq noEor
+	bcc noEor
+doEor:	eor #$1d
+noEor:	sta seed
+	rts
+
 	lda seed		; get last random number.
 	asl a
 	asl a
@@ -4322,7 +4343,13 @@ bchar0:
 	ldy #0
 	lda (z80_de),y 		; get a bit of the font.
 
-	eor #TxtInvert		; Invert
+.if gflag
+	and andeor
+	eor andeor+1
+.endif
+.if iflag
+	eor #$ff
+.endif
 
 	sta (scraddr),y
 	pha
@@ -4787,10 +4814,22 @@ gsprad:
 gspra0:
 	lsr a	  		; multiply by 128.
 	sta z80_d 		; store in d.
+	sta tmp1
 	lda #0
 	ror a
 	sta z80_e 		; got low byte.
-
+	sta tmp2
+.if bflag
+	lsr tmp1
+	ror tmp2
+	clc
+	lda tmp2
+	adc z80_e
+	sta z80_e
+	lda tmp1
+	adc z80_d
+	sta z80_d
+.endif
 	clc 			; address of play sprites.
 	lda z80_e
 	adc #<sprgfx
@@ -4806,8 +4845,14 @@ gspra0:
 	asl a	  		; multiply by 32.
 	asl a  			; already a multiple
 	asl a  			; of 2, so just 4
+.if bflag
+	sta tmp1
 	asl a  			; shifts needed.
-
+	clc
+	adc tmp1
+.else
+	asl a  			; shifts needed.
+.endif
 	clc 			; add to sprite address.
 	adc z80_e
 	sta z80_e
@@ -4842,7 +4887,8 @@ scadd:
 	rts
 
 spmask:	.byte 255,0,63,192,15,240,3,252
-
+tmp1:	.byte 0
+tmp2:	.byte 0
 
 ;-----------------------------------------------------------------
 ; These are the sprite routines.
@@ -4854,7 +4900,7 @@ spmask:	.byte 255,0,63,192,15,240,3,252
 sspria:
 	jsr gsprad		; get old sprite address.
 sspri2:
-	lda #16			; vertical lines.
+	lda #SPR_HGT			; vertical lines.
 	sta acnt
 sspri0:
 	jsr dline		; draw a line.
@@ -4878,8 +4924,8 @@ sspric:
 	jsr gsprad 		; get old sprite address.
 	jsr exx  		; store addresses.
 	jsr gspran 		; get new sprite addresses.
-
-	lda #16
+sspri1:
+	lda #SPR_HGT
 	sta ccnt
 lloop:
 	jsr dline 		; draw a line.
@@ -5473,11 +5519,11 @@ ifall:
 	ldy #9
 	lda (z80_ix),y			; y coordinate.
 	sta dispx
-numsp7:
 	ldy #8
 	lda (z80_ix),y			; look x coordinate.
 	clc
-	adc #16				; add 16 pixels.
+numsp7:
+	adc #SPR_HGT			; add 16 pixels.
 	sta dispy			; set up test coordinates.
 	jsr tstbl			; get map address.
 	jsr plchk			; block, platform check.
@@ -6243,5 +6289,32 @@ SHRAPN 		= SCADTB_hb+256		; shrapnel table (55x6 bytes)
 ;loopa:		.byte 0
 ;loopb:		.byte 0
 ;loopc:		.byte 0
+
+setfgcol:
+	and #3
+	tay
+	lda codcol,y
+	jmp calfgc
+
+setbgcol:
+	and #3
+calbgc:
+	tay
+	lda codcol,y
+	pha
+	lda andeor
+	eor andeor+1
+	tax
+	pla
+	sta andeor+1
+	txa
+calfgc:
+	eor andeor+1
+	sta andeor
+calex1:
+	rts
+
+andeor:	.byte 0,0
+codcol:	.byte $00,$55,$aa,$ff
 
 ; Everything below here will be generated by the editors.

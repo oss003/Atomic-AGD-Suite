@@ -108,3 +108,7 @@ shrctr:	    .res 1
 explcnt:    .res 1
 seed3:	    .res 1
 .endif
+
+.if aflag
+pbptr:       .res 2
+.endif

@@ -9,7 +9,7 @@ rem Compile AGD file
 
 rem Assemble game
  cd ..\pasmo
- pasmo %1.asm AGDgame.bin
+ pasmo -d %1.asm AGDgame.bin >game.lst
  if errorlevel 1 goto error
  copy AGDgame.bin ..\CPCDiskXP
  del %1.asm
