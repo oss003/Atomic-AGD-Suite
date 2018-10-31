@@ -148,6 +148,15 @@
 
 .segment "CODE"
 
+; Clear variables
+
+	lda #0
+	ldx #0
+clrloop:
+	sta 0,x
+	inx
+	bne clrloop
+
 	jsr game	 	; start the game.
 	lda #12			; Clear screen + exit to Basic
 	jmp OSWRCH
@@ -164,7 +173,7 @@ scrptr:		.word scdat	; address of screens.
 nmeptr:		.word nmedat	; enemy start positions.
 objptr:		.word objdta	; object graphics
 
-TxtFilter:	.byte $ff
+;TxtFilter:	.byte $ff
 txtcol:		.byte green,yellow,blue,red
 
 ; Don't change the order of these four.  
@@ -688,17 +697,6 @@ xspr0:
 	cpx #SPRBUF
 	bne xspr0		; repeat for rest of table.
 	rts
-
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Sound, NOT IMPLEMENTED!!!
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-;
-;silenc:
-;	jsr silen1 		; silence channel 1.
-;	jsr silen2 		; silence channel 2.
-;	jsr silen3 		; silence channel 3.
-;	jmp plsnd 		; play all channels to switch them off.
-;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;-------------------------------------------------------------
 ; Initialise all objects.
@@ -2895,7 +2893,7 @@ incsc2:
 
 addbo:
 	ldx #5			; last digit.
-	clc			; clear carry.
+	clc
 addbo0:
 	lda score,x		; get score.
 	adc bonus,x		; add bonus.
@@ -2903,18 +2901,13 @@ addbo0:
 	sbc #48
 	pha
 	lda #'0'
-	sta bonus,x		; zeroise bonus.
-	pla
-	cmp #58			; carried?
-	bcs addbo2		; no, do next one.
+	sta bonus,x
+	cmp #58
+	bcs addbo1
 	sec
-	sbc #10			; subtract 10.
-	sec
-	jmp addbo1
-addbo2:
-	clc
+	sbc #10
 addbo1:
-	sta score,x		; write new score.
+	sta score,x		; zeroise bonus.
 	dex			; next digit.
 	bpl addbo0		; repeat for all 6 digits.
 	rts
@@ -2943,7 +2936,23 @@ swpsb0:
 gprad:
 	lda dispx		; get x
 	sta scraddr		; store lb address
-	lda dispy		; get y
+
+	rol a
+	rol tmp
+	rol a
+	rol tmp
+	rol a
+	rol tmp
+	lda tmp
+	and #7
+	sta tmp
+	lda prtmod
+	beq :+
+	asl tmp
+:
+	lda tmp
+	clc
+	adc dispy		; get y
 	ora #$80		; add $80
 	sta scraddr+1		; store hb address
 	rts
@@ -4404,7 +4413,7 @@ achar:
 nexpos:
 	inc dispx		; move along one position.
 	lda dispx 		; get coordinate.
-	and #31
+;	and #31
 	rts 			; return with status in zero flag.
 
 ;-------------------------------------------------
@@ -4886,7 +4895,11 @@ scadd:
 	sta scraddr+1
 	rts
 
-spmask:	.byte 255,0,63,192,15,240,3,252
+spmask:	.byte $ff,$00
+	.byte $3f,$c0
+	.byte $0f,$f0
+	.byte $03,$fc
+
 tmp1:	.byte 0
 tmp2:	.byte 0
 
@@ -4900,54 +4913,92 @@ tmp2:	.byte 0
 sspria:
 	jsr gsprad		; get old sprite address.
 sspri2:
-	lda #SPR_HGT			; vertical lines.
-	sta acnt
+	lda z80_e
+	sta dline1+1		; Set spritedata address
+	sta dline2+1
+	lda z80_d
+	sta dline1+2
+	sta dline2+2
+	stx xtmp
+	ldx #0			; vertical lines.
 sspri0:
 	jsr dline		; draw a line.
-	dec acnt
-	bne sspri0		; repeat 16 times
+	cpx #16			; detect block boundery
+	bne :+			; skip if not
+	inc scraddr+1		; jump to next blockline
+:
+	cpx #32			; check finished
+.if bflag
+	bne :+			; skip if not
+	inc scraddr+1		; jump to next blockline
+	inc z80_hlp+1		; jump to next blockline
+:
+	cpx #48			; check finished
+.endif
+	bne sspri0		; no, repeat
+	ldx xtmp
 	rts
-
-acnt:	.byte 0
 
 ;-----------------------------------------------------------------
 
 ssprib:
 	jsr gspran 		; get new sprite address.
 	jmp sspri2
-
+	
 ;-----------------------------------------------------------------
-
-;ccnt = $7c
 
 sspric:
 	jsr gsprad 		; get old sprite address.
+	lda z80_e
+	sta ddline1+1		; Set spritedata address
+	sta ddline2+1
+	lda z80_d
+	sta ddline1+2
+	sta ddline2+2
 	jsr exx  		; store addresses.
+
 	jsr gspran 		; get new sprite addresses.
-sspri1:
-	lda #SPR_HGT
-	sta ccnt
+	lda z80_e
+	sta dline1+1		; Set spritedata address
+	sta dline2+1
+	lda z80_d
+	sta dline1+2
+	sta dline2+2
+
+	stx xtmp
+	ldx #0			; vertical lines.
 lloop:
 	jsr dline 		; draw a line.
+	dex
+	dex
 	jsr ddline 		; delete a line.
-	dec ccnt
-	bne lloop
-
+	cpx #16			; detect block boundery
+	bne :+			; skip if not
+	inc scraddr+1		; jump to next blockline
+	inc z80_hlp+1		; jump to next blockline
+:
+	cpx #32			; check finished
+.if bflag
+	bne :+			; skip if not
+	inc scraddr+1		; jump to next blockline
+	inc z80_hlp+1		; jump to next blockline
+:
+	cpx #48			; check finished
+.endif
+	bne lloop		; no, repeat
+	ldx xtmp
 	rts
 
-;-------------------------------------------------------------
-; Drop through.
-; Line drawn, now work out next target address.
-;
-; Input:
-;  B  = right mask
-;  C  = left mask
-;  DE = spriteaddress
-;  scraddr = screen address
-;-------------------------------------------------------------
+
+;-----------------------------------------------------------------
 
 dline:
+	ldy sprline,x		; point to screenleft
+dline1:
+	lda objdta,x		; fetch spriteleft byte
+	sta z80_a		; save spriteright byte
 .if hflag
+	sty ytmp
 	lda scraddr
 	and #31
 	sta dispx
@@ -4959,49 +5010,131 @@ dline:
 	lda (bufaddr),y
 	cmp #CUSTOM
 	beq sline
+	ldy ytmp
 .endif
-	ldy #0
-	lda (z80_de),y 		; graphic data.
-	and z80_c 		; mask away what's not needed.
-	eor (scraddr),y 	; XOR with what's there.
-	sta (scraddr),y 	; bung it in.
+	lda z80_a
+	and z80_c		; mask left
+	eor (scraddr),y		; merge with screenleft
+	sta (scraddr),y		; write screenleft
 sline:
-	inc scraddr 		; next screen address.
-	inc scraddr 		; next screen address.
 .if hflag
+	ldy ytmp
+.endif
+	inx			; next spritebyte
+	iny			; point to screenmiddle
+.if hflag
+	sty ytmp
+	ldy #1
+	lda (bufaddr),y	
+	cmp #CUSTOM
+	beq sline2
+	ldy ytmp
+.endif	
+dline2:
+	lda objdta,x		; fetch spritemiddle byte
+	eor (scraddr),y		; merge with screenmiddle
+	sta (scraddr),y		; write screenmiddle
+sline2:
+.if hflag
+	ldy ytmp
+.endif
+	iny			; point to screenright
+.if hflag
+	sty ytmp
 	ldy #2
 	lda (bufaddr),y
 	cmp #CUSTOM
-	beq sline2
-.endif	
-	ldy #0
-	lda (z80_de),y 		; fetch data.
-	and z80_b 		; mask away unwanted bits.
-	eor (scraddr),y 	; XOR with what's there.
-	sta (scraddr),y 	; bung it in.
-sline2:
-	inc z80_e 		; next graphic.
-	bne :+
-	inc z80_d
-:
-	dec scraddr 		; one character cell to the left.
+	beq sline3
+	ldy ytmp
+.endif
+	lda z80_a		; fetch spriteright byte
+	and z80_b		; mask right
+	eor (scraddr),y		; merge with screenright
+	sta (scraddr),y		; write screenright
+sline3:
 .if hflag
+	ldy ytmp
+.endif
+	inx			; next spritebyte
+
+	rts
+
+;-----------------------------------------------------------------
+
+ddline:
+	ldy sprline,x		; point to screenleft
+ddline1:
+	lda objdta,x		; fetch spriteleft byte
+	sta z80_a		; save spriteright byte
+.if hflag
+	sty ytmp
+	lda z80_hlp
+	and #31
+	sta dispx
+	lda z80_hlp+1
+	and #31
+	sta dispy
+	jsr pradd
+	ldy #0
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq dsline
+	ldy ytmp
+.endif
+	lda z80_a
+	and z80_cp		; mask left
+	eor (z80_hlp),y		; merge with screenleft
+	sta (z80_hlp),y		; write screenleft
+dsline:
+.if hflag
+	ldy ytmp
+.endif
+	inx			; next spritebyte
+	iny			; point to screenmiddle
+.if hflag
+	sty ytmp
 	ldy #1
 	lda (bufaddr),y
 	cmp #CUSTOM
-	beq sline3
+	beq dsline2
+	ldy ytmp
 .endif
-	ldy #0
-	lda (z80_de),y 		; second bit of data.
-	eor (scraddr),y 	; XOR with what's there.
-	sta (scraddr),y 	; bung it in.
+ddline2:
+	lda objdta,x		; fetch spritemiddle byte
+	eor (z80_hlp),y		; merge with screenmiddle
+	sta (z80_hlp),y		; write screenmiddle
+dsline2:
+.if hflag
+	ldy ytmp
+.endif
+	iny			; point to screenright
+.if hflag
+	sty ytmp
+	ldy #2
+	lda (bufaddr),y
+	cmp #CUSTOM
+	beq dsline3
+	ldy ytmp
+.endif
+	lda z80_a		; fetch spriteright byte
+	and z80_bp		; mask right
+	eor (z80_hlp),y		; merge with screenright
+	sta (z80_hlp),y		; write screenright
+dsline3:
+.if hflag
+	ldy ytmp
+.endif
+	inx			; next spritebyte
 
-sline3:
-	inc z80_e 		; point to next line of data.
-	bne :+
-	inc z80_d
-:
-	dec scraddr 		; another char left.
+	rts
+
+sprline:
+	.byte $00,$01,$20,$21,$40,$41,$60,$61
+	.byte $80,$81,$a0,$a1,$c0,$c1,$e0,$e1
+	.byte $00,$01,$20,$21,$40,$41,$60,$61
+	.byte $80,$81,$a0,$a1,$c0,$c1,$e0,$e1
+	.byte $00,$01,$20,$21,$40,$41,$60,$61
+	.byte $80,$81,$a0,$a1,$c0,$c1,$e0,$e1
 
 ;----------------------------------------------------------------------
 ; Line drawn, now work out next target address.
@@ -5027,75 +5160,6 @@ nline:
 ;  z80_hlp = screen address
 ;-------------------------------------------------------------
 
-ddline:
-.if hflag
-	lda z80_hlp
-	and #31
-	sta dispx
-	lda z80_hlp+1
-	and #31
-	sta dispy
-	jsr pradd
-	ldy #0
-	lda (bufaddr),y
-	cmp #CUSTOM
-	beq dsline
-.endif
-	ldy #0
-	lda (z80_dep),y 	; graphic data.
-	and z80_cp 		; mask away what's not needed.
-	eor (z80_hlp),y 	; XOR with what's there.
-	sta (z80_hlp),y 	; bung it in.
-dsline:
-	inc z80_lp 		; next screen address.
-	inc z80_lp 		; next screen address.
-.if hflag
-	ldy #2
-	lda (bufaddr),y
-	cmp #CUSTOM
-	beq dsline2
-.endif
-	ldy #0
-	lda (z80_dep),y 	; fetch data.
-	and z80_bp 		; mask away unwanted bits.
-	eor (z80_hlp),y 	; XOR with what's there.
-	sta (z80_hlp),y 	; bung it in.
-dsline2:
-	inc z80_ep 		; next graphic.
-	bne :+
-	inc z80_dp
-:
-	dec z80_lp 		; one character cell to the left.
-.if hflag
-	ldy #1
-	lda (bufaddr),y
-	cmp #CUSTOM
-	beq dsline3
-.endif
-	ldy #0
-	lda (z80_dep),y 	; second bit of data.
-	eor (z80_hlp),y 	; XOR with what's there.
-	sta (z80_hlp),y 	; bung it in.
-dsline3:
-	inc z80_ep 		; point to next line of data.
-	bne :+
-	inc z80_dp
-:
-	dec z80_hlp 		; another char left.
-
-;----------------------------------------------------------------------
-; Line drawn, now work out next target address.
-;----------------------------------------------------------------------
-
-dnline:
-	clc
-	lda z80_lp 		; get low byte of address.
-	adc #$20
-	sta z80_lp 		; new low byte of address.
-	bcc :+
-	inc z80_hp 		; new high byte of address.
-:
-	rts
 
 ;-----------------------------------------------------------
 ; Animates a sprite.

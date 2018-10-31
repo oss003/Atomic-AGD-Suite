@@ -167,26 +167,6 @@ SPRITEPOSITION 66,0,88,128
 DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
                 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
                 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-DEFINEOBJECT    0,0,160,32     ; attribute, room, Y, X
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ; Map.
 ; First argument is WIDTH, second is the startscreen
 ; We then arrange the map as a grid with correct width, monospaced here for readability
@@ -221,59 +201,29 @@ EVENT SPRITETYPE8
 EVENT INITSPRITE
 
 EVENT MAINLOOP1
-
+ PRINTMODE0
+ AT 1 1
  PRINTMODE 1
- AT 0 6
- PRINT "MENU/INVENTORY TEST:"
+ PRINT "CHR TEST:"
  PRINTMODE 0
 
- AT 4 6
- PRINT "MENU      = PRESS 1"
- AT 5 6
- PRINT "EMPTY INV = PRESS 2"
- AT 6 6
- PRINT "INVENTORY = PRESS 3"
-
- IF KEY OPTION1
-  MENU "ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN"
-  AT 23,5
-  PRINT "SELECTION WAS: "
-  DISPLAY OPT
-  PRINT "  "
- ENDIF
-
- IF KEY OPTION2
-  IF GOT 0
-    PUT 255,128,0
-  ENDIF
-  IF GOT 3
-    PUT 255,128,3
-  ENDIF
-  IF GOT 5
-    PUT 255,128,5
-  ENDIF
-  INV " OBJ0 , OBJ1 , OBJ2 , OBJ3 , OBJ4 , OBJ5"
-  AT 23,5
-  PRINT "SELECTION WAS: "
-  DISPLAY OPT
-  PRINT "  "
- ENDIF
-
- IF KEY OPTION3
-  GET 0
-  GET 3
-  GET 5
-  INV " OBJ0 , OBJ1 , OBJ2 , OBJ3 , OBJ4 , OBJ5"
-  AT 23,5
-  PRINT "SELECTION WAS: "
-  DISPLAY OPT
-  PRINT "  "
- ENDIF
+ AT 4 1
+ CHR 65
+ CHR 66
+ CHR 67
+ PRINTMODE1
+ AT 8 1
+ CHR 65
+ CHR 66
+ CHR 67 
+ USER 65
+ WAITKEY
 
 EVENT MAINLOOP2
 
 EVENT INTROMENU
-CLS
+ CLS
+
 EVENT GAMEINIT
 
 EVENT RESTARTSCREEN

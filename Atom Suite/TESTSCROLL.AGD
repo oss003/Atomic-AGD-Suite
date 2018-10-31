@@ -102,13 +102,13 @@ DEFINEFONT      0 0 0 0 0 0 0 0
                 124 198 187 227 227 187 198 124
 
 DEFINEBLOCK     EMPTYBLOCK
-                255 255 255 255 255 255 255 255 
+                255 255 255 255 255 255 255 255
                 $38
 
 
 DEFINESPRITE    1
-                255 255 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1  
-                $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 $80 1 255 255
+                0 0 192 0 56 0 30 0 1 240 95 0 51 255 28 60
+                15 240 3 192 7 0 12 0 16 0 0 0 0 0 0 0
 
 DEFINESPRITE    1
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -138,6 +138,7 @@ DEFINESCREEN
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
                   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
 SPRITEPOSITION  0 0 80 124
+SPRITEPOSITION  1 0 144 8
 
 DEFINEOBJECT    71 254 56 120
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -180,11 +181,6 @@ SPAWN 1 1
   ANIMATE
  ENDIF
 
-
- IF COLLISION BULLET
-  WAITKEY
- ENDIF
-
 EVENT SPRITETYPE1
     LET X = RIGHTEDGE                   ; move it to the right edge.
     ADD 8 TO X                          ; move centre of sprite to the very edge.
@@ -193,7 +189,7 @@ EVENT SPRITETYPE1
         ADD 9 TO H
     ENDIF
     LET Y = H                           ; set the height.
-    LASER LEFT
+    NEWPARTICLE 10
 ADD I TO H                              ; adjust height by increment.
 
 IF P = 0                                ; no pixels left to plot.

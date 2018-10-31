@@ -73,6 +73,7 @@ scr_r:      .res 2
 scr_txt:    .res 2
 
 xtmp:	    .res 1
+ytmp:	    .res 1
 spcnt:	    .res 1
 spptr:	    .res 2		; spawned sprite pointer.
 seed:	    .res 1		; seed for random numbers.
