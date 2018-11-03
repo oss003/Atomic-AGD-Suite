@@ -2902,8 +2902,9 @@ addbo0:
 	pha
 	lda #'0'
 	sta bonus,x
+	pla
 	cmp #58
-	bcs addbo1
+	bcc addbo1
 	sec
 	sbc #10
 addbo1:
