@@ -1,0 +1,317 @@
+; Spectrum Next AGD Game Compiler skeleton program
+; Jonathan Cauldwell, February 2018
+
+; Define the play area in character/block cells
+; Screen is DIVIDEided into 32 COLUMNumns and 24 rows (Spectrum and Next/Timex) or 25 rows (CPC)
+; The 4 parameters for DEFINEWINDOW are top edge, left edge, height and width respectively
+
+DEFINEWINDOW    1 1 22 30
+
+DEFINEFONT      0 0 0 0 0 0 0 0
+                0 48 48 48 48 0 48 0
+                0 108 108 0 0 0 0 0
+                0 108 254 108 108 254 108 0
+                0 24 126 120 126 30 126 24
+                0 230 236 24 48 110 206 0
+                0 48 120 48 126 204 126 0
+                0 24 48 0 0 0 0 0
+                0 12 24 24 24 24 12 0
+                0 96 48 48 48 48 96 0
+                0 0 60 24 126 24 60 0
+                0 0 24 24 126 24 24 0
+                0 0 0 0 0 24 24 48
+                0 0 0 0 126 0 0 0
+                0 0 0 0 0 56 56 0
+                0 0 6 12 24 48 96 0
+                0 124 206 222 246 230 124 0
+                0 56 120 24 24 24 126 0
+                0 124 198 6 124 192 254 0
+                0 124 198 28 6 198 124 0
+                0 24 56 120 216 254 24 0
+                0 254 192 252 6 198 124 0
+                0 124 192 252 198 198 124 0
+                0 254 6 12 24 48 48 0
+                0 124 198 124 198 198 124 0
+                0 124 198 198 126 6 124 0
+                0 0 0 48 0 0 48 0
+                0 0 48 0 0 48 48 96
+                0 0 12 24 48 24 12 0
+                0 0 0 126 0 126 0 0
+                0 0 48 24 12 24 48 0
+                0 124 198 12 24 0 24 0
+                0 124 222 254 254 192 124 0
+                0 124 198 198 254 198 198 0
+                0 252 198 252 198 198 252 0
+                0 124 198 192 192 198 124 0
+                0 248 204 198 198 204 248 0
+                0 254 192 252 192 192 254 0
+                0 254 192 252 192 192 192 0
+                0 124 198 192 222 198 124 0
+                0 198 198 254 198 198 198 0
+                0 126 24 24 24 24 126 0
+                0 6 6 6 198 198 124 0
+                0 204 216 240 216 204 198 0
+                0 192 192 192 192 192 254 0
+                0 198 238 254 198 198 198 0
+                0 198 230 246 222 206 198 0
+                0 124 198 198 198 198 124 0
+                0 252 198 198 252 192 192 0
+                0 124 198 198 246 222 124 0
+                0 252 198 198 252 204 198 0
+                0 124 192 124 6 198 124 0
+                0 254 48 48 48 48 48 0
+                0 198 198 198 198 198 124 0
+                0 198 198 198 198 108 56 0
+                0 198 198 198 198 254 108 0
+                0 198 108 56 56 108 198 0
+                0 134 204 120 48 48 48 0
+                0 254 12 24 48 96 254 0
+                0 30 24 24 24 24 30 0
+                0 0 192 96 48 24 12 0
+                0 240 48 48 48 48 240 0
+                0 48 120 252 48 48 48 0
+                0 0 0 0 0 0 0 255
+                0 60 102 248 96 96 254 0
+                0 0 120 12 124 204 124 0
+                0 96 96 124 102 102 124 0
+                0 0 60 96 96 96 60 0
+                0 12 12 124 204 204 124 0
+                0 0 120 204 248 192 124 0
+                0 28 48 56 48 48 48 0
+                0 0 124 204 204 124 12 120
+                0 192 192 248 204 204 204 0
+                0 48 0 112 48 48 120 0
+                0 12 0 12 12 12 108 56
+                0 96 120 112 112 120 108 0
+                0 48 48 48 48 48 28 0
+                0 0 248 252 252 252 252 0
+                0 0 248 204 204 204 204 0
+                0 0 120 204 204 204 120 0
+                0 0 248 204 204 248 192 192
+                0 0 124 204 204 124 12 14
+                0 0 60 96 96 96 96 0
+                0 0 120 192 120 12 248 0
+                0 48 120 48 48 48 28 0
+                0 0 204 204 204 204 120 0
+                0 0 204 204 120 120 48 0
+                0 0 204 252 252 252 120 0
+                0 0 204 120 48 120 204 0
+                0 0 204 204 204 124 12 120
+                0 0 252 24 48 96 252 0
+                0 30 24 112 24 24 30 0
+                0 24 24 24 24 24 24 0
+                0 240 48 28 48 48 240 0
+                0 60 120 0 0 0 0 0
+                124 198 187 227 227 187 198 124
+
+; Background blocks to be used in the game
+; First we define the type - eg EMPTYBLOCK, PLATFORMBLOCK or DEADLYBLOCK
+; Next 16 numbers are alternating graphic and attribute bytes from top to bottom
+
+; Block 0
+
+DEFINEBLOCK     EMPTYBLOCK      ; property
+                255 255 255 255 255 255 255 255 71                                      ; Spectrum.
+
+; Sprites
+; First argument defines the number of frames
+; Then 32 bytes for each sprite frame (Spectrum and Timex) or 80 bytes (CPC).
+
+DEFINESPRITE    1		; number of frames
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0         ; Spectrum and Timex.
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+; Screen layouts are best arranged in monospaced rows and COLUMNumns
+; DEFINESCREEN is followed by the block numbers that make up the screen
+; Our play area is 22x22, so we need 22 rows of 22 COLUMNumns
+; The compiler will automatically compress screens
+
+DEFINESCREEN
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+; Next we define the sprites that appear on the screen
+; SPRITEPOSITION requires 4 numbers for image, type, Y coordinate and X coordinate in that order
+; Coordinates are based on Spectrum screen, even for CPC so need to change for conversions
+
+SPRITEPOSITION 0,0,88,128
+
+
+; Define objects
+; Spectrum: First number is attribute, then the starting room, next 2 are for Y and X coordinates then 32 for image.
+; Timex: First number is the starting room, next 2 are for Y and X coordinates then 32 for image.
+; CPC: First number is the starting room, next 2 are for Y and X coordinates then 80 for image.
+; Coordinates are based on Spectrum screen, even for CPC so need to change for conversions
+
+; Spectrum:
+DEFINEOBJECT    66,0,160,32     ; attribute, room, Y, X
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+; Map.
+; First argument is WIDTH, second is the startscreen
+; We then arrange the map as a grid with correct width, monospaced here for readability
+; where no room is present we put 255
+
+MAP		WIDTH 3
+		STARTSCREEN 0
+		255 000 255
+ENDMAP
+
+; Sprite events
+
+; Player controls
+EVENT PLAYER
+;
+; DISLV28.AGD
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                          ;
+; Fast "Disolve" Algorithm for 32 x 24 character screen as AGD event code. ;
+; Uses only 8-bit integer arithmatic and four basic operations ( + - * / ) ;
+; No modulo arithmatic,  masking,  boolean  operations or shifts are used. ;
+; The disolve starts at a random location and fills "Block 0" at a random  ;
+; point in time thereafter.  The algorithm performs just one single visit  ;
+; to each of the 768 cells. This version for AGDX4.7                       ;
+;                                                                          ;
+; Written by: P. Mainwaring, 26th November, 2018                           ;
+;                                                                          ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+REPEAT 255                                      ; MANY DISOLVES!
+  GETRANDOM 255                                 ; 1..255 - NO ZEROS! (ADD 1 IF NEEDED)
+  ADD 1 TO RND
+  DIVIDE RND BY 2                               ; USE SETTINGB OR X IF RND CAN'T BE USED LIKE THIS
+  MULTIPLY RND BY 2                             ; ENSURE THAT RND IS AN ODD NUMBER
+  ADD 1 TO RND                                  ; IT NEEDN'T BE ODD BUT THIS PREVENTS WRAP AROUND
+;  LET RND 67                                   ; NICE TEST VALUE! REMOVE THIS LINEE AFTER TESTING
+  REPEAT 255                                    ; UNTIL B=E (255 BLOCKS + "BLOCK 0")
+    LET SETTINGA RND
+    DIVIDE RND BY 2                             ; RND = RND DIVIDE 2
+    LET COLUMN RND
+    MULTIPLY COLUMN BY 2
+    IF SETTINGA > COLUMN                        ; IF RND IS ODD,
+      LET SETTINGA RND                          ; RND = RND EOR $B8 ; (184 = 10111000)
+      DIVIDE RND BY 8                           ; $B8 = 184 = 10111000
+      LET COLUMN RND
+      MULTIPLY COLUMN BY 8                      ; HGFEDCBA -> 0HGFEDCB - RND = RND DIVIDE 2 (NO HIGH BIT)
+      SUBTRACT COLUMN FROM SETTINGA             ; 0HGFEDCB -> 0000HGFE - RND = RND DIVIDE 8
+      ADD 128 TO SETTINGA                       ; RND:        0000HGFE
+      IF RND > 7                                ; SETTINGA:        0HGFEDCB
+        ADD 64 TO SETTINGA                      ; COLUMN:        0HGFE000
+        SUBTRACT 8 FROM RND                     ; SETTINGA:        00000DCB
+      ENDIF                                     ; SETTINGA:        10000DCB
+      LET COLUMN 7                              ; SETTINGA:        1h000DCB
+      SUBTRACT RND FROM COLUMN                  ; RND:        00000GFE
+      MULTIPLY COLUMN BY 8                      ; COLUMN:        00000111
+      ADD SETTINGA TO COLUMN                    ; COLUMN:        00000gfe
+      LET RND COLUMN                            ; COLUMN:        00gfe000
+    ENDIF                                       ; COLUMN:        1hgfeDCB
+    LET SETTINGA 32                             ; MODULO = 32
+    LET COLUMN RND                              ; COLUMNUMN = RND MOD 32; COLUMNUMN = RND AND 31
+    LET LINE RND                                ; LINEE   = RND DIVIDE 32
+    DIVIDE LINE BY SETTINGA                     ; LINEE   = LINEE DIVIDE 32; LINEE = INT(LINEE / 32)
+    MULTIPLY SETTINGA BY LINE                   ; MODULO = MODULO * LINEE
+    SUBTRACT SETTINGA FROM COLUMN               ; COLUMNUMN = COLUMNUMN - MODULO
+    LET SETTINGA 1
+    IF RND = 123
+      ADD 1 TO SETTINGA
+    ENDIF
+    LET Q = SETTINGA                            ; 1 OR 2 (IF RND = 123 THEN CLEAR "BLOCK 0")
+    WHILE Q > 0
+      LET FRAME 0                               ; USE SETTINGB OR X IF FRAME CAN'T BE USED LIKE THIS
+      LET Y LINE
+      LET Z = 3
+      WHILE Z > 0                               ; 3 * FRAMES / "PAGES" (P USED IN BASIC VERSION)
+        PUTBLOCK 0                              ; COLUMNUMN = RND MOD 32; LINEE = RND DIVIDE 32
+        ADD 11 TO COLUMN                        ; MIX UP COLUMNUMNS FOR OTHER PAGES
+        IF COLUMN > 31
+          SUBTRACT 32 FROM COLUMN
+        ENDIF
+        ADD 3 TO Y                              ; MIX UP ROWS FOR OTHER PAGES
+        IF Y > 7
+          SUBTRACT 8 FROM Y
+        ENDIF
+        ADD 8 TO FRAME                          ; USE SETTINGB OR X IF FRAME
+        LET LINE FRAME                          ; CAN'T BE USED LIKE THIS
+        ADD Y TO LINE
+        SUBTRACT 1 FROM Z
+      ENDWHILE                                  ; 3 PAGES
+      LET COLUMN 0                              ; LOOP BACK TO CLEAR "BLOCK 0"
+      LET LINE 0
+      SUBTRACT 1 FROM Q
+    ENDWHILE                                    ; CLEAR "BLOCK 0"
+  ENDREPEAT                                     ; MAIN LOOP
+  WAITKEY                                       ; WAIT FOR KEYPRESS ?
+  CLS                                           ; CLEARSCREEN
+ENDREPEAT                                       ; MANY DISOLVES
+EXIT
+
+
+EVENT SPRITETYPE1
+
+EVENT SPRITETYPE2
+
+EVENT SPRITETYPE3
+
+EVENT SPRITETYPE4
+
+EVENT SPRITETYPE5
+
+EVENT SPRITETYPE6
+
+EVENT SPRITETYPE7
+
+EVENT SPRITETYPE8
+
+EVENT INITSPRITE
+
+EVENT MAINLOOP1
+
+EVENT MAINLOOP2
+
+EVENT INTROMENU
+CLS
+AT 10,8
+PRINTMODE 1
+PRINT "AGD Disolve Demo"
+PRINTMODE 0
+AT 12,4
+PRINT "Press any key to start"
+WAITKEY
+CLS
+
+EVENT GAMEINIT
+
+EVENT RESTARTSCREEN
+
+EVENT FELLTOOFAR
+
+EVENT KILLPLAYER
+
+EVENT LOSTGAME
+
+EVENT COMPLETEDGAME
+
+EVENT NEWHIGHSCORE
+
+EVENT COLLECTBLOCK
