@@ -2,7 +2,7 @@
 ; Common AGD engine
 ; Z80 conversion by Kees van Oss 2017
 ;----------------------------------------------
-	.DEFINE asm_code $0220
+	.DEFINE asm_code $0300
 	.DEFINE header   1		; Header Wouter Ras emulator
 	.DEFINE filenaam "AGD"
 

@@ -37,6 +37,13 @@ rem Set flags
  if "%5"=="b" set bf=1
  if "%6"=="b" set bf=1
 
+ set ff=0
+ if "%2"=="f" set ff=1
+ if "%3"=="f" set ff=1
+ if "%4"=="f" set ff=1
+ if "%5"=="f" set ff=1
+ if "%6"=="f" set ff=1
+
 rem Build asm file
  echo Building: %1
  echo .include "%1.inc" >game.inc
@@ -44,7 +51,7 @@ rem Build asm file
 rem Conditional assemble game
  echo.
  echo Assemble: game.asm
- ca65 -l game.lst -o %1.o game.asm -D iflag=%if% -D aflag=%af% -D hflag=%hf% -D gflag=%gf% -D bflag=%bf%
+ ca65 -l game.lst -o %1.o game.asm -D iflag=%if% -D aflag=%af% -D hflag=%hf% -D gflag=%gf% -D bflag=%bf% -D fflag=%ff%
  if not "%errorlevel%" == "0" goto failed
 
 rem Linking

@@ -652,6 +652,7 @@ prsloop:
 	jsr READKEY
 	cpy #255
 	beq prsloop		; wait until key pressed
+	jsr joykey
 	pla
 	tay
 	rts
@@ -1971,7 +1972,7 @@ mloop:
 	sta z80_i
 	jsr dspr 		; display even sprites.
 
-	jsr plsnd 		; play sounds.
+;	jsr plsnd 		; play sounds.
 
 	jsr proshr
 	lda #<(sprtab+TABSIZ) 	; address of first odd sprite.
@@ -2073,10 +2074,6 @@ rbloc0:
 ; New level
 ;----------------------------------------------------------
 
-;.repeat 270
-;  .byte 0
-;.endrep
-
 newlev:
 	lda scno 			; current screen.
 	clc
@@ -2093,10 +2090,6 @@ evwon:
 ;----------------------------------------------------------
 ; Player dead.
 ;----------------------------------------------------------
-
-;.repeat 258
-;  .byte 0
-;.endrep
 
 pdead:
 	lda #0				; zeroise accumulator.
@@ -2585,12 +2578,6 @@ skobj2:
   offset = 20
 .endif
 
-.if fflag
-.repeat 259+offset
-  .byte 0
-.endrep
-.endif
-
 spawn:
 	lda #<sprtab		; sprite table.
 	sta z80_l
@@ -3073,7 +3060,6 @@ scrtab:		.byte $e0,$c0,$a0,$80,$60,$40,$20,$00
 ;  A	= tile number
 ;----------------------------------------------
 
-
 pbpattr:			; entry PUTBLOCK command
 	ldy charx
 	sty dispx
@@ -3104,9 +3090,6 @@ pattr2:
 	jmp panp
 ; Print attributes, no properties.
 
-;.repeat 258
-; .byte 0
-;.endrep
 colpatt:	.byte 0
 
 panp:
@@ -3575,10 +3558,6 @@ cangl:
 ; Output:
 ;  A  = 0 is ok, A <>0 is not ok
 ;---------------------------------------------------------
-
-;.repeat 278
-;  .byte 0
-;.endrep
 
 cangr:
 	ldy #8

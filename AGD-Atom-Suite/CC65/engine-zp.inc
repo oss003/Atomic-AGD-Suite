@@ -66,6 +66,7 @@ scraddr:    .res 2
 fntaddr:    .res 2
 tileaddr:   .res 2
 bufaddr:    .res 2
+advbuff:    .res 2
 
 tmp:        .res 2
 scr_l:      .res 2
@@ -104,12 +105,15 @@ btop:	    .res 1    	 	; box coordinates.
 blft:	    .res 1
 .endif
 
-.if pflag
+.if sflag .or pflag
 shrctr:	    .res 1
+.endif
+.if pflag
 explcnt:    .res 1
 seed3:	    .res 1
 .endif
 
 .if aflag
 pbptr:       .res 2
+pbbuf:	     .res 2
 .endif
